@@ -7,7 +7,7 @@
 {  
   "@context":"http://schema.org",
   "@type":"Website",
-  "@id":"http:\/\/example.org\/",
+  "@id":"https:\/\/luckytking.github.io\/",
   "author": {
     "@type": "Person",
     "name": "Luck TK",
@@ -17,7 +17,7 @@
   },
   "name":"What A Wonderful World！",
   "description":"\u003cp\u003e基于Docker 容器化技术演进，微服务架构也开始广受欢迎。这里会学习使用go-kratos实现微服务~\u003c\/p\u003e\n\u003cp\u003e这篇整体主要介绍一下全图，后续会展开细节~\u003c\/p\u003e\n\u003ch2 id=\u0022微服务概念\u0022\u003e微服务概念：\u003c\/h2\u003e\n\u003cp\u003eIn short, the microservice architectural style is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery.\u003c\/p\u003e\n\u003cp\u003e简言之，微服务体系结构风格是一种将单个应用程序开发为一套小型服务的方法，每个服务都在自己的流程中运行，并与轻量级机制（通常是HTTP资源API）通信。这些服务是围绕业务能力构建的，可通过完全自动化的部署机制独立部署。\u003c\/p\u003e\n\u003cp\u003e摘自： Martin Fowler 阐述微服务 \u003ca href=\u0022https:\/\/martinfowler.com\/articles\/microservices.html\u0022\u003ehttps:\/\/martinfowler.com\/articles\/microservices.html\u003c\/a\u003e\u003c\/p\u003e\n\u003ch2 id=\u0022什么是-kratos\u0022\u003e什么是 Kratos\u003c\/h2\u003e\n\u003cp\u003e官方介绍：\u003c\/p\u003e\n\u003cp\u003eKratos 一套轻量级 Go 微服务框架，包含大量微服务相关框架及工具。\u003c\/p\u003e\n\u003cp\u003e摘自： 官网文档：https:\/\/go-kratos.dev\/docs\/\u003c\/p\u003e\n\u003ch2 id=\u0022quick-start\u0022\u003eQuick Start\u003c\/h2\u003e\n\u003cp\u003e官方介绍的demo例子 \u003ca href=\u0022https:\/\/go-kratos.dev\/docs\/getting-started\/start\u0022\u003ehttps:\/\/go-kratos.dev\/docs\/getting-started\/start\u003c\/a\u003e\u003c\/p\u003e\n\u003ch2 id=\u0022初步对kratos从四个维度来学习\u0022\u003e初步对kratos从四个维度来学习\u003c\/h2\u003e\n\u003ch3 id=\u00221-使用--构建工具\u0022\u003e1. 使用\u0026ndash;构建工具\u003c\/h3\u003e\n\u003cp\u003e构建成功用会生成目录如下\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e  .\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eDockerfile\u003c\/span\u003e  \n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eLICENSE\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eMakefile\u003c\/span\u003e  \n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eREADME\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emd\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eapi\u003c\/span\u003e \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 下面维护了微服务使用的proto文件以及根据它们所生成的go文件\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehelloworld\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ev1\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e           \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerror_reason\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003epb\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e           \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerror_reason\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eproto\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e           \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerror_reason\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eswagger\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ejson\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e           \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egreeter\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003epb\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e           \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egreeter\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eproto\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e           \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egreeter\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eswagger\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ejson\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e           \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egreeter_grpc\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003epb\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e           \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egreeter_http\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003epb\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ecmd\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 整个项目启动的入口文件\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eserver\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ewire\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 我们使用wire来维护依赖注入\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ewire_gen\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econfigs\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 这里通常维护一些本地调试用的样例配置文件\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eyaml\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerate\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emod\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003esum\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003einternal\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 该服务所有不对外暴露的代码，通常的业务逻辑都在这下面，使用internal避免错误引用\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ebiz\u003c\/span\u003e   \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 业务逻辑的组装层，类似 DDD 的 domain 层，data 类似 DDD 的 repo，repo 接口在这里定义，使用依赖倒置的原则。\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eREADME\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emd\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ebiz\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egreeter\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econf\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 内部使用的config的结构定义，使用proto格式生成\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econf\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003epb\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econf\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eproto\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edata\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 业务数据访问，包含 cache、db 等封装，实现了 biz 的 repo 接口。我们可能会把 data 与 dao 混淆在一起，data 偏重业务的含义，它所要做的是将领域对象重新拿出来，我们去掉了 DDD 的 infra层。\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eREADME\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emd\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edata\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egreeter\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eserver\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ http和grpc实例的创建和配置\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egrpc\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eserver\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eservice\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 实现了 api 定义的服务层，类似 DDD 的 application 层，处理 DTO 到 biz 领域实体的转换(DTO -\u0026gt; DO)，同时协同各类 biz 交互，但是不应处理复杂逻辑\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eREADME\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emd\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egreeter\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eservice\u003c\/span\u003e.\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e\n\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethird_party\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ api 依赖的第三方proto\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eREADME\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emd\u003c\/span\u003e\n    \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egoogle\u003c\/span\u003e\n    \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e   \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eapi\u003c\/span\u003e\n    \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eannotations\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eproto\u003c\/span\u003e\n    \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eproto\u003c\/span\u003e\n    \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e│\u003c\/span\u003e       \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttpbody\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eproto\u003c\/span\u003e\n    \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003evalidate\u003c\/span\u003e\n        \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e├──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eREADME\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emd\u003c\/span\u003e\n        \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e└──\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003evalidate\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eproto\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e构建项目一个完整的可运行的App\n通过模板工具可以生成业务代码（internal），其中包括\nDDD（领域驱动设计）presentation-application-domain-infrastructure 相关代码\n路由绑定\u003c\/p\u003e\n\u003ch3 id=\u00222-微服务支撑--微服务拓展库学习也使用\u0022\u003e2. 微服务支撑\u0026ndash;微服务拓展库学习也使用\u003c\/h3\u003e\n\u003cp\u003ekratos不仅提供了一个框架，还提供灵活支持拓展插件拓展式设计，也一些中间件可供选择。其次也提供微服务中常用的一些组件。\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003elogging: 用于请求日志的记录。\u003c\/li\u003e\n\u003cli\u003emetrics: 用于启用metric。\u003c\/li\u003e\n\u003cli\u003erecovery: 用于recovery panic。\u003c\/li\u003e\n\u003cli\u003etracing: 用于启用trace。\u003c\/li\u003e\n\u003cli\u003evalidate: 用于处理参数校验。\u003c\/li\u003e\n\u003cli\u003emetadata: 用于启用元信息传递\u003c\/li\u003e\n\u003cli\u003eauth: 用于提供基于JWT的认证请求\u003c\/li\u003e\n\u003cli\u003eratelimit: 用于服务端流量限制\u003c\/li\u003e\n\u003cli\u003ecircuitbreaker: 用于客户端熔断控制\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003ch3 id=\u00223-运维支持--dockers容器\u0022\u003e3 运维支持\u0026ndash;dockers容器\u003c\/h3\u003e\n\u003cp\u003e模板生成的docker-file 可用于直接部署容器环境\u003c\/p\u003e\n\u003ch3 id=\u00224-源码刨析--框架设计思路和中间件基础设施等学习\u0022\u003e4 源码刨析\u0026ndash;框架设计思路和中间件、基础设施等学习\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/helloworld\/helloworld\u0022\u003eAPIs\u003c\/a\u003e：协议通信以 HTTP\/gRPC 为基础，通过 Protobuf 进行定义；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/errors\/api\u0022\u003eErrors\u003c\/a\u003e：通过 Protobuf 的 Enum 作为错误码定义，以及工具生成判定接口；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/metadata\u0022\u003eMetadata\u003c\/a\u003e：在协议通信 HTTP\/gRPC 中，通过 Middleware 规范化服务元信息传递；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/config\u0022\u003eConfig\u003c\/a\u003e：支持多数据源方式，进行配置合并铺平，通过 Atomic 方式支持动态配置；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/log\u0022\u003eLogger\u003c\/a\u003e：标准日志接口，可方便集成三方 log 库，并可通过 fluentd 收集日志；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/metrics\u0022\u003eMetrics\u003c\/a\u003e：统一指标接口，可以实现各种指标系统，默认集成 Prometheus；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/traces\u0022\u003eTracing\u003c\/a\u003e：遵循 OpenTelemetry 规范定义，以实现微服务链路追踪；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022encoding\u0022\u003eEncoding\u003c\/a\u003e：支持 Accept 和 Content-Type 进行自动选择内容编码；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022transport\/transport.go\u0022\u003eTransport\u003c\/a\u003e：通用的 \u003ca href=\u0022examples\/http\/middlewares\u0022\u003eHTTP\u003c\/a\u003e\/\u003ca href=\u0022examples\/middleware\/main.go\u0022\u003egRPC\u003c\/a\u003e 传输层，实现统一的 \u003ca href=\u0022middleware\u0022\u003eMiddleware\u003c\/a\u003e 插件支持；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/registry\u0022\u003eRegistry\u003c\/a\u003e：实现统一注册中心接口，可插件化对接各种注册中心；\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022examples\/validate\u0022\u003eValidation\u003c\/a\u003e: 通过Protobuf统一定义校验规则，并同时适用于HTTP\/gRPC服务.\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/go-kratos\/swagger-api\/blob\/main\/examples\/helloworld\/server\/main.go\u0022\u003eSwaggerAPI\u003c\/a\u003e: 通过集成第三方\u003ca href=\u0022https:\/\/github.com\/go-kratos\/swagger-api\u0022\u003eSwagger插件\u003c\/a\u003e能够自动生成Swagger API json并启动一个内置的Swaager UI服务.\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e总结\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e使用模板工具减少开发重复部分的代码\u003c\/li\u003e\n\u003cli\u003e使用wire实现了di\u003c\/li\u003e\n\u003cli\u003e传输层抽象transport，支撑拓展\u003c\/li\u003e\n\u003cli\u003e业务层使用DDD，而且可以通过模板生成部分代码，简单易用\u003c\/li\u003e\n\u003cli\u003e对微服务的有比较多支撑库可供借鉴\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e后续介绍\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e使用kratos实现第一个服务\u003c\/li\u003e\n\u003cli\u003e各个库使用与源码学习\n未完待续~\u003c\/li\u003e\n\u003c\/ul\u003e",
-  "url":"http:\/\/example.org\/post\/%E7%AC%AC%E4%BA%94%E7%AF%87\/",
+  "url":"https:\/\/luckytking.github.io\/post\/%E7%AC%AC%E4%BA%94%E7%AF%87\/",
   "keywords":"[tech]"
 }
 
@@ -271,8 +271,8 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
 <meta property="og:type" content="article">
 <meta property="og:title" content="第五篇">
 <meta name="twitter:title" content="第五篇">
-<meta property="og:url" content="http://example.org/post/%E7%AC%AC%E4%BA%94%E7%AF%87/">
-<meta property="twitter:url" content="http://example.org/post/%E7%AC%AC%E4%BA%94%E7%AF%87/">
+<meta property="og:url" content="https://luckytking.github.io/post/%E7%AC%AC%E4%BA%94%E7%AF%87/">
+<meta property="twitter:url" content="https://luckytking.github.io/post/%E7%AC%AC%E4%BA%94%E7%AF%87/">
 <meta property="og:site_name" content="What A Wonderful World！">
 <meta property="og:description" content="基于Docker 容器化技术演进，微服务架构也开始广受欢迎。这里会学习使用go-kratos实现微服务~
 这篇整体主要介绍一下全图，后续会展开细节~
@@ -559,14 +559,14 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
 
     <title>第五篇</title>
 
-    <link rel="icon" href="http://example.org/favicon.png">
+    <link rel="icon" href="https://luckytking.github.io/favicon.png">
     
 
     
       <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
     
 
-    <link rel="canonical" href="http://example.org/post/%E7%AC%AC%E4%BA%94%E7%AF%87/">
+    <link rel="canonical" href="https://luckytking.github.io/post/%E7%AC%AC%E4%BA%94%E7%AF%87/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -574,7 +574,7 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
     
     
     
-    <link rel="stylesheet" href="http://example.org/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
     
     
 
@@ -589,12 +589,12 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
       <header id="header" data-behavior="2">
   <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
   <div class="header-title">
-    <a class="header-title-link" href="http://example.org/" aria-label="">What A Wonderful World！</a>
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">What A Wonderful World！</a>
   </div>
   
     
       <a class="header-right-icon open-algolia-search"
-         href="http://example.org/#search" aria-label="">
+         href="https://luckytking.github.io/#search" aria-label="">
     
     
       <i class="fa fa-lg fa-search"></i>
@@ -608,7 +608,7 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
   <div class="sidebar-container">
     
       <div class="sidebar-profile">
-        <a href="http://example.org/#about" aria-label="">
+        <a href="https://luckytking.github.io/#about" aria-label="">
           <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/7ef66f469376a00ef8d953f4220742f6?s=110" alt="" />
         </a>
         <h4 class="sidebar-profile-name">Luck TK</h4>
@@ -621,7 +621,7 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
       
   <li class="sidebar-button">
     
-      <a class="sidebar-button-link " href="http://example.org/" title="Home">
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
     
       <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
       
@@ -631,7 +631,7 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
 
   <li class="sidebar-button">
     
-      <a class="sidebar-button-link " href="http://example.org/categories" title="Categories">
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
     
       <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
       
@@ -641,7 +641,7 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
 
   <li class="sidebar-button">
     
-      <a class="sidebar-button-link " href="http://example.org/tags" title="Tags">
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
     
       <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
       
@@ -651,7 +651,7 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
 
   <li class="sidebar-button">
     
-      <a class="sidebar-button-link " href="http://example.org/archives" title="Archives">
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
     
       <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
       
@@ -661,7 +661,7 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
 
   <li class="sidebar-button">
     
-      <a class="sidebar-button-link " href="http://example.org/#about" title="About">
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
     
       <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
       
@@ -699,7 +699,7 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
       
   <li class="sidebar-button">
     
-      <a class="sidebar-button-link " href="http://example.org/index.xml" title="RSS">
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
     
       <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
       
@@ -741,9 +741,9 @@ SwaggerAPI: 通过集成第三方Swagger插件能够自动生成Swagger API json
   
     <span></span>
     
-      <a class="category-link" href="http://example.org/categories/category">category</a>, 
+      <a class="category-link" href="https://luckytking.github.io/categories/category">category</a>, 
     
-      <a class="category-link" href="http://example.org/categories/subcategory">subcategory</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/subcategory">subcategory</a>
     
   
 
@@ -886,9 +886,9 @@ DDD（领域驱动设计）presentation-application-domain-infrastructure 相关
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small"></span><br/>
                     
-  <a class="tag tag--primary tag--small" href="http://example.org/tags/tag1/">tag1</a>
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/tag1/">tag1</a>
 
-  <a class="tag tag--primary tag--small" href="http://example.org/tags/tag2/">tag2</a>
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/tag2/">tag2</a>
 
                   </div>
                 
@@ -909,7 +909,7 @@ DDD（领域驱动设计）presentation-application-domain-infrastructure 相关
         </li>
         <li class="post-action">
           
-            <a class="post-action-btn btn btn--default tooltip--top" href="http://example.org/post/%E7%AC%AC%E5%9B%9B%E7%AF%87/" data-tooltip="第四篇" aria-label=": 第四篇">
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/post/%E7%AC%AC%E5%9B%9B%E7%AF%87/" data-tooltip="第四篇" aria-label=": 第四篇">
           
               <span class="hide-xs hide-sm text-small icon-mr"></span>
               <i class="fa fa-angle-right"></i>
@@ -968,7 +968,7 @@ DDD（领域驱动设计）presentation-application-domain-infrastructure 相关
         </li>
         <li class="post-action">
           
-            <a class="post-action-btn btn btn--default tooltip--top" href="http://example.org/post/%E7%AC%AC%E5%9B%9B%E7%AF%87/" data-tooltip="第四篇" aria-label=": 第四篇">
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/post/%E7%AC%AC%E5%9B%9B%E7%AF%87/" data-tooltip="第四篇" aria-label=": 第四篇">
           
               <span class="hide-xs hide-sm text-small icon-mr"></span>
               <i class="fa fa-angle-right"></i>
@@ -1037,7 +1037,7 @@ DDD（领域驱动设计）presentation-application-domain-infrastructure 相关
     
   
     
-      <div id="cover" style="background-image:url('http://example.org/images/cover.jpg');"></div>
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover.jpg');"></div>
     
   
 
@@ -1050,7 +1050,7 @@ DDD（领域驱动设计）presentation-application-domain-infrastructure 相关
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 
-<script src="http://example.org/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
 
 
 
