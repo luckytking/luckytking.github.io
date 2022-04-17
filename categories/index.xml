@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Categories on What A Wonderful World！</title>
+    <title>Categories on jefffff&#39;s Blog</title>
     <link>https://luckytking.github.io/categories/</link>
-    <description>Recent content in Categories on What A Wonderful World！</description>
+    <description>Recent content in Categories on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 07 Apr 2022 21:22:46 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 17 Apr 2022 16:24:40 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>category</title>
-      <link>https://luckytking.github.io/categories/category/</link>
-      <pubDate>Thu, 07 Apr 2022 21:22:46 +0800</pubDate>
+      <title>kratos</title>
+      <link>https://luckytking.github.io/categories/kratos/</link>
+      <pubDate>Sun, 17 Apr 2022 16:24:40 +0800</pubDate>
       
-      <guid>https://luckytking.github.io/categories/category/</guid>
+      <guid>https://luckytking.github.io/categories/kratos/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>subcategory</title>
-      <link>https://luckytking.github.io/categories/subcategory/</link>
-      <pubDate>Thu, 07 Apr 2022 21:22:46 +0800</pubDate>
+      <title>micro service</title>
+      <link>https://luckytking.github.io/categories/micro-service/</link>
+      <pubDate>Sun, 17 Apr 2022 16:24:40 +0800</pubDate>
       
-      <guid>https://luckytking.github.io/categories/subcategory/</guid>
+      <guid>https://luckytking.github.io/categories/micro-service/</guid>
       <description></description>
     </item>
     

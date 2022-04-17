@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003ekratos 框架对传输层进行了抽象，用户可以通过实现接口来接入实现，框架默认实现了gRPC和HTTP两种通信协议传输层。\u003c\/p\u003e\n\u003ch2 id=\u0022抽象接口\u0022\u003e抽象接口\u003c\/h2\u003e\n\u003ch3 id=\u0022server-interface\u0022\u003eServer Interface\u003c\/h3\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 服务的启动和停止，用于管理服务生命周期。\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eServer\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e {\n    \u003cspan style=\u0022color:#a6e22e\u0022\u003eStart\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContext\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n    \u003cspan style=\u0022color:#a6e22e\u0022\u003eStop\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContext\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022transporter\u0022\u003eTransporter\u003c\/h3\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eTransporter\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e {\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 代表实现的通讯协议的种类，如内置的 http grpc，也可以实现其他的类型如 mqtt，websocket\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#a6e22e\u0022\u003eKind\u003c\/span\u003e() \u003cspan style=\u0022color:#a6e22e\u0022\u003eKind\u003c\/span\u003e\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 提供的服务终端地址\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#a6e22e\u0022\u003eEndpoint\u003c\/span\u003e() \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 用于标识服务的完整方法路径\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 示例: \/helloworld.Greeter\/SayHello\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#a6e22e\u0022\u003eOperation\u003c\/span\u003e() \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ http 的请求头或者 grpc 的元数据\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#a6e22e\u0022\u003eHeader\u003c\/span\u003e() \u003cspan style=\u0022color:#a6e22e\u0022\u003eHeader\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022endpointer\u0022\u003eEndpointer\u003c\/h3\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eEndpointer\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e {\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 用于实现注册到注册中心的终端地址，如果不实现这个方法则不会注册到注册中心\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#a6e22e\u0022\u003eEndpoint\u003c\/span\u003e() (\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eurl\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eURL\u003c\/span\u003e, \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e)\n}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch2 id=\u0022example-for-http\u0022\u003eExample For Http\u003c\/h2\u003e\n\u003cp\u003e使用kratos-transport 创建一个http server 和 client ，在 client和server之间通讯\u003c\/p\u003e\n\u003ch3 id=\u0022server\u0022\u003eserver\u003c\/h3\u003e\n\u003cp\u003eserver的完整代码 server.go 如下：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;context\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;encoding\/json\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;fmt\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;log\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;net\/http\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;os\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;os\/signal\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;syscall\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;time\u0026#34;\u003c\/span\u003e\n\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-kratos\/kratos\/v2\/transport\/http\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewServer\u003c\/span\u003e() \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eServer\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e = []\u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eServerOption\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddress\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;0.0.0.0:8000\u0026#34;\u003c\/span\u003e),\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTimeout\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSecond\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e),\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003esvr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewServer\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003esvr\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandle\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehelloHandler\u003c\/span\u003e{})\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esvr\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBackground\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewServer\u003c\/span\u003e()\n\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eStart\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e==\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eErrServerClosed\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrint\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Server closed under request\u0026#34;\u003c\/span\u003e)\n\t\t} \u003cspan style=\u0022color:#66d9ef\u0022\u003eelse\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFatal\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Server closed unexpected\u0026#34;\u003c\/span\u003e)\n\t\t}\n\t}\n\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003edone\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e make(\u003cspan style=\u0022color:#66d9ef\u0022\u003echan\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eos\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSignal\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003esignal\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNotify\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003edone\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eos\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eInterrupt\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003esyscall\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSIGINT\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003esyscall\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSIGTERM\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ego\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e() {\n\t\t\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;-\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003edone\u003c\/span\u003e\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eStop\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e); \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFatal\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Shutdown NewServer:\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t}\n\t}()\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eFoo\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eBar\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehelloHandler\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e{}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehelloHandler\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eServeHTTP\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResponseWriter\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRequest\u003c\/span\u003e) {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eParseForm\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eformData\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e make(\u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e]\u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{})\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ejson\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewDecoder\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBody\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eDecode\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eformData\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eformData\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ek\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003erange\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eformData\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;key\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ek\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;value\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e)\n\t}\n\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eFoo\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eBar\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;NiceToMeetYouToo\u0026#34;\u003c\/span\u003e,\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ereplyBytes\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ejson\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFprintf\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e, string(\u003cspan style=\u0022color:#a6e22e\u0022\u003ereplyBytes\u003c\/span\u003e))\n}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e启动服务\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e go run main.go\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e输出\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eAPI server listening at: [::]:60870\r\nINFO msg=[HTTP] server listening on: [::]:8000\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch3 id=\u0022client\u0022\u003eclient\u003c\/h3\u003e\n\u003cp\u003eclient 的完整代码 client.go 如下：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eclient\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n   \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;context\u0026#34;\u003c\/span\u003e\n   \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-kratos\/kratos\/v2\/transport\/http\u0026#34;\u003c\/span\u003e\n   \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;testing\u0026#34;\u003c\/span\u003e\n   \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;time\u0026#34;\u003c\/span\u003e\n\n   \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/stretchr\/testify\/assert\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eFoo\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003eBar\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eTestNewClient\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003etesting\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eT\u003c\/span\u003e) {\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003eclient\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewClient\u003c\/span\u003e(\n   \t\u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBackground\u003c\/span\u003e(),\n   \t\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithEndpoint\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;0.0.0.0:8000\u0026#34;\u003c\/span\u003e),\n   \t\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithMiddleware\u003c\/span\u003e(),\n   \t\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithTimeout\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSecond\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e),\n   )\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003eassert\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNil\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003evalues\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e]\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e{\n   \t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;foo\u0026#34;\u003c\/span\u003e:   \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;bar\u0026#34;\u003c\/span\u003e,\n   \t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;hello\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;world\u0026#34;\u003c\/span\u003e,\n   } \n   \u003cspan style=\u0022color:#a6e22e\u0022\u003eassert\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNil\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eFoo\u003c\/span\u003e{}\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003eclient\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eInvoke\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBackground\u003c\/span\u003e(), \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;POST\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003evalues\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e)\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003eassert\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNil\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLog\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;reply\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e)\n}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e运行测试用例，\u003c\/p\u003e\n\u003cp\u003eserver 输出：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003ekey foo value bar\r\nkey hello value world\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003eclient 输出：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e=== RUN   TestNewClient\r\n    client_test.go:42: reply \u0026amp;{NiceToMeetYouToo}\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch2 id=\u0022源码分析\u0022\u003e源码分析\u003c\/h2\u003e\n\u003ch3 id=\u0022transport-server\u0022\u003eTransport Server\u003c\/h3\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 服务的启动和停止，用于管理服务生命周期。\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eServer\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e {\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003eStart\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContext\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n   \u003cspan style=\u0022color:#a6e22e\u0022\u003eStop\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContext\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eStart：启动服务、监听端口、处理请求\nStop：停止服务\u003c\/p\u003e\n\u003cp\u003e如上例 server.go 中，\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003esvr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewServer\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e)\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e这个用创建一个 Server Interface的Http实例\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Server is an HTTP server wrapper.\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eServer\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eServer\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elis\u003c\/span\u003e         \u003cspan style=\u0022color:#a6e22e\u0022\u003enet\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eListener\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etlsConf\u003c\/span\u003e     \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003etls\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eConfig\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eendpoint\u003c\/span\u003e    \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eurl\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eURL\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e         \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003enetwork\u003c\/span\u003e     \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eaddress\u003c\/span\u003e     \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etimeout\u003c\/span\u003e     \u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eDuration\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efilters\u003c\/span\u003e     []\u003cspan style=\u0022color:#a6e22e\u0022\u003eFilterFunc\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ems\u003c\/span\u003e          []\u003cspan style=\u0022color:#a6e22e\u0022\u003emiddleware\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMiddleware\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003edec\u003c\/span\u003e         \u003cspan style=\u0022color:#a6e22e\u0022\u003eDecodeRequestFunc\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eenc\u003c\/span\u003e         \u003cspan style=\u0022color:#a6e22e\u0022\u003eEncodeResponseFunc\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eene\u003c\/span\u003e         \u003cspan style=\u0022color:#a6e22e\u0022\u003eEncodeErrorFunc\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003estrictSlash\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003erouter\u003c\/span\u003e      \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003emux\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRouter\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e         \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHelper\u003c\/span\u003e\n}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e可以看到，Server是对标准库 net\/http 中http.Server 的一个封装。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ ServerOption is an HTTP server option.\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eServerOption\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eServer\u003c\/span\u003e)\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e可通过 option 设置服务参数，比如例子中的\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e = []\u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eServerOption\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddress\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;0.0.0.0:8000\u0026#34;\u003c\/span\u003e),\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etransporthttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTimeout\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSecond\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e),\n\t}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eStart 启动一个net\/http.Server\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Start start the HTTP server.\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003es\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eServer\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eStart\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContext\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e { \n    \u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003es\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eInfof\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;[HTTP] server listening on: %s\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003es\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003elis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddr\u003c\/span\u003e().\u003cspan style=\u0022color:#a6e22e\u0022\u003eString\u003c\/span\u003e())\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003es\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003etlsConf\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003es\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eServeTLS\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003es\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003elis\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\u0026#34;\u003c\/span\u003e)\n\t} \u003cspan style=\u0022color:#66d9ef\u0022\u003eelse\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003es\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eServe\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003es\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003elis\u003c\/span\u003e)\n\t}\n    \u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e\n} \n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022启动流程\u0022\u003e启动流程\u003c\/h3\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ea\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eApp\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eRun\u003c\/span\u003e() \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003e_\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003erange\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ea\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eservers\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eeg\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eGo\u003c\/span\u003e(\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e() \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;-\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eDone\u003c\/span\u003e() \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ wait for stop signal\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eStop\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e)\n\t\t})\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ewg\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eAdd\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eeg\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eGo\u003c\/span\u003e(\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e() \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ewg\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eDone\u003c\/span\u003e()\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eStart\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e)\n\t\t})\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ewg\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWait\u003c\/span\u003e()\n    \u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003ekratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。\u003c\/p\u003e\n\u003ch3 id=\u0022transport-client\u0022\u003eTransport Client\u003c\/h3\u003e\n\u003cp\u003eTransport Client 是会 http CLient封装\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Client is an HTTP client.\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eClient\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e     \u003cspan style=\u0022color:#a6e22e\u0022\u003eclientOptions\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etarget\u003c\/span\u003e   \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTarget\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e        \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eresolver\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ecc\u003c\/span\u003e       \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eClient\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003einsecure\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e如client.go 中的一个Http Post\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e    \u003cspan style=\u0022color:#a6e22e\u0022\u003evalues\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e]\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e{\n\t}  \n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eFoo\u003c\/span\u003e{}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003eclient\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eInvoke\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBackground\u003c\/span\u003e(), \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;POST\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003evalues\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e) \n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eInvoke封装了post，使用更加简洁。\u003c\/p\u003e\n\u003ch2 id=\u0022总结\u0022\u003e总结\u003c\/h2\u003e\n\u003cp\u003ekratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。抽象的服务协议可以专注应用配置、服务生命周期等。层次清晰，职责清楚。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003egithub.com\/go-kratos\/kratos\/v2\/transport\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/go-kratos.dev\/docs\/component\/transport\/overview\u0022\u003ehttps:\/\/go-kratos.dev\/docs\/component\/transport\/overview\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/04\/go%E5%BE%AE%E6%9C%8D%E5%8A%A1-kratostransporter%E4%BC%A0%E8%BE%93%E5%B1%82\/",
+  "keywords":"[kratos]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="kratos">
+<meta name="description" content="kratos 框架对传输层进行了抽象，用户可以通过实现接口来接入实现，框架默认实现了gRPC和HTTP两种通信协议传输层。
+抽象接口
+Server Interface
+// 服务的启动和停止，用于管理服务生命周期。
+type Server interface {
+    Start(context.Context) error
+    Stop(context.Context) error
+}
+Transporter
+type Transporter interface {
+    // 代表实现的通讯协议的种类，如内置的 http grpc，也可以实现其他的类型如 mqtt，websocket
+    Kind() Kind
+    // 提供的服务终端地址
+    Endpoint() string
+    // 用于标识服务的完整方法路径
+    // 示例: /helloworld.Greeter/SayHello
+    Operation() string
+    // http 的请求头或者 grpc 的元数据
+    Header() Header
+}
+Endpointer
+type Endpointer interface {
+    // 用于实现注册到注册中心的终端地址，如果不实现这个方法则不会注册到注册中心
+    Endpoint() (*url.URL, error)
+}
+
+Example For Http
+使用kratos-transport 创建一个http server 和 client ，在 client和server之间通讯
+server
+server的完整代码 server.go 如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;encoding/json&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;os&#34;
+	&#34;os/signal&#34;
+	&#34;syscall&#34;
+	&#34;time&#34;
+
+	transporthttp &#34;github.com/go-kratos/kratos/v2/transport/http&#34;
+)
+
+func NewServer() *transporthttp.Server {
+	var opts = []transporthttp.ServerOption{
+		transporthttp.Address(&#34;0.0.0.0:8000&#34;),
+		transporthttp.Timeout(time.Second * 10),
+	}
+	svr := transporthttp.NewServer(opts...)
+	svr.Handle(&#34;/&#34;, &amp;helloHandler{})
+	return svr
+}
+
+func main() {
+	ctx := context.Background()
+	srv := NewServer()
+
+	err := srv.Start(ctx)
+	if err != nil {
+		if err == http.ErrServerClosed {
+			log.Print(&#34;Server closed under request&#34;)
+		} else {
+			log.Fatal(&#34;Server closed unexpected&#34;)
+		}
+	}
+
+	done := make(chan os.Signal)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		&lt;-done
+		if err := srv.Stop(ctx); err != nil {
+			log.Fatal(&#34;Shutdown NewServer:&#34;, err)
+		}
+	}()
+}
+
+type Foo struct {
+	Bar string
+}
+
+type helloHandler struct{}
+
+func (*helloHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		return
+	}
+	formData := make(map[string]interface{})
+	json.NewDecoder(r.Body).Decode(&amp;formData)
+	fmt.Println(formData)
+	for k, v := range formData {
+		fmt.Println(&#34;key&#34;, k, &#34;value&#34;, v)
+	}
+
+	reply := &amp;Foo{
+		Bar: &#34;NiceToMeetYouToo&#34;,
+	}
+	replyBytes, err := json.Marshal(reply)
+	if err != nil {
+		return
+	}
+	fmt.Fprintf(w, string(replyBytes))
+}
+
+启动服务
+ go run main.go
+输出
+API server listening at: [::]:60870
+INFO msg=[HTTP] server listening on: [::]:8000
+client
+client 的完整代码 client.go 如下：
+
+package client
+
+import (
+   &#34;context&#34;
+   &#34;github.com/go-kratos/kratos/v2/transport/http&#34;
+   &#34;testing&#34;
+   &#34;time&#34;
+
+   &#34;github.com/stretchr/testify/assert&#34;
+)
+
+type Foo struct {
+   Bar string
+}
+
+func TestNewClient(t *testing.T) {
+   client, err := http.NewClient(
+   	context.Background(),
+   	http.WithEndpoint(&#34;0.0.0.0:8000&#34;),
+   	http.WithMiddleware(),
+   	http.WithTimeout(time.Second*10),
+   )
+   assert.Nil(t, err)
+
+   values := map[string]string{
+   	&#34;foo&#34;:   &#34;bar&#34;,
+   	&#34;hello&#34;: &#34;world&#34;,
+   } 
+   assert.Nil(t, err)
+   reply := &amp;Foo{}
+   err = client.Invoke(context.Background(), &#34;POST&#34;, &#34;/&#34;, values, reply)
+   assert.Nil(t, err)
+
+   t.Log(&#34;reply&#34;, reply)
+}
+
+运行测试用例，
+server 输出：
+key foo value bar
+key hello value world
+client 输出：
+=== RUN   TestNewClient
+    client_test.go:42: reply &amp;{NiceToMeetYouToo}
+源码分析
+Transport Server
+// 服务的启动和停止，用于管理服务生命周期。
+type Server interface {
+   Start(context.Context) error
+   Stop(context.Context) error
+}
+Start：启动服务、监听端口、处理请求
+Stop：停止服务
+如上例 server.go 中，
+svr := transporthttp.NewServer(opts...)
+这个用创建一个 Server Interface的Http实例
+// Server is an HTTP server wrapper.
+type Server struct {
+	*http.Server
+	lis         net.Listener
+	tlsConf     *tls.Config
+	endpoint    *url.URL
+	err         error
+	network     string
+	address     string
+	timeout     time.Duration
+	filters     []FilterFunc
+	ms          []middleware.Middleware
+	dec         DecodeRequestFunc
+	enc         EncodeResponseFunc
+	ene         EncodeErrorFunc
+	strictSlash bool
+	router      *mux.Router
+	log         *log.Helper
+}
+
+可以看到，Server是对标准库 net/http 中http.Server 的一个封装。
+// ServerOption is an HTTP server option.
+type ServerOption func(*Server)
+
+可通过 option 设置服务参数，比如例子中的
+var opts = []transporthttp.ServerOption{
+		transporthttp.Address(&#34;0.0.0.0:8000&#34;),
+		transporthttp.Timeout(time.Second * 10),
+	}
+
+Start 启动一个net/http.Server
+// Start start the HTTP server.
+func (s *Server) Start(ctx context.Context) error { 
+    ...
+	s.log.Infof(&#34;[HTTP] server listening on: %s&#34;, s.lis.Addr().String())
+	var err error
+	if s.tlsConf != nil {
+		err = s.ServeTLS(s.lis, &#34;&#34;, &#34;&#34;)
+	} else {
+		err = s.Serve(s.lis)
+	}
+    ...
+} 
+
+启动流程
+func (a *App) Run() error {
+	...
+	for _, srv := range a.opts.servers {
+		srv := srv
+		eg.Go(func() error {
+			&lt;-ctx.Done() // wait for stop signal
+			return srv.Stop(ctx)
+		})
+		wg.Add(1)
+		eg.Go(func() error {
+			wg.Done()
+			return srv.Start(ctx)
+		})
+	}
+	wg.Wait()
+    ...
+}
+kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。
+Transport Client
+Transport Client 是会 http CLient封装
+// Client is an HTTP client.
+type Client struct {
+	opts     clientOptions
+	target   *Target
+	r        *resolver
+	cc       *http.Client
+	insecure bool
+}
+如client.go 中的一个Http Post
+    values := map[string]string{
+	}  
+	reply := &amp;Foo{}
+	err = client.Invoke(context.Background(), &#34;POST&#34;, &#34;/&#34;, values, reply) 
+Invoke封装了post，使用更加简洁。
+总结
+kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。抽象的服务协议可以专注应用配置、服务生命周期等。层次清晰，职责清楚。
+参考
+
+github.com/go-kratos/kratos/v2/transport
+https://go-kratos.dev/docs/component/transport/overview
+">
+
+
+<meta property="og:description" content="kratos 框架对传输层进行了抽象，用户可以通过实现接口来接入实现，框架默认实现了gRPC和HTTP两种通信协议传输层。
+抽象接口
+Server Interface
+// 服务的启动和停止，用于管理服务生命周期。
+type Server interface {
+    Start(context.Context) error
+    Stop(context.Context) error
+}
+Transporter
+type Transporter interface {
+    // 代表实现的通讯协议的种类，如内置的 http grpc，也可以实现其他的类型如 mqtt，websocket
+    Kind() Kind
+    // 提供的服务终端地址
+    Endpoint() string
+    // 用于标识服务的完整方法路径
+    // 示例: /helloworld.Greeter/SayHello
+    Operation() string
+    // http 的请求头或者 grpc 的元数据
+    Header() Header
+}
+Endpointer
+type Endpointer interface {
+    // 用于实现注册到注册中心的终端地址，如果不实现这个方法则不会注册到注册中心
+    Endpoint() (*url.URL, error)
+}
+
+Example For Http
+使用kratos-transport 创建一个http server 和 client ，在 client和server之间通讯
+server
+server的完整代码 server.go 如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;encoding/json&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;os&#34;
+	&#34;os/signal&#34;
+	&#34;syscall&#34;
+	&#34;time&#34;
+
+	transporthttp &#34;github.com/go-kratos/kratos/v2/transport/http&#34;
+)
+
+func NewServer() *transporthttp.Server {
+	var opts = []transporthttp.ServerOption{
+		transporthttp.Address(&#34;0.0.0.0:8000&#34;),
+		transporthttp.Timeout(time.Second * 10),
+	}
+	svr := transporthttp.NewServer(opts...)
+	svr.Handle(&#34;/&#34;, &amp;helloHandler{})
+	return svr
+}
+
+func main() {
+	ctx := context.Background()
+	srv := NewServer()
+
+	err := srv.Start(ctx)
+	if err != nil {
+		if err == http.ErrServerClosed {
+			log.Print(&#34;Server closed under request&#34;)
+		} else {
+			log.Fatal(&#34;Server closed unexpected&#34;)
+		}
+	}
+
+	done := make(chan os.Signal)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		&lt;-done
+		if err := srv.Stop(ctx); err != nil {
+			log.Fatal(&#34;Shutdown NewServer:&#34;, err)
+		}
+	}()
+}
+
+type Foo struct {
+	Bar string
+}
+
+type helloHandler struct{}
+
+func (*helloHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		return
+	}
+	formData := make(map[string]interface{})
+	json.NewDecoder(r.Body).Decode(&amp;formData)
+	fmt.Println(formData)
+	for k, v := range formData {
+		fmt.Println(&#34;key&#34;, k, &#34;value&#34;, v)
+	}
+
+	reply := &amp;Foo{
+		Bar: &#34;NiceToMeetYouToo&#34;,
+	}
+	replyBytes, err := json.Marshal(reply)
+	if err != nil {
+		return
+	}
+	fmt.Fprintf(w, string(replyBytes))
+}
+
+启动服务
+ go run main.go
+输出
+API server listening at: [::]:60870
+INFO msg=[HTTP] server listening on: [::]:8000
+client
+client 的完整代码 client.go 如下：
+
+package client
+
+import (
+   &#34;context&#34;
+   &#34;github.com/go-kratos/kratos/v2/transport/http&#34;
+   &#34;testing&#34;
+   &#34;time&#34;
+
+   &#34;github.com/stretchr/testify/assert&#34;
+)
+
+type Foo struct {
+   Bar string
+}
+
+func TestNewClient(t *testing.T) {
+   client, err := http.NewClient(
+   	context.Background(),
+   	http.WithEndpoint(&#34;0.0.0.0:8000&#34;),
+   	http.WithMiddleware(),
+   	http.WithTimeout(time.Second*10),
+   )
+   assert.Nil(t, err)
+
+   values := map[string]string{
+   	&#34;foo&#34;:   &#34;bar&#34;,
+   	&#34;hello&#34;: &#34;world&#34;,
+   } 
+   assert.Nil(t, err)
+   reply := &amp;Foo{}
+   err = client.Invoke(context.Background(), &#34;POST&#34;, &#34;/&#34;, values, reply)
+   assert.Nil(t, err)
+
+   t.Log(&#34;reply&#34;, reply)
+}
+
+运行测试用例，
+server 输出：
+key foo value bar
+key hello value world
+client 输出：
+=== RUN   TestNewClient
+    client_test.go:42: reply &amp;{NiceToMeetYouToo}
+源码分析
+Transport Server
+// 服务的启动和停止，用于管理服务生命周期。
+type Server interface {
+   Start(context.Context) error
+   Stop(context.Context) error
+}
+Start：启动服务、监听端口、处理请求
+Stop：停止服务
+如上例 server.go 中，
+svr := transporthttp.NewServer(opts...)
+这个用创建一个 Server Interface的Http实例
+// Server is an HTTP server wrapper.
+type Server struct {
+	*http.Server
+	lis         net.Listener
+	tlsConf     *tls.Config
+	endpoint    *url.URL
+	err         error
+	network     string
+	address     string
+	timeout     time.Duration
+	filters     []FilterFunc
+	ms          []middleware.Middleware
+	dec         DecodeRequestFunc
+	enc         EncodeResponseFunc
+	ene         EncodeErrorFunc
+	strictSlash bool
+	router      *mux.Router
+	log         *log.Helper
+}
+
+可以看到，Server是对标准库 net/http 中http.Server 的一个封装。
+// ServerOption is an HTTP server option.
+type ServerOption func(*Server)
+
+可通过 option 设置服务参数，比如例子中的
+var opts = []transporthttp.ServerOption{
+		transporthttp.Address(&#34;0.0.0.0:8000&#34;),
+		transporthttp.Timeout(time.Second * 10),
+	}
+
+Start 启动一个net/http.Server
+// Start start the HTTP server.
+func (s *Server) Start(ctx context.Context) error { 
+    ...
+	s.log.Infof(&#34;[HTTP] server listening on: %s&#34;, s.lis.Addr().String())
+	var err error
+	if s.tlsConf != nil {
+		err = s.ServeTLS(s.lis, &#34;&#34;, &#34;&#34;)
+	} else {
+		err = s.Serve(s.lis)
+	}
+    ...
+} 
+
+启动流程
+func (a *App) Run() error {
+	...
+	for _, srv := range a.opts.servers {
+		srv := srv
+		eg.Go(func() error {
+			&lt;-ctx.Done() // wait for stop signal
+			return srv.Stop(ctx)
+		})
+		wg.Add(1)
+		eg.Go(func() error {
+			wg.Done()
+			return srv.Start(ctx)
+		})
+	}
+	wg.Wait()
+    ...
+}
+kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。
+Transport Client
+Transport Client 是会 http CLient封装
+// Client is an HTTP client.
+type Client struct {
+	opts     clientOptions
+	target   *Target
+	r        *resolver
+	cc       *http.Client
+	insecure bool
+}
+如client.go 中的一个Http Post
+    values := map[string]string{
+	}  
+	reply := &amp;Foo{}
+	err = client.Invoke(context.Background(), &#34;POST&#34;, &#34;/&#34;, values, reply) 
+Invoke封装了post，使用更加简洁。
+总结
+kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。抽象的服务协议可以专注应用配置、服务生命周期等。层次清晰，职责清楚。
+参考
+
+github.com/go-kratos/kratos/v2/transport
+https://go-kratos.dev/docs/component/transport/overview
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go微服务  KratosTransporter传输层">
+<meta name="twitter:title" content="Go微服务  KratosTransporter传输层">
+<meta property="og:url" content="https://luckytking.github.io/2022/04/go%E5%BE%AE%E6%9C%8D%E5%8A%A1-kratostransporter%E4%BC%A0%E8%BE%93%E5%B1%82/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/04/go%E5%BE%AE%E6%9C%8D%E5%8A%A1-kratostransporter%E4%BC%A0%E8%BE%93%E5%B1%82/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="kratos 框架对传输层进行了抽象，用户可以通过实现接口来接入实现，框架默认实现了gRPC和HTTP两种通信协议传输层。
+抽象接口
+Server Interface
+// 服务的启动和停止，用于管理服务生命周期。
+type Server interface {
+    Start(context.Context) error
+    Stop(context.Context) error
+}
+Transporter
+type Transporter interface {
+    // 代表实现的通讯协议的种类，如内置的 http grpc，也可以实现其他的类型如 mqtt，websocket
+    Kind() Kind
+    // 提供的服务终端地址
+    Endpoint() string
+    // 用于标识服务的完整方法路径
+    // 示例: /helloworld.Greeter/SayHello
+    Operation() string
+    // http 的请求头或者 grpc 的元数据
+    Header() Header
+}
+Endpointer
+type Endpointer interface {
+    // 用于实现注册到注册中心的终端地址，如果不实现这个方法则不会注册到注册中心
+    Endpoint() (*url.URL, error)
+}
+
+Example For Http
+使用kratos-transport 创建一个http server 和 client ，在 client和server之间通讯
+server
+server的完整代码 server.go 如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;encoding/json&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;os&#34;
+	&#34;os/signal&#34;
+	&#34;syscall&#34;
+	&#34;time&#34;
+
+	transporthttp &#34;github.com/go-kratos/kratos/v2/transport/http&#34;
+)
+
+func NewServer() *transporthttp.Server {
+	var opts = []transporthttp.ServerOption{
+		transporthttp.Address(&#34;0.0.0.0:8000&#34;),
+		transporthttp.Timeout(time.Second * 10),
+	}
+	svr := transporthttp.NewServer(opts...)
+	svr.Handle(&#34;/&#34;, &amp;helloHandler{})
+	return svr
+}
+
+func main() {
+	ctx := context.Background()
+	srv := NewServer()
+
+	err := srv.Start(ctx)
+	if err != nil {
+		if err == http.ErrServerClosed {
+			log.Print(&#34;Server closed under request&#34;)
+		} else {
+			log.Fatal(&#34;Server closed unexpected&#34;)
+		}
+	}
+
+	done := make(chan os.Signal)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		&lt;-done
+		if err := srv.Stop(ctx); err != nil {
+			log.Fatal(&#34;Shutdown NewServer:&#34;, err)
+		}
+	}()
+}
+
+type Foo struct {
+	Bar string
+}
+
+type helloHandler struct{}
+
+func (*helloHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		return
+	}
+	formData := make(map[string]interface{})
+	json.NewDecoder(r.Body).Decode(&amp;formData)
+	fmt.Println(formData)
+	for k, v := range formData {
+		fmt.Println(&#34;key&#34;, k, &#34;value&#34;, v)
+	}
+
+	reply := &amp;Foo{
+		Bar: &#34;NiceToMeetYouToo&#34;,
+	}
+	replyBytes, err := json.Marshal(reply)
+	if err != nil {
+		return
+	}
+	fmt.Fprintf(w, string(replyBytes))
+}
+
+启动服务
+ go run main.go
+输出
+API server listening at: [::]:60870
+INFO msg=[HTTP] server listening on: [::]:8000
+client
+client 的完整代码 client.go 如下：
+
+package client
+
+import (
+   &#34;context&#34;
+   &#34;github.com/go-kratos/kratos/v2/transport/http&#34;
+   &#34;testing&#34;
+   &#34;time&#34;
+
+   &#34;github.com/stretchr/testify/assert&#34;
+)
+
+type Foo struct {
+   Bar string
+}
+
+func TestNewClient(t *testing.T) {
+   client, err := http.NewClient(
+   	context.Background(),
+   	http.WithEndpoint(&#34;0.0.0.0:8000&#34;),
+   	http.WithMiddleware(),
+   	http.WithTimeout(time.Second*10),
+   )
+   assert.Nil(t, err)
+
+   values := map[string]string{
+   	&#34;foo&#34;:   &#34;bar&#34;,
+   	&#34;hello&#34;: &#34;world&#34;,
+   } 
+   assert.Nil(t, err)
+   reply := &amp;Foo{}
+   err = client.Invoke(context.Background(), &#34;POST&#34;, &#34;/&#34;, values, reply)
+   assert.Nil(t, err)
+
+   t.Log(&#34;reply&#34;, reply)
+}
+
+运行测试用例，
+server 输出：
+key foo value bar
+key hello value world
+client 输出：
+=== RUN   TestNewClient
+    client_test.go:42: reply &amp;{NiceToMeetYouToo}
+源码分析
+Transport Server
+// 服务的启动和停止，用于管理服务生命周期。
+type Server interface {
+   Start(context.Context) error
+   Stop(context.Context) error
+}
+Start：启动服务、监听端口、处理请求
+Stop：停止服务
+如上例 server.go 中，
+svr := transporthttp.NewServer(opts...)
+这个用创建一个 Server Interface的Http实例
+// Server is an HTTP server wrapper.
+type Server struct {
+	*http.Server
+	lis         net.Listener
+	tlsConf     *tls.Config
+	endpoint    *url.URL
+	err         error
+	network     string
+	address     string
+	timeout     time.Duration
+	filters     []FilterFunc
+	ms          []middleware.Middleware
+	dec         DecodeRequestFunc
+	enc         EncodeResponseFunc
+	ene         EncodeErrorFunc
+	strictSlash bool
+	router      *mux.Router
+	log         *log.Helper
+}
+
+可以看到，Server是对标准库 net/http 中http.Server 的一个封装。
+// ServerOption is an HTTP server option.
+type ServerOption func(*Server)
+
+可通过 option 设置服务参数，比如例子中的
+var opts = []transporthttp.ServerOption{
+		transporthttp.Address(&#34;0.0.0.0:8000&#34;),
+		transporthttp.Timeout(time.Second * 10),
+	}
+
+Start 启动一个net/http.Server
+// Start start the HTTP server.
+func (s *Server) Start(ctx context.Context) error { 
+    ...
+	s.log.Infof(&#34;[HTTP] server listening on: %s&#34;, s.lis.Addr().String())
+	var err error
+	if s.tlsConf != nil {
+		err = s.ServeTLS(s.lis, &#34;&#34;, &#34;&#34;)
+	} else {
+		err = s.Serve(s.lis)
+	}
+    ...
+} 
+
+启动流程
+func (a *App) Run() error {
+	...
+	for _, srv := range a.opts.servers {
+		srv := srv
+		eg.Go(func() error {
+			&lt;-ctx.Done() // wait for stop signal
+			return srv.Stop(ctx)
+		})
+		wg.Add(1)
+		eg.Go(func() error {
+			wg.Done()
+			return srv.Start(ctx)
+		})
+	}
+	wg.Wait()
+    ...
+}
+kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。
+Transport Client
+Transport Client 是会 http CLient封装
+// Client is an HTTP client.
+type Client struct {
+	opts     clientOptions
+	target   *Target
+	r        *resolver
+	cc       *http.Client
+	insecure bool
+}
+如client.go 中的一个Http Post
+    values := map[string]string{
+	}  
+	reply := &amp;Foo{}
+	err = client.Invoke(context.Background(), &#34;POST&#34;, &#34;/&#34;, values, reply) 
+Invoke封装了post，使用更加简洁。
+总结
+kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。抽象的服务协议可以专注应用配置、服务生命周期等。层次清晰，职责清楚。
+参考
+
+github.com/go-kratos/kratos/v2/transport
+https://go-kratos.dev/docs/component/transport/overview
+">
+<meta name="twitter:description" content="kratos 框架对传输层进行了抽象，用户可以通过实现接口来接入实现，框架默认实现了gRPC和HTTP两种通信协议传输层。
+抽象接口
+Server Interface
+// 服务的启动和停止，用于管理服务生命周期。
+type Server interface {
+    Start(context.Context) error
+    Stop(context.Context) error
+}
+Transporter
+type Transporter interface {
+    // 代表实现的通讯协议的种类，如内置的 http grpc，也可以实现其他的类型如 mqtt，websocket
+    Kind() Kind
+    // 提供的服务终端地址
+    Endpoint() string
+    // 用于标识服务的完整方法路径
+    // 示例: /helloworld.Greeter/SayHello
+    Operation() string
+    // http 的请求头或者 grpc 的元数据
+    Header() Header
+}
+Endpointer
+type Endpointer interface {
+    // 用于实现注册到注册中心的终端地址，如果不实现这个方法则不会注册到注册中心
+    Endpoint() (*url.URL, error)
+}
+
+Example For Http
+使用kratos-transport 创建一个http server 和 client ，在 client和server之间通讯
+server
+server的完整代码 server.go 如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;encoding/json&#34;
+	&#34;fmt&#34;
+	&#34;log&#34;
+	&#34;net/http&#34;
+	&#34;os&#34;
+	&#34;os/signal&#34;
+	&#34;syscall&#34;
+	&#34;time&#34;
+
+	transporthttp &#34;github.com/go-kratos/kratos/v2/transport/http&#34;
+)
+
+func NewServer() *transporthttp.Server {
+	var opts = []transporthttp.ServerOption{
+		transporthttp.Address(&#34;0.0.0.0:8000&#34;),
+		transporthttp.Timeout(time.Second * 10),
+	}
+	svr := transporthttp.NewServer(opts...)
+	svr.Handle(&#34;/&#34;, &amp;helloHandler{})
+	return svr
+}
+
+func main() {
+	ctx := context.Background()
+	srv := NewServer()
+
+	err := srv.Start(ctx)
+	if err != nil {
+		if err == http.ErrServerClosed {
+			log.Print(&#34;Server closed under request&#34;)
+		} else {
+			log.Fatal(&#34;Server closed unexpected&#34;)
+		}
+	}
+
+	done := make(chan os.Signal)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		&lt;-done
+		if err := srv.Stop(ctx); err != nil {
+			log.Fatal(&#34;Shutdown NewServer:&#34;, err)
+		}
+	}()
+}
+
+type Foo struct {
+	Bar string
+}
+
+type helloHandler struct{}
+
+func (*helloHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		return
+	}
+	formData := make(map[string]interface{})
+	json.NewDecoder(r.Body).Decode(&amp;formData)
+	fmt.Println(formData)
+	for k, v := range formData {
+		fmt.Println(&#34;key&#34;, k, &#34;value&#34;, v)
+	}
+
+	reply := &amp;Foo{
+		Bar: &#34;NiceToMeetYouToo&#34;,
+	}
+	replyBytes, err := json.Marshal(reply)
+	if err != nil {
+		return
+	}
+	fmt.Fprintf(w, string(replyBytes))
+}
+
+启动服务
+ go run main.go
+输出
+API server listening at: [::]:60870
+INFO msg=[HTTP] server listening on: [::]:8000
+client
+client 的完整代码 client.go 如下：
+
+package client
+
+import (
+   &#34;context&#34;
+   &#34;github.com/go-kratos/kratos/v2/transport/http&#34;
+   &#34;testing&#34;
+   &#34;time&#34;
+
+   &#34;github.com/stretchr/testify/assert&#34;
+)
+
+type Foo struct {
+   Bar string
+}
+
+func TestNewClient(t *testing.T) {
+   client, err := http.NewClient(
+   	context.Background(),
+   	http.WithEndpoint(&#34;0.0.0.0:8000&#34;),
+   	http.WithMiddleware(),
+   	http.WithTimeout(time.Second*10),
+   )
+   assert.Nil(t, err)
+
+   values := map[string]string{
+   	&#34;foo&#34;:   &#34;bar&#34;,
+   	&#34;hello&#34;: &#34;world&#34;,
+   } 
+   assert.Nil(t, err)
+   reply := &amp;Foo{}
+   err = client.Invoke(context.Background(), &#34;POST&#34;, &#34;/&#34;, values, reply)
+   assert.Nil(t, err)
+
+   t.Log(&#34;reply&#34;, reply)
+}
+
+运行测试用例，
+server 输出：
+key foo value bar
+key hello value world
+client 输出：
+=== RUN   TestNewClient
+    client_test.go:42: reply &amp;{NiceToMeetYouToo}
+源码分析
+Transport Server
+// 服务的启动和停止，用于管理服务生命周期。
+type Server interface {
+   Start(context.Context) error
+   Stop(context.Context) error
+}
+Start：启动服务、监听端口、处理请求
+Stop：停止服务
+如上例 server.go 中，
+svr := transporthttp.NewServer(opts...)
+这个用创建一个 Server Interface的Http实例
+// Server is an HTTP server wrapper.
+type Server struct {
+	*http.Server
+	lis         net.Listener
+	tlsConf     *tls.Config
+	endpoint    *url.URL
+	err         error
+	network     string
+	address     string
+	timeout     time.Duration
+	filters     []FilterFunc
+	ms          []middleware.Middleware
+	dec         DecodeRequestFunc
+	enc         EncodeResponseFunc
+	ene         EncodeErrorFunc
+	strictSlash bool
+	router      *mux.Router
+	log         *log.Helper
+}
+
+可以看到，Server是对标准库 net/http 中http.Server 的一个封装。
+// ServerOption is an HTTP server option.
+type ServerOption func(*Server)
+
+可通过 option 设置服务参数，比如例子中的
+var opts = []transporthttp.ServerOption{
+		transporthttp.Address(&#34;0.0.0.0:8000&#34;),
+		transporthttp.Timeout(time.Second * 10),
+	}
+
+Start 启动一个net/http.Server
+// Start start the HTTP server.
+func (s *Server) Start(ctx context.Context) error { 
+    ...
+	s.log.Infof(&#34;[HTTP] server listening on: %s&#34;, s.lis.Addr().String())
+	var err error
+	if s.tlsConf != nil {
+		err = s.ServeTLS(s.lis, &#34;&#34;, &#34;&#34;)
+	} else {
+		err = s.Serve(s.lis)
+	}
+    ...
+} 
+
+启动流程
+func (a *App) Run() error {
+	...
+	for _, srv := range a.opts.servers {
+		srv := srv
+		eg.Go(func() error {
+			&lt;-ctx.Done() // wait for stop signal
+			return srv.Stop(ctx)
+		})
+		wg.Add(1)
+		eg.Go(func() error {
+			wg.Done()
+			return srv.Start(ctx)
+		})
+	}
+	wg.Wait()
+    ...
+}
+kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。
+Transport Client
+Transport Client 是会 http CLient封装
+// Client is an HTTP client.
+type Client struct {
+	opts     clientOptions
+	target   *Target
+	r        *resolver
+	cc       *http.Client
+	insecure bool
+}
+如client.go 中的一个Http Post
+    values := map[string]string{
+	}  
+	reply := &amp;Foo{}
+	err = client.Invoke(context.Background(), &#34;POST&#34;, &#34;/&#34;, values, reply) 
+Invoke封装了post，使用更加简洁。
+总结
+kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。抽象的服务协议可以专注应用配置、服务生命周期等。层次清晰，职责清楚。
+参考
+
+github.com/go-kratos/kratos/v2/transport
+https://go-kratos.dev/docs/component/transport/overview
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-04-17T16:24:40">
+  
+  
+    <meta property="article:modified_time" content="2022-04-17T16:24:40">
+  
+  
+  
+    
+      <meta property="article:section" content="micro service">
+    
+      <meta property="article:section" content="kratos">
+    
+  
+  
+    
+      <meta property="article:tag" content="micro service">
+    
+      <meta property="article:tag" content="kratos">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Go微服务  KratosTransporter传输层</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/04/go%E5%BE%AE%E6%9C%8D%E5%8A%A1-kratostransporter%E4%BC%A0%E8%BE%93%E5%B1%82/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Go微服务  KratosTransporter传输层
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-04-17T16:24:40&#43;08:00">
+        
+   17, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/micro-service">micro service</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/kratos">kratos</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>kratos 框架对传输层进行了抽象，用户可以通过实现接口来接入实现，框架默认实现了gRPC和HTTP两种通信协议传输层。</p>
+<h2 id="抽象接口">抽象接口</h2>
+<h3 id="server-interface">Server Interface</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// 服务的启动和停止，用于管理服务生命周期。
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Server</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+    <span style="color:#a6e22e">Stop</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+}
+</code></pre></div><h3 id="transporter">Transporter</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Transporter</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#75715e">// 代表实现的通讯协议的种类，如内置的 http grpc，也可以实现其他的类型如 mqtt，websocket
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Kind</span>() <span style="color:#a6e22e">Kind</span>
+    <span style="color:#75715e">// 提供的服务终端地址
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Endpoint</span>() <span style="color:#66d9ef">string</span>
+    <span style="color:#75715e">// 用于标识服务的完整方法路径
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 示例: /helloworld.Greeter/SayHello
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Operation</span>() <span style="color:#66d9ef">string</span>
+    <span style="color:#75715e">// http 的请求头或者 grpc 的元数据
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Header</span>() <span style="color:#a6e22e">Header</span>
+}
+</code></pre></div><h3 id="endpointer">Endpointer</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Endpointer</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#75715e">// 用于实现注册到注册中心的终端地址，如果不实现这个方法则不会注册到注册中心
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Endpoint</span>() (<span style="color:#f92672">*</span><span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">URL</span>, <span style="color:#66d9ef">error</span>)
+}
+
+</code></pre></div><h2 id="example-for-http">Example For Http</h2>
+<p>使用kratos-transport 创建一个http server 和 client ，在 client和server之间通讯</p>
+<h3 id="server">server</h3>
+<p>server的完整代码 server.go 如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;encoding/json&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;os/signal&#34;</span>
+	<span style="color:#e6db74">&#34;syscall&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+
+	<span style="color:#a6e22e">transporthttp</span> <span style="color:#e6db74">&#34;github.com/go-kratos/kratos/v2/transport/http&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewServer</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Server</span> {
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">opts</span> = []<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">ServerOption</span>{
+		<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Address</span>(<span style="color:#e6db74">&#34;0.0.0.0:8000&#34;</span>),
+		<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Timeout</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>),
+	}
+	<span style="color:#a6e22e">svr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">NewServer</span>(<span style="color:#a6e22e">opts</span><span style="color:#f92672">...</span>)
+	<span style="color:#a6e22e">svr</span>.<span style="color:#a6e22e">Handle</span>(<span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">helloHandler</span>{})
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">svr</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+	<span style="color:#a6e22e">srv</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewServer</span>()
+
+	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ErrServerClosed</span> {
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#e6db74">&#34;Server closed under request&#34;</span>)
+		} <span style="color:#66d9ef">else</span> {
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#e6db74">&#34;Server closed unexpected&#34;</span>)
+		}
+	}
+
+	<span style="color:#a6e22e">done</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Signal</span>)
+	<span style="color:#a6e22e">signal</span>.<span style="color:#a6e22e">Notify</span>(<span style="color:#a6e22e">done</span>, <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Interrupt</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGINT</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGTERM</span>)
+	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+		<span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">done</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Stop</span>(<span style="color:#a6e22e">ctx</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#e6db74">&#34;Shutdown NewServer:&#34;</span>, <span style="color:#a6e22e">err</span>)
+		}
+	}()
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Foo</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Bar</span> <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">helloHandler</span> <span style="color:#66d9ef">struct</span>{}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">helloHandler</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">ParseForm</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">formData</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{})
+	<span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">NewDecoder</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Body</span>).<span style="color:#a6e22e">Decode</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">formData</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">formData</span>)
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">k</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">formData</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">k</span>, <span style="color:#e6db74">&#34;value&#34;</span>, <span style="color:#a6e22e">v</span>)
+	}
+
+	<span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Foo</span>{
+		<span style="color:#a6e22e">Bar</span>: <span style="color:#e6db74">&#34;NiceToMeetYouToo&#34;</span>,
+	}
+	<span style="color:#a6e22e">replyBytes</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">reply</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, string(<span style="color:#a6e22e">replyBytes</span>))
+}
+
+</code></pre></div><p>启动服务</p>
+<pre tabindex="0"><code> go run main.go
+</code></pre><p>输出</p>
+<pre tabindex="0"><code>API server listening at: [::]:60870
+INFO msg=[HTTP] server listening on: [::]:8000
+</code></pre><h3 id="client">client</h3>
+<p>client 的完整代码 client.go 如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
+<span style="color:#f92672">package</span> <span style="color:#a6e22e">client</span>
+
+<span style="color:#f92672">import</span> (
+   <span style="color:#e6db74">&#34;context&#34;</span>
+   <span style="color:#e6db74">&#34;github.com/go-kratos/kratos/v2/transport/http&#34;</span>
+   <span style="color:#e6db74">&#34;testing&#34;</span>
+   <span style="color:#e6db74">&#34;time&#34;</span>
+
+   <span style="color:#e6db74">&#34;github.com/stretchr/testify/assert&#34;</span>
+)
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Foo</span> <span style="color:#66d9ef">struct</span> {
+   <span style="color:#a6e22e">Bar</span> <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestNewClient</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+   <span style="color:#a6e22e">client</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewClient</span>(
+   	<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(),
+   	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">WithEndpoint</span>(<span style="color:#e6db74">&#34;0.0.0.0:8000&#34;</span>),
+   	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">WithMiddleware</span>(),
+   	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">WithTimeout</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#ae81ff">10</span>),
+   )
+   <span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Nil</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span>)
+
+   <span style="color:#a6e22e">values</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+   	<span style="color:#e6db74">&#34;foo&#34;</span>:   <span style="color:#e6db74">&#34;bar&#34;</span>,
+   	<span style="color:#e6db74">&#34;hello&#34;</span>: <span style="color:#e6db74">&#34;world&#34;</span>,
+   } 
+   <span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Nil</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span>)
+   <span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Foo</span>{}
+   <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Invoke</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#e6db74">&#34;POST&#34;</span>, <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">values</span>, <span style="color:#a6e22e">reply</span>)
+   <span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Nil</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span>)
+
+   <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#e6db74">&#34;reply&#34;</span>, <span style="color:#a6e22e">reply</span>)
+}
+
+</code></pre></div><p>运行测试用例，</p>
+<p>server 输出：</p>
+<pre tabindex="0"><code>key foo value bar
+key hello value world
+</code></pre><p>client 输出：</p>
+<pre tabindex="0"><code>=== RUN   TestNewClient
+    client_test.go:42: reply &amp;{NiceToMeetYouToo}
+</code></pre><h2 id="源码分析">源码分析</h2>
+<h3 id="transport-server">Transport Server</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// 服务的启动和停止，用于管理服务生命周期。
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Server</span> <span style="color:#66d9ef">interface</span> {
+   <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+   <span style="color:#a6e22e">Stop</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+}
+</code></pre></div><p>Start：启动服务、监听端口、处理请求
+Stop：停止服务</p>
+<p>如上例 server.go 中，</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">svr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">NewServer</span>(<span style="color:#a6e22e">opts</span><span style="color:#f92672">...</span>)
+</code></pre></div><p>这个用创建一个 Server Interface的Http实例</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Server is an HTTP server wrapper.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Server</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Server</span>
+	<span style="color:#a6e22e">lis</span>         <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">Listener</span>
+	<span style="color:#a6e22e">tlsConf</span>     <span style="color:#f92672">*</span><span style="color:#a6e22e">tls</span>.<span style="color:#a6e22e">Config</span>
+	<span style="color:#a6e22e">endpoint</span>    <span style="color:#f92672">*</span><span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">URL</span>
+	<span style="color:#a6e22e">err</span>         <span style="color:#66d9ef">error</span>
+	<span style="color:#a6e22e">network</span>     <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">address</span>     <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">timeout</span>     <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
+	<span style="color:#a6e22e">filters</span>     []<span style="color:#a6e22e">FilterFunc</span>
+	<span style="color:#a6e22e">ms</span>          []<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Middleware</span>
+	<span style="color:#a6e22e">dec</span>         <span style="color:#a6e22e">DecodeRequestFunc</span>
+	<span style="color:#a6e22e">enc</span>         <span style="color:#a6e22e">EncodeResponseFunc</span>
+	<span style="color:#a6e22e">ene</span>         <span style="color:#a6e22e">EncodeErrorFunc</span>
+	<span style="color:#a6e22e">strictSlash</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#a6e22e">router</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Router</span>
+	<span style="color:#a6e22e">log</span>         <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Helper</span>
+}
+
+</code></pre></div><p>可以看到，Server是对标准库 net/http 中http.Server 的一个封装。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// ServerOption is an HTTP server option.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ServerOption</span> <span style="color:#66d9ef">func</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">Server</span>)
+
+</code></pre></div><p>可通过 option 设置服务参数，比如例子中的</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">opts</span> = []<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">ServerOption</span>{
+		<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Address</span>(<span style="color:#e6db74">&#34;0.0.0.0:8000&#34;</span>),
+		<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Timeout</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>),
+	}
+
+</code></pre></div><p>Start 启动一个net/http.Server</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Start start the HTTP server.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Server</span>) <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span> { 
+    <span style="color:#f92672">...</span>
+	<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;[HTTP] server listening on: %s&#34;</span>, <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">lis</span>.<span style="color:#a6e22e">Addr</span>().<span style="color:#a6e22e">String</span>())
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">tlsConf</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">ServeTLS</span>(<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">lis</span>, <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#e6db74">&#34;&#34;</span>)
+	} <span style="color:#66d9ef">else</span> {
+		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Serve</span>(<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">lis</span>)
+	}
+    <span style="color:#f92672">...</span>
+} 
+
+</code></pre></div><h3 id="启动流程">启动流程</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">a</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span>) <span style="color:#a6e22e">Run</span>() <span style="color:#66d9ef">error</span> {
+	<span style="color:#f92672">...</span>
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">srv</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">servers</span> {
+		<span style="color:#a6e22e">srv</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">srv</span>
+		<span style="color:#a6e22e">eg</span>.<span style="color:#a6e22e">Go</span>(<span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+			<span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>() <span style="color:#75715e">// wait for stop signal
+</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Stop</span>(<span style="color:#a6e22e">ctx</span>)
+		})
+		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>)
+		<span style="color:#a6e22e">eg</span>.<span style="color:#a6e22e">Go</span>(<span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+			<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
+		})
+	}
+	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+    <span style="color:#f92672">...</span>
+}
+</code></pre></div><p>kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。</p>
+<h3 id="transport-client">Transport Client</h3>
+<p>Transport Client 是会 http CLient封装</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Client is an HTTP client.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Client</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">opts</span>     <span style="color:#a6e22e">clientOptions</span>
+	<span style="color:#a6e22e">target</span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">Target</span>
+	<span style="color:#a6e22e">r</span>        <span style="color:#f92672">*</span><span style="color:#a6e22e">resolver</span>
+	<span style="color:#a6e22e">cc</span>       <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Client</span>
+	<span style="color:#a6e22e">insecure</span> <span style="color:#66d9ef">bool</span>
+}
+</code></pre></div><p>如client.go 中的一个Http Post</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">values</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
+	}  
+	<span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Foo</span>{}
+	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Invoke</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#e6db74">&#34;POST&#34;</span>, <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">values</span>, <span style="color:#a6e22e">reply</span>) 
+</code></pre></div><p>Invoke封装了post，使用更加简洁。</p>
+<h2 id="总结">总结</h2>
+<p>kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。抽象的服务协议可以专注应用配置、服务生命周期等。层次清晰，职责清楚。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>github.com/go-kratos/kratos/v2/transport</li>
+<li><a href="https://go-kratos.dev/docs/component/transport/overview">https://go-kratos.dev/docs/component/transport/overview</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/micro-service/">micro service</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/kratos/">kratos</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+
