@@ -13,7 +13,7 @@
       <pubDate>Sun, 17 Apr 2022 16:24:40 +0800</pubDate>
       
       <guid>https://luckytking.github.io/2022/04/go%E5%BE%AE%E6%9C%8D%E5%8A%A1-kratostransporter%E4%BC%A0%E8%BE%93%E5%B1%82/</guid>
-      <description>&lt;p&gt;本文主要介绍Kratos Transport和源码的分析&lt;/p&gt;
+      <description>&lt;p&gt;本文主要介绍Kratos Transport和源码的分析.&lt;/p&gt;
 &lt;p&gt;kratos 框架对传输层进行了抽象，用户可以通过实现接口来接入实现，框架默认实现了gRPC和HTTP两种通信协议传输层。&lt;/p&gt;
 &lt;h2 id=&#34;抽象接口&#34;&gt;抽象接口&lt;/h2&gt;
 &lt;h3 id=&#34;server-interface&#34;&gt;Server Interface&lt;/h3&gt;
