@@ -266,7 +266,7 @@ Stop：停止服务&lt;/p&gt;
 &lt;p&gt;kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。抽象的服务协议可以专注应用配置、服务生命周期等。层次清晰，职责清楚。&lt;/p&gt;
 &lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
 &lt;ul&gt;
-&lt;li&gt;github.com/go-kratos/kratos/v2/transport&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/go-kratos/kratos/v2/transport&#34;&gt;https://github.com/go-kratos/kratos/v2/transport&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://go-kratos.dev/docs/component/transport/overview&#34;&gt;https://go-kratos.dev/docs/component/transport/overview&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</description>
     </item>
