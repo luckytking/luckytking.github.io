@@ -13,7 +13,7 @@
       <pubDate>Sun, 01 May 2022 21:37:11 +0800</pubDate>
       
       <guid>https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Berrors/</guid>
-      <description>&lt;p&gt;本文主要介绍 在go开发中 errors 的处理和第三方库 &lt;strong&gt;github.com/pkg/errors/errors.go&lt;/strong&gt; 的使用。&lt;/p&gt;
+      <description>&lt;p&gt;本文主要介绍 在go开发中 errors 的处理和第三方库 &lt;strong&gt;github.com/pkg/errors&lt;/strong&gt; 的使用。&lt;/p&gt;
 &lt;h2 id=&#34;error-interface&#34;&gt;error interface&lt;/h2&gt;
 &lt;p&gt;官方定义：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// The error built-in interface type is the conventional interface for
@@ -154,7 +154,7 @@ runtime.goexit
 &lt;p&gt;pkg errors 应该能够支持错误堆栈、不同的打印格式很好的补充了go errors 的一些短板&lt;/p&gt;
 &lt;p&gt;参考：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;github.com/pkg/errors/errors.go&lt;/li&gt;
+&lt;li&gt;github.com/pkg/errors&lt;/li&gt;
 &lt;/ul&gt;</description>
     </item>
     
