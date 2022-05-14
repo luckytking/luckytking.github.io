@@ -28,7 +28,7 @@
 &lt;ul&gt;
 &lt;li&gt;本地文件&lt;/li&gt;
 &lt;li&gt;本地环境&lt;/li&gt;
-&lt;li&gt;contrib/config(传送门1) 支持配置中心&lt;/li&gt;
+&lt;li&gt;contrib/config支持配置中心&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;kratos/config 支持多种配置格式
