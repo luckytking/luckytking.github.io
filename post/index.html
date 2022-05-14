@@ -375,7 +375,7 @@ workspace/configs/config.yaml</p>
 <pre tabindex="0"><code>$  config: {Service:{Name:config Version:v1.0.0}}
 $  service: config
 </code></pre><h3 id="withdecoder">WithDecoder</h3>
-<p>Decoder用于将配置文件内容用特定的反序列化方法解析出来，默认decoder会根据文件的类型自动识别类型并解析，通常情况不需要自定义这个，您可以通过后文的实现Codec的方式来注册更多文件类型</p>
+<p>Decoder用于将配置文件内容用特定的反序列化方法解析出来</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">New</span>(
 		<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">WithSource</span>(
 			<span style="color:#a6e22e">file</span>.<span style="color:#a6e22e">NewSource</span>(<span style="color:#a6e22e">flagconf</span>),
