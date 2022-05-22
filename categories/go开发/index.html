@@ -370,7 +370,7 @@
 	<span style="color:#a6e22e">User</span>:<span style="color:#a6e22e">user</span>,
 },<span style="color:#a6e22e">err</span>
 
-</code></pre></div><h2 id="场景-2-model-objectaggreagte">场景 2 (model-object/aggreagte)</h2>
+</code></pre></div><h2 id="场景-2-model-objectaggregate">场景 2 (model-object/aggregate)</h2>
 <p>实际开发中，不管是mvc\ddd 都会有从model到object/aggreate的repository,那么就可以使用copier。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">UserRepo</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">uid</span> <span style="color:#66d9ef">int64</span>) (<span style="color:#a6e22e">u</span> <span style="color:#a6e22e">User</span>,<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
 	<span style="color:#a6e22e">model</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">User</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">uid</span>)
