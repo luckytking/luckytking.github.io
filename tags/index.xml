@@ -6,22 +6,58 @@
     <description>Recent content in Tags on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 22 May 2022 16:44:15 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 29 May 2022 16:01:18 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>copier</title>
-      <link>https://luckytking.github.io/tags/copier/</link>
-      <pubDate>Sun, 22 May 2022 16:44:15 +0800</pubDate>
+      <title>facebook登入</title>
+      <link>https://luckytking.github.io/tags/facebook%E7%99%BB%E5%85%A5/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
       
-      <guid>https://luckytking.github.io/tags/copier/</guid>
+      <guid>https://luckytking.github.io/tags/facebook%E7%99%BB%E5%85%A5/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>google登入</title>
+      <link>https://luckytking.github.io/tags/google%E7%99%BB%E5%85%A5/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/google%E7%99%BB%E5%85%A5/</guid>
       <description></description>
     </item>
     
     <item>
       <title>go开发</title>
       <link>https://luckytking.github.io/tags/go%E5%BC%80%E5%8F%91/</link>
-      <pubDate>Sun, 22 May 2022 16:44:15 +0800</pubDate>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
       
       <guid>https://luckytking.github.io/tags/go%E5%BC%80%E5%8F%91/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>meta登入</title>
+      <link>https://luckytking.github.io/tags/meta%E7%99%BB%E5%85%A5/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/meta%E7%99%BB%E5%85%A5/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>第三方登入</title>
+      <link>https://luckytking.github.io/tags/%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>copier</title>
+      <link>https://luckytking.github.io/tags/copier/</link>
+      <pubDate>Sun, 22 May 2022 16:44:15 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/copier/</guid>
       <description></description>
     </item>
     
