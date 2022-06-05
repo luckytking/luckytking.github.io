@@ -294,6 +294,8 @@
 获得一个Object</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//【ObjectID】= &#34;{&#34;foo&#34;: &#34;123&#34;, &#34;bar&#34;:&#34;456&#34;}&#34;
 </span><span style="color:#75715e"></span>
+<span style="color:#f92672">import</span>  <span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
+
 <span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HGet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">String</span>()).<span style="color:#a6e22e">Result</span>()
 <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
      <span style="color:#66d9ef">return</span>
@@ -305,7 +307,7 @@
 }
 </code></pre></div><p>增加一个Object：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">ob</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">Object</span>{}<span style="color:#960050;background-color:#1e0010">）</span>) 
-	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">repo</span>.<span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HSet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">gameCacheKey</span>, <span style="color:#a6e22e">ob</span>.<span style="color:#a6e22e">ID</span>, <span style="color:#a6e22e">ob</span>).<span style="color:#a6e22e">Err</span>()
+	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">repo</span>.<span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HSet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">ob</span>.<span style="color:#a6e22e">ID</span>, <span style="color:#a6e22e">ob</span>).<span style="color:#a6e22e">Err</span>()
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
 	}
@@ -330,9 +332,9 @@
 </code></pre></div><p>获取X分页的代码：</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> (
      <span style="color:#a6e22e">start</span> = int64((<span style="color:#a6e22e">page</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">size</span>)
-     <span style="color:#a6e22e">end</span>   = <span style="color:#a6e22e">start</span> <span style="color:#f92672">+</span> int64(<span style="color:#a6e22e">size</span>)<span style="color:#a6e22e">wei</span>
+     <span style="color:#a6e22e">end</span>   = <span style="color:#a6e22e">start</span> <span style="color:#f92672">+</span> int64(<span style="color:#a6e22e">size</span>)
 )
-<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> .<span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
+<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
 <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
      <span style="color:#66d9ef">return</span>
 }
