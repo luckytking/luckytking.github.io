@@ -3,7 +3,31 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://luckytking.github.io/categories/</loc>
-    <lastmod>2022-06-05T16:23:04+08:00</lastmod>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/categories/deployment/</loc>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/docker-buildx/</loc>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/categories/dockers/</loc>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/</loc>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/mac-m1/</loc>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/post/</loc>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/</loc>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/2022/06/%E5%9C%A8macm1%E4%B8%8A%E6%9E%84%E5%BB%BAx86%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84docker%E9%95%9C%E5%83%8F/</loc>
+    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/go-redis/</loc>
     <lastmod>2022-06-05T16:23:04+08:00</lastmod>
@@ -11,13 +35,7 @@
     <loc>https://luckytking.github.io/categories/go%E5%BC%80%E5%8F%91/</loc>
     <lastmod>2022-06-05T16:23:04+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/</loc>
-    <lastmod>2022-06-05T16:23:04+08:00</lastmod>
-  </url><url>
     <loc>https://luckytking.github.io/tags/page/</loc>
-    <lastmod>2022-06-05T16:23:04+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/post/</loc>
     <lastmod>2022-06-05T16:23:04+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/redis/</loc>
@@ -27,9 +45,6 @@
     <lastmod>2022-06-05T16:23:04+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/</loc>
-    <lastmod>2022-06-05T16:23:04+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/tags/</loc>
     <lastmod>2022-06-05T16:23:04+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/facebook%E7%99%BB%E5%85%A5/</loc>
