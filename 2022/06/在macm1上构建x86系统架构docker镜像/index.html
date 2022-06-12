@@ -16,7 +16,7 @@
     
   },
   "name":"jefffff\u0027s Blog",
-  "description":"\u003ch3 id=\u0022问题\u0022\u003e问题\u003c\/h3\u003e\n\u003cp\u003e在mac m1 构建的docker镜像（image:v1.0），在ubuntu上面运行报错：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003esmart-service | standard_init_linux.go:228: exec user process caused: exec format error\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ uname -m\r\n arm64\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e由于m1是arm64架构,而ubuntu的是x86_64架构，那有没有可以在mac上面构建x86_64的镜像的方法呢？\u003c\/p\u003e\n\u003ch3 id=\u0022解决步骤\u0022\u003e解决步骤\u003c\/h3\u003e\n\u003cp\u003e在 Docker 19.03\u002b 版本中可以使用\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx build\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e命令使用 BuildKit 构建镜像。该命令支持 \u0026ndash;platform 参数可以同时构建支持多种系统架构的 Docker 镜像。\n更多参考：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e\u003ca href=\u0022https:\/\/docs.docker.com\/engine\/reference\/commandline\/buildx\/\u0022\u003ehttps:\/\/docs.docker.com\/engine\/reference\/commandline\/buildx\/\u003c\/a\u003e\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch4 id=\u0022sep1--启用experimental-features\u0022\u003eSep1  启用experimental features\u003c\/h4\u003e\n\u003cp\u003eDocker 的 buildx 还是实验性功能，需要在 Docker Desktop 设置中开启。\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003ePreferences \u0026gt; Experimental Features \u0026gt; Enable CLI experimental features\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch4 id=\u0022sep2--创建builder\u0022\u003eSep2  创建builder\u003c\/h4\u003e\n\u003cp\u003e由于 Docker 默认的 builder 实例不支持同时指定多个 \u0026ndash;platform，我们必须首先创建一个新的 builder 实例。\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx create --use --name my_builder\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e国内环境使用:\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e网易云镜像\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx create --use --name=mybuilder --driver docker-container --driver-opt image=dockerpracticesig\/buildkit:master\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cul\u003e\n\u003cli\u003e百度云镜像\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx create --use --name=mybuilder --driver docker-container --driver-opt image=dockerpracticesig\/buildkit:master-baidu\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e查看实例详情：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003edocker buildx inspect --bootstrap\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003eoutput:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx inspect --bootstrap\r\n[\u002b] Building 4.9s (1\/1) FINISHED\r\n =\u0026gt; [internal] booting buildkit                           \r\n =\u0026gt; =\u0026gt; starting container buildx_buildkit_m1_builder0     \r\nName:   my_builder\r\nDriver: docker-container\r\n\r\nNodes:\r\nName:      my_builder0\r\nEndpoint:  unix:\/\/\/var\/run\/docker.sock\r\nStatus:    running\r\nPlatforms: linux\/arm64, linux\/amd64, linux\/amd64\/v2, linux\/riscv64, linux\/ppc64le, linux\/s390x, linux\/386, linux\/mips64le, linux\/mips64, linux\/arm\/v7, linux\/arm\/v6\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch4 id=\u0022sep3-构建\u0022\u003eSep3 构建\u003c\/h4\u003e\n\u003cp\u003e使用 $ docker buildx build 命令构建镜像\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e     docker buildx build \u003cbr\u003e\n      \u0026ndash;platform linux\/amd64,linux\/arm64  \u0026ndash;push -t  myusername:v2.0 .\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cul\u003e\n\u003cli\u003e\u0026ndash;platfrom 不同的架构\u003c\/li\u003e\n\u003cli\u003e\u0026ndash;push   将构建好的镜像推送到 Docker 仓库\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e构建完 push 上去以后，可以查看远程仓库的 manifest：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e docker buildx imagetools inspect myusername:v2.0 \r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003eoutput:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx imagetools inspect myusername:v2.0 \r\nName:      myusername:v2.0 \r\nMediaType: application\/vnd.docker.distribution.manifest.list.v2\u002bjson\r\nDigest:    sha256:c234ba68490eaa1bfd3a7ad21839caa2cd1d4d28de6c376d2fc110f95619edf2\r\n\r\nManifests:\r\n  Name:      myusername:v2.0 @sha123456XXXyyyy777122\r\n  MediaType: application\/vnd.docker.distribution.manifest.v2\u002bjson\r\n  Platform:  linux\/amd64\r\n\r\n  Name:      myusername:v2.0 @sha123456XXXyyyy777123\r\n  MediaType: application\/vnd.docker.distribution.manifest.v2\u002bjson\r\n  Platform:  linux\/arm64\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e显示已经支持不同架构\u003c\/p\u003e\n\u003ch4 id=\u0022sep4-测试\u0022\u003eSep4 测试\u003c\/h4\u003e\n\u003cp\u003e在Ubuntu下（v2.0镜像）运行\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eStatus: Downloaded newer image for \r\nmyusername:v0.2\r\nRecreating my-service ... done \r\nmy-service | INFO msg=[HTTP] server listening on: [::]:8000\r\n\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e正常运行 Succeed\u003c\/p\u003e\n\u003ch3 id=\u0022总结\u0022\u003e总结\u003c\/h3\u003e\n\u003cp\u003e本文主要介绍 使用 buildx 构建多种系统架构支持的 Docker 镜像\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考：\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/docs.docker.com\/desktop\/mac\/apple-silicon\/\u0022\u003ehttps:\/\/docs.docker.com\/desktop\/mac\/apple-silicon\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/docs.docker.com\/engine\/reference\/commandline\/buildx\/\u0022\u003ehttps:\/\/docs.docker.com\/engine\/reference\/commandline\/buildx\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/yeasy.gitbook.io\/docker_practice\/buildx\/multi-arch-images\u0022\u003ehttps:\/\/yeasy.gitbook.io\/docker_practice\/buildx\/multi-arch-images\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/prinsss.github.io\/build-x86-docker-images-on-an-m1-macs\u0022\u003ehttps:\/\/prinsss.github.io\/build-x86-docker-images-on-an-m1-macs\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "description":"\u003ch3 id=\u0022问题\u0022\u003e问题\u003c\/h3\u003e\n\u003cp\u003e在mac m1 构建的docker镜像（image:v1.0），在ubuntu上面运行报错：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003esmart-service | standard_init_linux.go:228: exec user process caused: exec format error\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ uname -m\r\n arm64\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e由于m1是arm64架构,而ubuntu的是x86_64架构，那有没有可以在mac上面构建x86_64的镜像的方法呢？\u003c\/p\u003e\n\u003ch3 id=\u0022解决步骤\u0022\u003e解决步骤\u003c\/h3\u003e\n\u003cp\u003e在 Docker 19.03\u002b 版本中可以使用\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx build\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e命令使用 BuildKit 构建镜像。该命令支持 \u0026ndash;platform 参数可以同时构建支持多种系统架构的 Docker 镜像。\n更多参考：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e\u003ca href=\u0022https:\/\/docs.docker.com\/engine\/reference\/commandline\/buildx\/\u0022\u003ehttps:\/\/docs.docker.com\/engine\/reference\/commandline\/buildx\/\u003c\/a\u003e\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch4 id=\u0022sep1--启用experimental-features\u0022\u003eSep1  启用experimental features\u003c\/h4\u003e\n\u003cp\u003eDocker 的 buildx 还是实验性功能，需要在 Docker Desktop 设置中开启。\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003ePreferences \u0026gt; Experimental Features \u0026gt; Enable CLI experimental features\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch4 id=\u0022sep2--创建builder\u0022\u003eSep2  创建builder\u003c\/h4\u003e\n\u003cp\u003e由于 Docker 默认的 builder 实例不支持同时指定多个 \u0026ndash;platform，我们必须首先创建一个新的 builder 实例。\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx create --use --name my_builder\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e国内环境使用:\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e网易云镜像\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx create --use --name=mybuilder --driver docker-container --driver-opt image=dockerpracticesig\/buildkit:master\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cul\u003e\n\u003cli\u003e百度云镜像\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx create --use --name=mybuilder --driver docker-container --driver-opt image=dockerpracticesig\/buildkit:master-baidu\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e查看实例详情：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003edocker buildx inspect --bootstrap\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003eoutput:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx inspect --bootstrap\r\n[\u002b] Building 4.9s (1\/1) FINISHED\r\n =\u0026gt; [internal] booting buildkit                           \r\n =\u0026gt; =\u0026gt; starting container buildx_buildkit_my_builder0     \r\nName:   my_builder\r\nDriver: docker-container\r\n\r\nNodes:\r\nName:      my_builder0\r\nEndpoint:  unix:\/\/\/var\/run\/docker.sock\r\nStatus:    running\r\nPlatforms: linux\/arm64, linux\/amd64, linux\/amd64\/v2, linux\/riscv64, linux\/ppc64le, linux\/s390x, linux\/386, linux\/mips64le, linux\/mips64, linux\/arm\/v7, linux\/arm\/v6\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch4 id=\u0022sep3-构建\u0022\u003eSep3 构建\u003c\/h4\u003e\n\u003cp\u003e使用 $ docker buildx build 命令构建镜像\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e     docker buildx build \u003cbr\u003e\n      \u0026ndash;platform linux\/amd64,linux\/arm64  \u0026ndash;push -t  myusername:v2.0 .\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cul\u003e\n\u003cli\u003e\u0026ndash;platfrom 不同的架构\u003c\/li\u003e\n\u003cli\u003e\u0026ndash;push   将构建好的镜像推送到 Docker 仓库\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e构建完 push 上去以后，可以查看远程仓库的 manifest：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e docker buildx imagetools inspect myusername:v2.0 \r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003eoutput:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker buildx imagetools inspect myusername:v2.0 \r\nName:      myusername:v2.0 \r\nMediaType: application\/vnd.docker.distribution.manifest.list.v2\u002bjson\r\nDigest:    sha256:c234123456XXXyyyy3a7123456XXXyyyyd28de6c376d2f123456XXXyyyy9edf2\r\n\r\nManifests:\r\n  Name:      myusername:v2.0 @sha123456XXXyyyy777122\r\n  MediaType: application\/vnd.docker.distribution.manifest.v2\u002bjson\r\n  Platform:  linux\/amd64\r\n\r\n  Name:      myusername:v2.0 @sha123456XXXyyyy777123\r\n  MediaType: application\/vnd.docker.distribution.manifest.v2\u002bjson\r\n  Platform:  linux\/arm64\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e显示已经支持不同架构\u003c\/p\u003e\n\u003ch4 id=\u0022sep4-测试\u0022\u003eSep4 测试\u003c\/h4\u003e\n\u003cp\u003e在Ubuntu下（v2.0镜像）运行\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eStatus: Downloaded newer image for \r\nmyusername:v0.2\r\nRecreating my-service ... done \r\nmy-service | INFO msg=[HTTP] server listening on: [::]:8000\r\n\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e正常运行 Succeed\u003c\/p\u003e\n\u003ch3 id=\u0022总结\u0022\u003e总结\u003c\/h3\u003e\n\u003cp\u003e本文主要介绍 使用 buildx 构建多种系统架构支持的 Docker 镜像\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考：\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/docs.docker.com\/desktop\/mac\/apple-silicon\/\u0022\u003ehttps:\/\/docs.docker.com\/desktop\/mac\/apple-silicon\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/docs.docker.com\/engine\/reference\/commandline\/buildx\/\u0022\u003ehttps:\/\/docs.docker.com\/engine\/reference\/commandline\/buildx\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/yeasy.gitbook.io\/docker_practice\/buildx\/multi-arch-images\u0022\u003ehttps:\/\/yeasy.gitbook.io\/docker_practice\/buildx\/multi-arch-images\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/prinsss.github.io\/build-x86-docker-images-on-an-m1-macs\u0022\u003ehttps:\/\/prinsss.github.io\/build-x86-docker-images-on-an-m1-macs\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
   "url":"https:\/\/luckytking.github.io\/2022\/06\/%E5%9C%A8macm1%E4%B8%8A%E6%9E%84%E5%BB%BAx86%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84docker%E9%95%9C%E5%83%8F\/",
   "keywords":"[docker, buildx, m1, mac, x86]"
 }
@@ -67,7 +67,7 @@ output:
 $ docker buildx inspect --bootstrap
 [&#43;] Building 4.9s (1/1) FINISHED
  =&gt; [internal] booting buildkit                           
- =&gt; =&gt; starting container buildx_buildkit_m1_builder0     
+ =&gt; =&gt; starting container buildx_buildkit_my_builder0     
 Name:   my_builder
 Driver: docker-container
 
@@ -92,7 +92,7 @@ output:
 $ docker buildx imagetools inspect myusername:v2.0 
 Name:      myusername:v2.0 
 MediaType: application/vnd.docker.distribution.manifest.list.v2&#43;json
-Digest:    sha256:c234ba68490eaa1bfd3a7ad21839caa2cd1d4d28de6c376d2fc110f95619edf2
+Digest:    sha256:c234123456XXXyyyy3a7123456XXXyyyyd28de6c376d2f123456XXXyyyy9edf2
 
 Manifests:
   Name:      myusername:v2.0 @sha123456XXXyyyy777122
@@ -161,7 +161,7 @@ output:
 $ docker buildx inspect --bootstrap
 [&#43;] Building 4.9s (1/1) FINISHED
  =&gt; [internal] booting buildkit                           
- =&gt; =&gt; starting container buildx_buildkit_m1_builder0     
+ =&gt; =&gt; starting container buildx_buildkit_my_builder0     
 Name:   my_builder
 Driver: docker-container
 
@@ -186,7 +186,7 @@ output:
 $ docker buildx imagetools inspect myusername:v2.0 
 Name:      myusername:v2.0 
 MediaType: application/vnd.docker.distribution.manifest.list.v2&#43;json
-Digest:    sha256:c234ba68490eaa1bfd3a7ad21839caa2cd1d4d28de6c376d2fc110f95619edf2
+Digest:    sha256:c234123456XXXyyyy3a7123456XXXyyyyd28de6c376d2f123456XXXyyyy9edf2
 
 Manifests:
   Name:      myusername:v2.0 @sha123456XXXyyyy777122
@@ -259,7 +259,7 @@ output:
 $ docker buildx inspect --bootstrap
 [&#43;] Building 4.9s (1/1) FINISHED
  =&gt; [internal] booting buildkit                           
- =&gt; =&gt; starting container buildx_buildkit_m1_builder0     
+ =&gt; =&gt; starting container buildx_buildkit_my_builder0     
 Name:   my_builder
 Driver: docker-container
 
@@ -284,7 +284,7 @@ output:
 $ docker buildx imagetools inspect myusername:v2.0 
 Name:      myusername:v2.0 
 MediaType: application/vnd.docker.distribution.manifest.list.v2&#43;json
-Digest:    sha256:c234ba68490eaa1bfd3a7ad21839caa2cd1d4d28de6c376d2fc110f95619edf2
+Digest:    sha256:c234123456XXXyyyy3a7123456XXXyyyyd28de6c376d2f123456XXXyyyy9edf2
 
 Manifests:
   Name:      myusername:v2.0 @sha123456XXXyyyy777122
@@ -351,7 +351,7 @@ output:
 $ docker buildx inspect --bootstrap
 [&#43;] Building 4.9s (1/1) FINISHED
  =&gt; [internal] booting buildkit                           
- =&gt; =&gt; starting container buildx_buildkit_m1_builder0     
+ =&gt; =&gt; starting container buildx_buildkit_my_builder0     
 Name:   my_builder
 Driver: docker-container
 
@@ -376,7 +376,7 @@ output:
 $ docker buildx imagetools inspect myusername:v2.0 
 Name:      myusername:v2.0 
 MediaType: application/vnd.docker.distribution.manifest.list.v2&#43;json
-Digest:    sha256:c234ba68490eaa1bfd3a7ad21839caa2cd1d4d28de6c376d2fc110f95619edf2
+Digest:    sha256:c234123456XXXyyyy3a7123456XXXyyyyd28de6c376d2f123456XXXyyyy9edf2
 
 Manifests:
   Name:      myusername:v2.0 @sha123456XXXyyyy777122
@@ -674,7 +674,7 @@ https://prinsss.github.io/build-x86-docker-images-on-an-m1-macs
 <pre tabindex="0"><code>$ docker buildx inspect --bootstrap
 [+] Building 4.9s (1/1) FINISHED
  =&gt; [internal] booting buildkit                           
- =&gt; =&gt; starting container buildx_buildkit_m1_builder0     
+ =&gt; =&gt; starting container buildx_buildkit_my_builder0     
 Name:   my_builder
 Driver: docker-container
 
@@ -699,7 +699,7 @@ Platforms: linux/arm64, linux/amd64, linux/amd64/v2, linux/riscv64, linux/ppc64l
 <pre tabindex="0"><code>$ docker buildx imagetools inspect myusername:v2.0 
 Name:      myusername:v2.0 
 MediaType: application/vnd.docker.distribution.manifest.list.v2+json
-Digest:    sha256:c234ba68490eaa1bfd3a7ad21839caa2cd1d4d28de6c376d2fc110f95619edf2
+Digest:    sha256:c234123456XXXyyyy3a7123456XXXyyyyd28de6c376d2f123456XXXyyyy9edf2
 
 Manifests:
   Name:      myusername:v2.0 @sha123456XXXyyyy777122
