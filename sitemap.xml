@@ -2,8 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://luckytking.github.io/tags/boomer/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
     <loc>https://luckytking.github.io/categories/</loc>
-    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/go/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/categories/go%E5%BC%80%E5%8F%91/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/locust/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/post/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/pressure-test/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/categories/%E5%8E%8B%E5%8A%9B%E6%B5%8B%E8%AF%95/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/</loc>
+    <lastmod>2022-06-19T16:11:18+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/categories/deployment/</loc>
     <lastmod>2022-06-09T21:52:17+08:00</lastmod>
@@ -14,25 +44,13 @@
     <loc>https://luckytking.github.io/categories/dockers/</loc>
     <lastmod>2022-06-09T21:52:17+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/</loc>
-    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
-  </url><url>
     <loc>https://luckytking.github.io/tags/mac-m1/</loc>
-    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/post/</loc>
-    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/tags/</loc>
     <lastmod>2022-06-09T21:52:17+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/2022/06/%E5%9C%A8macm1%E4%B8%8A%E6%9E%84%E5%BB%BAx86%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84docker%E9%95%9C%E5%83%8F/</loc>
     <lastmod>2022-06-09T21:52:17+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/go-redis/</loc>
-    <lastmod>2022-06-05T16:23:04+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/categories/go%E5%BC%80%E5%8F%91/</loc>
     <lastmod>2022-06-05T16:23:04+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/page/</loc>
