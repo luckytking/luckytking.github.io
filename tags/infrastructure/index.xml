@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>infrastructure on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/infrastructure/</link>
+    <description>Recent content in infrastructure on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 02 Jul 2022 17:34:59 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/infrastructure/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>日志聚合系统GrafanaLoki  一、初试</title>
+      <link>https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/</link>
+      <pubDate>Sat, 02 Jul 2022 17:34:59 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/</guid>
+      <description>&lt;p&gt;为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。&lt;/p&gt;
+&lt;h3 id=&#34;简介&#34;&gt;简介&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;相关组件&#34;&gt;相关组件&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Loki是主服务器，负责存储日志和处理查询。&lt;/li&gt;
+&lt;li&gt;Promtail是代理，负责收集日志并将其发送给 loki 。&lt;/li&gt;
+&lt;li&gt;Grafana用于 UI 展示。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;部署&#34;&gt;部署&lt;/h3&gt;
+&lt;p&gt;这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;启动 loki 、promtail、grafana&lt;/li&gt;
+&lt;li&gt;配置日志收集方式&lt;/li&gt;
+&lt;li&gt;观测日志是否采集、聚合&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4 id=&#34;启动-loki-promtailgrafana&#34;&gt;启动 loki 、promtail、grafana&lt;/h4&gt;
+&lt;p&gt;在工作目录底下创建 docker-compose.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;3&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;networks&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;loki&lt;/span&gt;:
+
+&lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;loki&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;grafana/loki:latest&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;3100:3100&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;command&lt;/span&gt;: -&lt;span style=&#34;color:#ae81ff&#34;&gt;config.file=/etc/loki/local-config.yaml&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;networks&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;loki&lt;/span&gt;
+
+  &lt;span style=&#34;color:#f92672&#34;&gt;promtail&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;grafana/promtail:latest&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;volumes&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;/var/log:/var/log&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;command&lt;/span&gt;: -&lt;span style=&#34;color:#ae81ff&#34;&gt;config.file=/etc/promtail/config.yml&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;networks&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;loki&lt;/span&gt;
+
+  &lt;span style=&#34;color:#f92672&#34;&gt;grafana&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;grafana/grafana:latest&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;3000:3000&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;networks&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;loki&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看是否启动：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;docker-compose ls&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;输出：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;smartgo$ docker-compose ls
+NAME                STATUS              CONFIG FILES
+xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;配置数据源&#34;&gt;配置数据源&lt;/h4&gt;
+&lt;p&gt;访问Grafana： yournode:3000
+,选择数据源：&lt;strong&gt;Explore&amp;ndash;DataSource&lt;/strong&gt;
+&lt;img src=&#34;https://luckytking.github.io/images/loki_data_source1.png&#34; alt=&#34;&#34;&gt;
+可以看到Grafana支持的数据源,点击选择  &lt;strong&gt;Loki&lt;/strong&gt;
+&lt;img src=&#34;https://luckytking.github.io/images/loki_data_source2.png&#34; alt=&#34;&#34;&gt;
+设置地址为：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;http://loki:3100&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;保存即可,点击 &lt;strong&gt;SaveAndTest&lt;/strong&gt; 
+&lt;img src=&#34;https://luckytking.github.io/images/loki_data_source3.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;观测日志是否采集聚合&#34;&gt;观测日志是否采集、聚合&lt;/h4&gt;
+&lt;p&gt;搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
+&lt;img src=&#34;https://luckytking.github.io/images/loki_output.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。&lt;/p&gt;
+&lt;h3 id=&#34;todo&#34;&gt;ToDo&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;收集Dockers的日志&lt;/li&gt;
+&lt;li&gt;LogQL &lt;a href=&#34;https://grafana.com/docs/loki/latest/logql/&#34;&gt;https://grafana.com/docs/loki/latest/logql/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;reference&#34;&gt;reference&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Loki Github： &lt;a href=&#34;https://github.com/grafana/loki/&#34;&gt;https://github.com/grafana/loki/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Loki DockerCompose 安装 &lt;a href=&#34;https://grafana.com/docs/loki/latest/installation/docker/&#34;&gt;https://grafana.com/docs/loki/latest/installation/docker/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

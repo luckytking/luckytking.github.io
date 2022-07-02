@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。\u003c\/p\u003e\n\u003ch3 id=\u0022简介\u0022\u003e简介\u003c\/h3\u003e\n\u003cblockquote\u003e\n\u003cp\u003eLoki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch3 id=\u0022相关组件\u0022\u003e相关组件\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003eLoki是主服务器，负责存储日志和处理查询。\u003c\/li\u003e\n\u003cli\u003ePromtail是代理，负责收集日志并将其发送给 loki 。\u003c\/li\u003e\n\u003cli\u003eGrafana用于 UI 展示。\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003ch3 id=\u0022部署\u0022\u003e部署\u003c\/h3\u003e\n\u003cp\u003e这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e启动 loki 、promtail、grafana\u003c\/li\u003e\n\u003cli\u003e配置日志收集方式\u003c\/li\u003e\n\u003cli\u003e观测日志是否采集、聚合\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003ch4 id=\u0022启动-loki-promtailgrafana\u0022\u003e启动 loki 、promtail、grafana\u003c\/h4\u003e\n\u003cp\u003e在工作目录底下创建 docker-compose.yaml\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eversion\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;3\u0026#34;\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003enetworks\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003eloki\u003c\/span\u003e:\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eservices\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003eloki\u003c\/span\u003e:\n    \u003cspan style=\u0022color:#f92672\u0022\u003eimage\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003egrafana\/loki:latest\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003eports\u003c\/span\u003e:\n      - \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;3100:3100\u0026#34;\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003ecommand\u003c\/span\u003e: -\u003cspan style=\u0022color:#ae81ff\u0022\u003econfig.file=\/etc\/loki\/local-config.yaml\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003enetworks\u003c\/span\u003e:\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003eloki\u003c\/span\u003e\n\n  \u003cspan style=\u0022color:#f92672\u0022\u003epromtail\u003c\/span\u003e:\n    \u003cspan style=\u0022color:#f92672\u0022\u003eimage\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003egrafana\/promtail:latest\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003evolumes\u003c\/span\u003e:\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003e\/var\/log:\/var\/log\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003ecommand\u003c\/span\u003e: -\u003cspan style=\u0022color:#ae81ff\u0022\u003econfig.file=\/etc\/promtail\/config.yml\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003enetworks\u003c\/span\u003e:\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003eloki\u003c\/span\u003e\n\n  \u003cspan style=\u0022color:#f92672\u0022\u003egrafana\u003c\/span\u003e:\n    \u003cspan style=\u0022color:#f92672\u0022\u003eimage\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003egrafana\/grafana:latest\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003eports\u003c\/span\u003e:\n      - \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;3000:3000\u0026#34;\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003enetworks\u003c\/span\u003e:\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003eloki\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e查看是否启动：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003edocker-compose ls\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003e输出：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-cmd\u0022 data-lang=\u0022cmd\u0022\u003esmartgo$ docker-compose ls\nNAME                STATUS              CONFIG FILES\nxloki               running(3)          \/home\/smartgo\/xloki\/docker-compose.yaml\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch4 id=\u0022配置数据源\u0022\u003e配置数据源\u003c\/h4\u003e\n\u003cp\u003e访问Grafana： yournode:3000\n,选择数据源：\u003cstrong\u003eExplore\u0026ndash;DataSource\u003c\/strong\u003e\n\u003cimg src=\u0022\/images\/loki_data_source1.png\u0022 alt=\u0022\u0022\u003e\n可以看到Grafana支持的数据源,点击选择  \u003cstrong\u003eLoki\u003c\/strong\u003e\n\u003cimg src=\u0022\/images\/loki_data_source2.png\u0022 alt=\u0022\u0022\u003e\n设置地址为：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003ehttp:\/\/loki:3100\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003e保存即可,点击 \u003cstrong\u003eSaveAndTest\u003c\/strong\u003e \n\u003cimg src=\u0022\/images\/loki_data_source3.png\u0022 alt=\u0022\u0022\u003e\u003c\/p\u003e\n\u003ch4 id=\u0022观测日志是否采集聚合\u0022\u003e观测日志是否采集、聚合\u003c\/h4\u003e\n\u003cp\u003e搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下\n\u003cimg src=\u0022\/images\/loki_output.png\u0022 alt=\u0022\u0022\u003e\u003c\/p\u003e\n\u003ch3 id=\u0022小结\u0022\u003e小结\u003c\/h3\u003e\n\u003cp\u003e本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。\u003c\/p\u003e\n\u003ch3 id=\u0022todo\u0022\u003eToDo\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e收集Dockers的日志\u003c\/li\u003e\n\u003cli\u003eLogQL \u003ca href=\u0022https:\/\/grafana.com\/docs\/loki\/latest\/logql\/\u0022\u003ehttps:\/\/grafana.com\/docs\/loki\/latest\/logql\/\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003ch3 id=\u0022reference\u0022\u003ereference\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003eLoki Github： \u003ca href=\u0022https:\/\/github.com\/grafana\/loki\/\u0022\u003ehttps:\/\/github.com\/grafana\/loki\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eLoki DockerCompose 安装 \u003ca href=\u0022https:\/\/grafana.com\/docs\/loki\/latest\/installation\/docker\/\u0022\u003ehttps:\/\/grafana.com\/docs\/loki\/latest\/installation\/docker\/\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/07\/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95\/",
+  "keywords":"[loki]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="loki">
+<meta name="description" content="为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。
+简介
+
+Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。
+
+相关组件
+
+Loki是主服务器，负责存储日志和处理查询。
+Promtail是代理，负责收集日志并将其发送给 loki 。
+Grafana用于 UI 展示。
+
+部署
+这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：
+
+启动 loki 、promtail、grafana
+配置日志收集方式
+观测日志是否采集、聚合
+
+启动 loki 、promtail、grafana
+在工作目录底下创建 docker-compose.yaml
+version: &#34;3&#34;
+
+networks:
+  loki:
+
+services:
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - &#34;3100:3100&#34;
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - &#34;3000:3000&#34;
+    networks:
+      - loki
+查看是否启动：
+
+docker-compose ls
+
+输出：
+smartgo$ docker-compose ls
+NAME                STATUS              CONFIG FILES
+xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
+配置数据源
+访问Grafana： yournode:3000
+,选择数据源：Explore&ndash;DataSource
+
+可以看到Grafana支持的数据源,点击选择  Loki
+
+设置地址为：
+
+http://loki:3100
+
+保存即可,点击 SaveAndTest 
+
+观测日志是否采集、聚合
+搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
+
+小结
+本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。
+ToDo
+
+收集Dockers的日志
+LogQL https://grafana.com/docs/loki/latest/logql/
+
+reference
+
+Loki Github： https://github.com/grafana/loki/
+Loki DockerCompose 安装 https://grafana.com/docs/loki/latest/installation/docker/
+">
+
+
+<meta property="og:description" content="为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。
+简介
+
+Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。
+
+相关组件
+
+Loki是主服务器，负责存储日志和处理查询。
+Promtail是代理，负责收集日志并将其发送给 loki 。
+Grafana用于 UI 展示。
+
+部署
+这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：
+
+启动 loki 、promtail、grafana
+配置日志收集方式
+观测日志是否采集、聚合
+
+启动 loki 、promtail、grafana
+在工作目录底下创建 docker-compose.yaml
+version: &#34;3&#34;
+
+networks:
+  loki:
+
+services:
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - &#34;3100:3100&#34;
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - &#34;3000:3000&#34;
+    networks:
+      - loki
+查看是否启动：
+
+docker-compose ls
+
+输出：
+smartgo$ docker-compose ls
+NAME                STATUS              CONFIG FILES
+xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
+配置数据源
+访问Grafana： yournode:3000
+,选择数据源：Explore&ndash;DataSource
+
+可以看到Grafana支持的数据源,点击选择  Loki
+
+设置地址为：
+
+http://loki:3100
+
+保存即可,点击 SaveAndTest 
+
+观测日志是否采集、聚合
+搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
+
+小结
+本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。
+ToDo
+
+收集Dockers的日志
+LogQL https://grafana.com/docs/loki/latest/logql/
+
+reference
+
+Loki Github： https://github.com/grafana/loki/
+Loki DockerCompose 安装 https://grafana.com/docs/loki/latest/installation/docker/
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="日志聚合系统GrafanaLoki  一、初试">
+<meta name="twitter:title" content="日志聚合系统GrafanaLoki  一、初试">
+<meta property="og:url" content="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。
+简介
+
+Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。
+
+相关组件
+
+Loki是主服务器，负责存储日志和处理查询。
+Promtail是代理，负责收集日志并将其发送给 loki 。
+Grafana用于 UI 展示。
+
+部署
+这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：
+
+启动 loki 、promtail、grafana
+配置日志收集方式
+观测日志是否采集、聚合
+
+启动 loki 、promtail、grafana
+在工作目录底下创建 docker-compose.yaml
+version: &#34;3&#34;
+
+networks:
+  loki:
+
+services:
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - &#34;3100:3100&#34;
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - &#34;3000:3000&#34;
+    networks:
+      - loki
+查看是否启动：
+
+docker-compose ls
+
+输出：
+smartgo$ docker-compose ls
+NAME                STATUS              CONFIG FILES
+xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
+配置数据源
+访问Grafana： yournode:3000
+,选择数据源：Explore&ndash;DataSource
+
+可以看到Grafana支持的数据源,点击选择  Loki
+
+设置地址为：
+
+http://loki:3100
+
+保存即可,点击 SaveAndTest 
+
+观测日志是否采集、聚合
+搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
+
+小结
+本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。
+ToDo
+
+收集Dockers的日志
+LogQL https://grafana.com/docs/loki/latest/logql/
+
+reference
+
+Loki Github： https://github.com/grafana/loki/
+Loki DockerCompose 安装 https://grafana.com/docs/loki/latest/installation/docker/
+">
+<meta name="twitter:description" content="为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。
+简介
+
+Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。
+
+相关组件
+
+Loki是主服务器，负责存储日志和处理查询。
+Promtail是代理，负责收集日志并将其发送给 loki 。
+Grafana用于 UI 展示。
+
+部署
+这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：
+
+启动 loki 、promtail、grafana
+配置日志收集方式
+观测日志是否采集、聚合
+
+启动 loki 、promtail、grafana
+在工作目录底下创建 docker-compose.yaml
+version: &#34;3&#34;
+
+networks:
+  loki:
+
+services:
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - &#34;3100:3100&#34;
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - &#34;3000:3000&#34;
+    networks:
+      - loki
+查看是否启动：
+
+docker-compose ls
+
+输出：
+smartgo$ docker-compose ls
+NAME                STATUS              CONFIG FILES
+xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
+配置数据源
+访问Grafana： yournode:3000
+,选择数据源：Explore&ndash;DataSource
+
+可以看到Grafana支持的数据源,点击选择  Loki
+
+设置地址为：
+
+http://loki:3100
+
+保存即可,点击 SaveAndTest 
+
+观测日志是否采集、聚合
+搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
+
+小结
+本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。
+ToDo
+
+收集Dockers的日志
+LogQL https://grafana.com/docs/loki/latest/logql/
+
+reference
+
+Loki Github： https://github.com/grafana/loki/
+Loki DockerCompose 安装 https://grafana.com/docs/loki/latest/installation/docker/
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-07-02T17:34:59">
+  
+  
+    <meta property="article:modified_time" content="2022-07-02T17:34:59">
+  
+  
+  
+    
+      <meta property="article:section" content="infrastructure">
+    
+      <meta property="article:section" content="log">
+    
+  
+  
+    
+      <meta property="article:tag" content="infrastructure">
+    
+      <meta property="article:tag" content="log">
+    
+      <meta property="article:tag" content="loki">
+    
+      <meta property="article:tag" content="grafana">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>日志聚合系统GrafanaLoki  一、初试</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      日志聚合系统GrafanaLoki  一、初试
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-07-02T17:34:59&#43;08:00">
+        
+   2, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/infrastructure">infrastructure</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/log">log</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。</p>
+<h3 id="简介">简介</h3>
+<blockquote>
+<p>Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。</p>
+</blockquote>
+<h3 id="相关组件">相关组件</h3>
+<ul>
+<li>Loki是主服务器，负责存储日志和处理查询。</li>
+<li>Promtail是代理，负责收集日志并将其发送给 loki 。</li>
+<li>Grafana用于 UI 展示。</li>
+</ul>
+<h3 id="部署">部署</h3>
+<p>这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：</p>
+<ol>
+<li>启动 loki 、promtail、grafana</li>
+<li>配置日志收集方式</li>
+<li>观测日志是否采集、聚合</li>
+</ol>
+<h4 id="启动-loki-promtailgrafana">启动 loki 、promtail、grafana</h4>
+<p>在工作目录底下创建 docker-compose.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#34;3&#34;</span>
+
+<span style="color:#f92672">networks</span>:
+  <span style="color:#f92672">loki</span>:
+
+<span style="color:#f92672">services</span>:
+  <span style="color:#f92672">loki</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/loki:latest</span>
+    <span style="color:#f92672">ports</span>:
+      - <span style="color:#e6db74">&#34;3100:3100&#34;</span>
+    <span style="color:#f92672">command</span>: -<span style="color:#ae81ff">config.file=/etc/loki/local-config.yaml</span>
+    <span style="color:#f92672">networks</span>:
+      - <span style="color:#ae81ff">loki</span>
+
+  <span style="color:#f92672">promtail</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/promtail:latest</span>
+    <span style="color:#f92672">volumes</span>:
+      - <span style="color:#ae81ff">/var/log:/var/log</span>
+    <span style="color:#f92672">command</span>: -<span style="color:#ae81ff">config.file=/etc/promtail/config.yml</span>
+    <span style="color:#f92672">networks</span>:
+      - <span style="color:#ae81ff">loki</span>
+
+  <span style="color:#f92672">grafana</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/grafana:latest</span>
+    <span style="color:#f92672">ports</span>:
+      - <span style="color:#e6db74">&#34;3000:3000&#34;</span>
+    <span style="color:#f92672">networks</span>:
+      - <span style="color:#ae81ff">loki</span>
+</code></pre></div><p>查看是否启动：</p>
+<blockquote>
+<p>docker-compose ls</p>
+</blockquote>
+<p>输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">smartgo$ docker-compose ls
+NAME                STATUS              CONFIG FILES
+xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
+</code></pre></div><h4 id="配置数据源">配置数据源</h4>
+<p>访问Grafana： yournode:3000
+,选择数据源：<strong>Explore&ndash;DataSource</strong>
+<img src="https://luckytking.github.io/images/loki_data_source1.png" alt="">
+可以看到Grafana支持的数据源,点击选择  <strong>Loki</strong>
+<img src="https://luckytking.github.io/images/loki_data_source2.png" alt="">
+设置地址为：</p>
+<blockquote>
+<p>http://loki:3100</p>
+</blockquote>
+<p>保存即可,点击 <strong>SaveAndTest</strong> 
+<img src="https://luckytking.github.io/images/loki_data_source3.png" alt=""></p>
+<h4 id="观测日志是否采集聚合">观测日志是否采集、聚合</h4>
+<p>搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
+<img src="https://luckytking.github.io/images/loki_output.png" alt=""></p>
+<h3 id="小结">小结</h3>
+<p>本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。</p>
+<h3 id="todo">ToDo</h3>
+<ul>
+<li>收集Dockers的日志</li>
+<li>LogQL <a href="https://grafana.com/docs/loki/latest/logql/">https://grafana.com/docs/loki/latest/logql/</a></li>
+</ul>
+<h3 id="reference">reference</h3>
+<ul>
+<li>Loki Github： <a href="https://github.com/grafana/loki/">https://github.com/grafana/loki/</a></li>
+<li>Loki DockerCompose 安装 <a href="https://grafana.com/docs/loki/latest/installation/docker/">https://grafana.com/docs/loki/latest/installation/docker/</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/infrastructure/">infrastructure</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/log/">log</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/loki/">loki</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/grafana/">grafana</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/" data-tooltip="性能测试平台（locust&#43;boomer）之二" aria-label=": 性能测试平台（locust&#43;boomer）之二">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/" data-tooltip="性能测试平台（locust&#43;boomer）之二" aria-label=": 性能测试平台（locust&#43;boomer）之二">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

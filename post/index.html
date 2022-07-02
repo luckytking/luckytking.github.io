@@ -238,6 +238,150 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" aria-label="">
+      
+          日志聚合系统GrafanaLoki  一、初试
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-07-02T17:34:59&#43;08:00">
+        
+   2, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/infrastructure">infrastructure</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/log">log</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。</p>
+<h3 id="简介">简介</h3>
+<blockquote>
+<p>Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。</p>
+</blockquote>
+<h3 id="相关组件">相关组件</h3>
+<ul>
+<li>Loki是主服务器，负责存储日志和处理查询。</li>
+<li>Promtail是代理，负责收集日志并将其发送给 loki 。</li>
+<li>Grafana用于 UI 展示。</li>
+</ul>
+<h3 id="部署">部署</h3>
+<p>这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：</p>
+<ol>
+<li>启动 loki 、promtail、grafana</li>
+<li>配置日志收集方式</li>
+<li>观测日志是否采集、聚合</li>
+</ol>
+<h4 id="启动-loki-promtailgrafana">启动 loki 、promtail、grafana</h4>
+<p>在工作目录底下创建 docker-compose.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#34;3&#34;</span>
+
+<span style="color:#f92672">networks</span>:
+  <span style="color:#f92672">loki</span>:
+
+<span style="color:#f92672">services</span>:
+  <span style="color:#f92672">loki</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/loki:latest</span>
+    <span style="color:#f92672">ports</span>:
+      - <span style="color:#e6db74">&#34;3100:3100&#34;</span>
+    <span style="color:#f92672">command</span>: -<span style="color:#ae81ff">config.file=/etc/loki/local-config.yaml</span>
+    <span style="color:#f92672">networks</span>:
+      - <span style="color:#ae81ff">loki</span>
+
+  <span style="color:#f92672">promtail</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/promtail:latest</span>
+    <span style="color:#f92672">volumes</span>:
+      - <span style="color:#ae81ff">/var/log:/var/log</span>
+    <span style="color:#f92672">command</span>: -<span style="color:#ae81ff">config.file=/etc/promtail/config.yml</span>
+    <span style="color:#f92672">networks</span>:
+      - <span style="color:#ae81ff">loki</span>
+
+  <span style="color:#f92672">grafana</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/grafana:latest</span>
+    <span style="color:#f92672">ports</span>:
+      - <span style="color:#e6db74">&#34;3000:3000&#34;</span>
+    <span style="color:#f92672">networks</span>:
+      - <span style="color:#ae81ff">loki</span>
+</code></pre></div><p>查看是否启动：</p>
+<blockquote>
+<p>docker-compose ls</p>
+</blockquote>
+<p>输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">smartgo$ docker-compose ls
+NAME                STATUS              CONFIG FILES
+xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
+</code></pre></div><h4 id="配置数据源">配置数据源</h4>
+<p>访问Grafana： yournode:3000
+,选择数据源：<strong>Explore&ndash;DataSource</strong>
+<img src="https://luckytking.github.io/images/loki_data_source1.png" alt="">
+可以看到Grafana支持的数据源,点击选择  <strong>Loki</strong>
+<img src="https://luckytking.github.io/images/loki_data_source2.png" alt="">
+设置地址为：</p>
+<blockquote>
+<p>http://loki:3100</p>
+</blockquote>
+<p>保存即可,点击 <strong>SaveAndTest</strong> 
+<img src="https://luckytking.github.io/images/loki_data_source3.png" alt=""></p>
+<h4 id="观测日志是否采集聚合">观测日志是否采集、聚合</h4>
+<p>搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
+<img src="https://luckytking.github.io/images/loki_output.png" alt=""></p>
+<h3 id="小结">小结</h3>
+<p>本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。</p>
+<h3 id="todo">ToDo</h3>
+<ul>
+<li>收集Dockers的日志</li>
+<li>LogQL <a href="https://grafana.com/docs/loki/latest/logql/">https://grafana.com/docs/loki/latest/logql/</a></li>
+</ul>
+<h3 id="reference">reference</h3>
+<ul>
+<li>Loki Github： <a href="https://github.com/grafana/loki/">https://github.com/grafana/loki/</a></li>
+<li>Loki DockerCompose 安装 <a href="https://grafana.com/docs/loki/latest/installation/docker/">https://grafana.com/docs/loki/latest/installation/docker/</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/" aria-label="">
       
           性能测试平台（locust&#43;boomer）之二
@@ -1766,325 +1910,24 @@ runtime.goexit
 </article>
 
           
-            
-  
-    
+          
+  <div class="pagination-bar">
+    <ul class="pagination">
       
         
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/04/go%E5%BE%AE%E6%9C%8D%E5%8A%A1-kratostransporter%E4%BC%A0%E8%BE%93%E5%B1%82/" aria-label="">
-      
-          Go微服务  KratosTransporter传输层
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-04-04T18:53:15&#43;08:00">
         
-   4, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/micro-service">micro service</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/kratos">kratos</a>
-    
-  
-
+          <li class="pagination-next">
+            <a class="btn btn--default btn--small" href="https://luckytking.github.io/post/page/2/" aria-label="">
+              <span></span>
+              <i class="fa fa-angle-right text-base icon-ml"></i>
+            </a>
+          </li>
+        
+      
+      <li class="pagination-number"> </li>
+    </ul>
   </div>
 
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要介绍Kratos Transport和源码的分析.</p>
-<p>kratos 框架对传输层进行了抽象，用户可以通过实现接口来接入实现，框架默认实现了gRPC和HTTP两种通信协议传输层。</p>
-<h2 id="抽象接口">抽象接口</h2>
-<h3 id="server-interface">Server Interface</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// 服务的启动和停止，用于管理服务生命周期。
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Server</span> <span style="color:#66d9ef">interface</span> {
-    <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
-    <span style="color:#a6e22e">Stop</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
-}
-</code></pre></div><h3 id="transporter">Transporter</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Transporter</span> <span style="color:#66d9ef">interface</span> {
-    <span style="color:#75715e">// 代表实现的通讯协议的种类，如内置的 http grpc，也可以实现其他的类型如 mqtt，websocket
-</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Kind</span>() <span style="color:#a6e22e">Kind</span>
-    <span style="color:#75715e">// 提供的服务终端地址
-</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Endpoint</span>() <span style="color:#66d9ef">string</span>
-    <span style="color:#75715e">// 用于标识服务的完整方法路径
-</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 示例: /helloworld.Greeter/SayHello
-</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Operation</span>() <span style="color:#66d9ef">string</span>
-    <span style="color:#75715e">// http 的请求头或者 grpc 的元数据
-</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Header</span>() <span style="color:#a6e22e">Header</span>
-}
-</code></pre></div><h3 id="endpointer">Endpointer</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Endpointer</span> <span style="color:#66d9ef">interface</span> {
-    <span style="color:#75715e">// 用于实现注册到注册中心的终端地址，如果不实现这个方法则不会注册到注册中心
-</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Endpoint</span>() (<span style="color:#f92672">*</span><span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">URL</span>, <span style="color:#66d9ef">error</span>)
-}
-
-</code></pre></div><h2 id="example-for-http">Example For Http</h2>
-<p>使用kratos-transport 创建一个http server 和 client ，在 client和server之间通讯</p>
-<h3 id="server">server</h3>
-<p>server的完整代码 server.go 如下：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;context&#34;</span>
-	<span style="color:#e6db74">&#34;encoding/json&#34;</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;log&#34;</span>
-	<span style="color:#e6db74">&#34;net/http&#34;</span>
-	<span style="color:#e6db74">&#34;os&#34;</span>
-	<span style="color:#e6db74">&#34;os/signal&#34;</span>
-	<span style="color:#e6db74">&#34;syscall&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-
-	<span style="color:#a6e22e">transporthttp</span> <span style="color:#e6db74">&#34;github.com/go-kratos/kratos/v2/transport/http&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewServer</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Server</span> {
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">opts</span> = []<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">ServerOption</span>{
-		<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Address</span>(<span style="color:#e6db74">&#34;0.0.0.0:8000&#34;</span>),
-		<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Timeout</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>),
-	}
-	<span style="color:#a6e22e">svr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">NewServer</span>(<span style="color:#a6e22e">opts</span><span style="color:#f92672">...</span>)
-	<span style="color:#a6e22e">svr</span>.<span style="color:#a6e22e">Handle</span>(<span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">helloHandler</span>{})
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">svr</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
-	<span style="color:#a6e22e">srv</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewServer</span>()
-
-	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ErrServerClosed</span> {
-			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Print</span>(<span style="color:#e6db74">&#34;Server closed under request&#34;</span>)
-		} <span style="color:#66d9ef">else</span> {
-			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#e6db74">&#34;Server closed unexpected&#34;</span>)
-		}
-	}
-
-	<span style="color:#a6e22e">done</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Signal</span>)
-	<span style="color:#a6e22e">signal</span>.<span style="color:#a6e22e">Notify</span>(<span style="color:#a6e22e">done</span>, <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Interrupt</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGINT</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGTERM</span>)
-	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-		<span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">done</span>
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Stop</span>(<span style="color:#a6e22e">ctx</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#e6db74">&#34;Shutdown NewServer:&#34;</span>, <span style="color:#a6e22e">err</span>)
-		}
-	}()
-}
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Foo</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">Bar</span> <span style="color:#66d9ef">string</span>
-}
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">helloHandler</span> <span style="color:#66d9ef">struct</span>{}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">helloHandler</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">ParseForm</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span>
-	}
-	<span style="color:#a6e22e">formData</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{})
-	<span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">NewDecoder</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Body</span>).<span style="color:#a6e22e">Decode</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">formData</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">formData</span>)
-	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">k</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">formData</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">k</span>, <span style="color:#e6db74">&#34;value&#34;</span>, <span style="color:#a6e22e">v</span>)
-	}
-
-	<span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Foo</span>{
-		<span style="color:#a6e22e">Bar</span>: <span style="color:#e6db74">&#34;NiceToMeetYouToo&#34;</span>,
-	}
-	<span style="color:#a6e22e">replyBytes</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">reply</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span>
-	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, string(<span style="color:#a6e22e">replyBytes</span>))
-}
-
-</code></pre></div><p>启动服务</p>
-<pre tabindex="0"><code> go run main.go
-</code></pre><p>输出</p>
-<pre tabindex="0"><code>API server listening at: [::]:60870
-INFO msg=[HTTP] server listening on: [::]:8000
-</code></pre><h3 id="client">client</h3>
-<p>client 的完整代码 client.go 如下：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
-<span style="color:#f92672">package</span> <span style="color:#a6e22e">client</span>
-
-<span style="color:#f92672">import</span> (
-   <span style="color:#e6db74">&#34;context&#34;</span>
-   <span style="color:#e6db74">&#34;github.com/go-kratos/kratos/v2/transport/http&#34;</span>
-   <span style="color:#e6db74">&#34;testing&#34;</span>
-   <span style="color:#e6db74">&#34;time&#34;</span>
-
-   <span style="color:#e6db74">&#34;github.com/stretchr/testify/assert&#34;</span>
-)
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Foo</span> <span style="color:#66d9ef">struct</span> {
-   <span style="color:#a6e22e">Bar</span> <span style="color:#66d9ef">string</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestNewClient</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-   <span style="color:#a6e22e">client</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewClient</span>(
-   	<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(),
-   	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">WithEndpoint</span>(<span style="color:#e6db74">&#34;0.0.0.0:8000&#34;</span>),
-   	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">WithMiddleware</span>(),
-   	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">WithTimeout</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#ae81ff">10</span>),
-   )
-   <span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Nil</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span>)
-
-   <span style="color:#a6e22e">values</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
-   	<span style="color:#e6db74">&#34;foo&#34;</span>:   <span style="color:#e6db74">&#34;bar&#34;</span>,
-   	<span style="color:#e6db74">&#34;hello&#34;</span>: <span style="color:#e6db74">&#34;world&#34;</span>,
-   } 
-   <span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Nil</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span>)
-   <span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Foo</span>{}
-   <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Invoke</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#e6db74">&#34;POST&#34;</span>, <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">values</span>, <span style="color:#a6e22e">reply</span>)
-   <span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Nil</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span>)
-
-   <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#e6db74">&#34;reply&#34;</span>, <span style="color:#a6e22e">reply</span>)
-}
-
-</code></pre></div><p>运行测试用例，</p>
-<p>server 输出：</p>
-<pre tabindex="0"><code>key foo value bar
-key hello value world
-</code></pre><p>client 输出：</p>
-<pre tabindex="0"><code>=== RUN   TestNewClient
-    client_test.go:42: reply &amp;{NiceToMeetYouToo}
-</code></pre><h2 id="源码分析">源码分析</h2>
-<h3 id="transport-server">Transport Server</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// 服务的启动和停止，用于管理服务生命周期。
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Server</span> <span style="color:#66d9ef">interface</span> {
-   <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
-   <span style="color:#a6e22e">Stop</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
-}
-</code></pre></div><p>Start：启动服务、监听端口、处理请求
-Stop：停止服务</p>
-<p>如上例 server.go 中，</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">svr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">NewServer</span>(<span style="color:#a6e22e">opts</span><span style="color:#f92672">...</span>)
-</code></pre></div><p>这个用创建一个 Server Interface的Http实例</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Server is an HTTP server wrapper.
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Server</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Server</span>
-	<span style="color:#a6e22e">lis</span>         <span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">Listener</span>
-	<span style="color:#a6e22e">tlsConf</span>     <span style="color:#f92672">*</span><span style="color:#a6e22e">tls</span>.<span style="color:#a6e22e">Config</span>
-	<span style="color:#a6e22e">endpoint</span>    <span style="color:#f92672">*</span><span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">URL</span>
-	<span style="color:#a6e22e">err</span>         <span style="color:#66d9ef">error</span>
-	<span style="color:#a6e22e">network</span>     <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">address</span>     <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">timeout</span>     <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
-	<span style="color:#a6e22e">filters</span>     []<span style="color:#a6e22e">FilterFunc</span>
-	<span style="color:#a6e22e">ms</span>          []<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Middleware</span>
-	<span style="color:#a6e22e">dec</span>         <span style="color:#a6e22e">DecodeRequestFunc</span>
-	<span style="color:#a6e22e">enc</span>         <span style="color:#a6e22e">EncodeResponseFunc</span>
-	<span style="color:#a6e22e">ene</span>         <span style="color:#a6e22e">EncodeErrorFunc</span>
-	<span style="color:#a6e22e">strictSlash</span> <span style="color:#66d9ef">bool</span>
-	<span style="color:#a6e22e">router</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Router</span>
-	<span style="color:#a6e22e">log</span>         <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Helper</span>
-}
-
-</code></pre></div><p>可以看到，Server是对标准库 net/http 中http.Server 的一个封装。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// ServerOption is an HTTP server option.
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ServerOption</span> <span style="color:#66d9ef">func</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">Server</span>)
-
-</code></pre></div><p>可通过 option 设置服务参数，比如例子中的</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">opts</span> = []<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">ServerOption</span>{
-		<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Address</span>(<span style="color:#e6db74">&#34;0.0.0.0:8000&#34;</span>),
-		<span style="color:#a6e22e">transporthttp</span>.<span style="color:#a6e22e">Timeout</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>),
-	}
-
-</code></pre></div><p>Start 启动一个net/http.Server</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Start start the HTTP server.
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Server</span>) <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span> { 
-    <span style="color:#f92672">...</span>
-	<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;[HTTP] server listening on: %s&#34;</span>, <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">lis</span>.<span style="color:#a6e22e">Addr</span>().<span style="color:#a6e22e">String</span>())
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">tlsConf</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">ServeTLS</span>(<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">lis</span>, <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#e6db74">&#34;&#34;</span>)
-	} <span style="color:#66d9ef">else</span> {
-		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Serve</span>(<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">lis</span>)
-	}
-    <span style="color:#f92672">...</span>
-} 
-
-</code></pre></div><h3 id="启动流程">启动流程</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">a</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span>) <span style="color:#a6e22e">Run</span>() <span style="color:#66d9ef">error</span> {
-	<span style="color:#f92672">...</span>
-	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">srv</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">servers</span> {
-		<span style="color:#a6e22e">srv</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">srv</span>
-		<span style="color:#a6e22e">eg</span>.<span style="color:#a6e22e">Go</span>(<span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
-			<span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>() <span style="color:#75715e">// wait for stop signal
-</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Stop</span>(<span style="color:#a6e22e">ctx</span>)
-		})
-		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>)
-		<span style="color:#a6e22e">eg</span>.<span style="color:#a6e22e">Go</span>(<span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
-			<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
-			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
-		})
-	}
-	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
-    <span style="color:#f92672">...</span>
-}
-</code></pre></div><p>kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。</p>
-<h3 id="transport-client">Transport Client</h3>
-<p>Transport Client 是会 http CLient封装</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Client is an HTTP client.
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Client</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">opts</span>     <span style="color:#a6e22e">clientOptions</span>
-	<span style="color:#a6e22e">target</span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">Target</span>
-	<span style="color:#a6e22e">r</span>        <span style="color:#f92672">*</span><span style="color:#a6e22e">resolver</span>
-	<span style="color:#a6e22e">cc</span>       <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Client</span>
-	<span style="color:#a6e22e">insecure</span> <span style="color:#66d9ef">bool</span>
-}
-</code></pre></div><p>如client.go 中的一个Http Post</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">values</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{
-	}  
-	<span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Foo</span>{}
-	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Invoke</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#e6db74">&#34;POST&#34;</span>, <span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">values</span>, <span style="color:#a6e22e">reply</span>) 
-</code></pre></div><p>Invoke封装了post，使用更加简洁。</p>
-<h2 id="总结">总结</h2>
-<p>kratos 的App 层无需关心底层服务协议的实现， 只需管理好应用配置、服务生命周期、加载顺序即可。抽象的服务协议可以专注应用配置、服务生命周期等。层次清晰，职责清楚。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://github.com/go-kratos/kratos/v2/transport">https://github.com/go-kratos/kratos/v2/transport</a></li>
-<li><a href="https://go-kratos.dev/docs/component/transport/overview">https://go-kratos.dev/docs/component/transport/overview</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/04/go%E5%BE%AE%E6%9C%8D%E5%8A%A1-kratostransporter%E4%BC%A0%E8%BE%93%E5%B1%82/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-          
 
         </section>
         <footer id="footer" class="main-content-wrap">
