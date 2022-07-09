@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e上篇\u003ca href=\u0022https:\/\/luckytking.github.io\/2022\/07\/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95\/\u0022\u003e传送门\u003c\/a\u003e介绍和搭建 GrafanaLoki，今天学习实战收集dockers容器的日志。\u003c\/p\u003e\n\u003cp\u003eGrafana Loki 支持以下官方客户端发送日志：\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003ePromtail\u003c\/li\u003e\n\u003cli\u003eDocker Driver\u003c\/li\u003e\n\u003cli\u003eFluentd\u003c\/li\u003e\n\u003cli\u003eFluent Bit\u003c\/li\u003e\n\u003cli\u003eLogstash\u003c\/li\u003e\n\u003cli\u003eLambda Promtail\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e其中我们关注比较多是：\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003ePromtail 是运行 Kubernetes 时的首选客户端，因为您可以将其配置为自动从运行 Promtail 的同一节点上运行的 pod 中抓取日志\u003c\/li\u003e\n\u003cli\u003eDocker Logging Driver  当使用 Docker 而不是 Kubernetes 时，应该使用 Loki 的 Docker 日志记录驱动程序，因为它会自动添加适合正在运行的容器的标签。\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003ch3 id=\u0022docker-driver\u0022\u003eDocker Driver\u003c\/h3\u003e\n\u003cp\u003eGrafana Loki 官方支持一个 Docker 插件，该插件将从 Docker 容器中读取日志并将它们发送到 Loki\u003c\/p\u003e\n\u003ch3 id=\u0022安装\u0022\u003e安装\u003c\/h3\u003e\n\u003cp\u003e在每台 Docker 主机安装插件\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003edocker plugin install grafana\/loki-docker-driver:latest \u0026ndash;alias loki \u0026ndash;grant-all-permissions\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003e检查是否安装成功:\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003edocker plugin ls\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ docker plugin ls\r\nID             NAME          DESCRIPTION           ENABLED\r\n2aa05FooBar   loki:latest   Loki Logging Driver   true\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e插件的使用可以有两种方式：\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e配置全局 daemon.json,收集此后创建的所有容器的日志。\u003c\/li\u003e\n\u003cli\u003e运行容器时指定logging类型为loki\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e这里我们采用第一种方式\u003c\/p\u003e\n\u003ch3 id=\u0022配置全局-daemonjson\u0022\u003e配置全局 daemon.json\u003c\/h3\u003e\n\u003cblockquote\u003e\n\u003cp\u003esudo vi \/etc\/docker\/daemon.json\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e{\r\n    \u0026quot;log-driver\u0026quot;: \u0026quot;loki\u0026quot;,\r\n    \u0026quot;log-opts\u0026quot;: {\r\n        \u0026quot;loki-url\u0026quot;: \u0026quot;http:\/\/127.0.0.1:3100\/loki\/api\/v1\/push\u0026quot;\r\n    }\r\n}\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e重启docker服务\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003esudo systemctl restart docker\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003e查看是否生效\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003edocker info\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$docker info\r\n...\r\nLogging Driver: loki\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e说明配置生效。\u003c\/p\u003e\n\u003ch3 id=\u0022测试\u0022\u003e测试\u003c\/h3\u003e\n\u003cp\u003e启动测试服务，打开grafana查看，数据源选择 “Loki”。\n搜索选择 compose-service ，由于这边是使用docker-compose启动的服务。\n选择 “你的测试服务”，显示如下。\u003c\/p\u003e\n\u003cp\u003e\u003cimg src=\u0022\/images\/loki-docker.png\u0022 alt=\u0022\u0022\u003e\u003c\/p\u003e\n\u003cp\u003e至此，已经成功收集docker的日志。\u003c\/p\u003e\n\u003ch3 id=\u0022小结\u0022\u003e小结\u003c\/h3\u003e\n\u003cp\u003e本篇主要介绍如何利用 Docker Driver插件和配置本地环境来收集dockers日志到loki。\u003c\/p\u003e\n\u003ch3 id=\u0022reference\u0022\u003ereference\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/grafana.com\/docs\/loki\/latest\/clients\/\u0022\u003ehttps:\/\/grafana.com\/docs\/loki\/latest\/clients\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022http:\/\/t.zoukankan.com\/turingguo-p-13847003.html\u0022\u003ehttp:\/\/t.zoukankan.com\/turingguo-p-13847003.html\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/07\/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97\/",
+  "keywords":"[loki]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="loki">
+<meta name="description" content="上篇传送门介绍和搭建 GrafanaLoki，今天学习实战收集dockers容器的日志。
+Grafana Loki 支持以下官方客户端发送日志：
+
+Promtail
+Docker Driver
+Fluentd
+Fluent Bit
+Logstash
+Lambda Promtail
+
+其中我们关注比较多是：
+
+Promtail 是运行 Kubernetes 时的首选客户端，因为您可以将其配置为自动从运行 Promtail 的同一节点上运行的 pod 中抓取日志
+Docker Logging Driver  当使用 Docker 而不是 Kubernetes 时，应该使用 Loki 的 Docker 日志记录驱动程序，因为它会自动添加适合正在运行的容器的标签。
+
+Docker Driver
+Grafana Loki 官方支持一个 Docker 插件，该插件将从 Docker 容器中读取日志并将它们发送到 Loki
+安装
+在每台 Docker 主机安装插件
+
+docker plugin install grafana/loki-docker-driver:latest &ndash;alias loki &ndash;grant-all-permissions
+
+检查是否安装成功:
+
+docker plugin ls
+
+$ docker plugin ls
+ID             NAME          DESCRIPTION           ENABLED
+2aa05FooBar   loki:latest   Loki Logging Driver   true
+插件的使用可以有两种方式：
+
+配置全局 daemon.json,收集此后创建的所有容器的日志。
+运行容器时指定logging类型为loki
+
+这里我们采用第一种方式
+配置全局 daemon.json
+
+sudo vi /etc/docker/daemon.json
+
+{
+    &quot;log-driver&quot;: &quot;loki&quot;,
+    &quot;log-opts&quot;: {
+        &quot;loki-url&quot;: &quot;http://127.0.0.1:3100/loki/api/v1/push&quot;
+    }
+}
+重启docker服务
+
+sudo systemctl restart docker
+
+查看是否生效
+
+docker info
+
+$docker info
+...
+Logging Driver: loki
+说明配置生效。
+测试
+启动测试服务，打开grafana查看，数据源选择 “Loki”。
+搜索选择 compose-service ，由于这边是使用docker-compose启动的服务。
+选择 “你的测试服务”，显示如下。
+
+至此，已经成功收集docker的日志。
+小结
+本篇主要介绍如何利用 Docker Driver插件和配置本地环境来收集dockers日志到loki。
+reference
+
+https://grafana.com/docs/loki/latest/clients/
+http://t.zoukankan.com/turingguo-p-13847003.html
+">
+
+
+<meta property="og:description" content="上篇传送门介绍和搭建 GrafanaLoki，今天学习实战收集dockers容器的日志。
+Grafana Loki 支持以下官方客户端发送日志：
+
+Promtail
+Docker Driver
+Fluentd
+Fluent Bit
+Logstash
+Lambda Promtail
+
+其中我们关注比较多是：
+
+Promtail 是运行 Kubernetes 时的首选客户端，因为您可以将其配置为自动从运行 Promtail 的同一节点上运行的 pod 中抓取日志
+Docker Logging Driver  当使用 Docker 而不是 Kubernetes 时，应该使用 Loki 的 Docker 日志记录驱动程序，因为它会自动添加适合正在运行的容器的标签。
+
+Docker Driver
+Grafana Loki 官方支持一个 Docker 插件，该插件将从 Docker 容器中读取日志并将它们发送到 Loki
+安装
+在每台 Docker 主机安装插件
+
+docker plugin install grafana/loki-docker-driver:latest &ndash;alias loki &ndash;grant-all-permissions
+
+检查是否安装成功:
+
+docker plugin ls
+
+$ docker plugin ls
+ID             NAME          DESCRIPTION           ENABLED
+2aa05FooBar   loki:latest   Loki Logging Driver   true
+插件的使用可以有两种方式：
+
+配置全局 daemon.json,收集此后创建的所有容器的日志。
+运行容器时指定logging类型为loki
+
+这里我们采用第一种方式
+配置全局 daemon.json
+
+sudo vi /etc/docker/daemon.json
+
+{
+    &quot;log-driver&quot;: &quot;loki&quot;,
+    &quot;log-opts&quot;: {
+        &quot;loki-url&quot;: &quot;http://127.0.0.1:3100/loki/api/v1/push&quot;
+    }
+}
+重启docker服务
+
+sudo systemctl restart docker
+
+查看是否生效
+
+docker info
+
+$docker info
+...
+Logging Driver: loki
+说明配置生效。
+测试
+启动测试服务，打开grafana查看，数据源选择 “Loki”。
+搜索选择 compose-service ，由于这边是使用docker-compose启动的服务。
+选择 “你的测试服务”，显示如下。
+
+至此，已经成功收集docker的日志。
+小结
+本篇主要介绍如何利用 Docker Driver插件和配置本地环境来收集dockers日志到loki。
+reference
+
+https://grafana.com/docs/loki/latest/clients/
+http://t.zoukankan.com/turingguo-p-13847003.html
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="日志聚合系统GrafanaLoki  二、收集本地docker容器日志">
+<meta name="twitter:title" content="日志聚合系统GrafanaLoki  二、收集本地docker容器日志">
+<meta property="og:url" content="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="上篇传送门介绍和搭建 GrafanaLoki，今天学习实战收集dockers容器的日志。
+Grafana Loki 支持以下官方客户端发送日志：
+
+Promtail
+Docker Driver
+Fluentd
+Fluent Bit
+Logstash
+Lambda Promtail
+
+其中我们关注比较多是：
+
+Promtail 是运行 Kubernetes 时的首选客户端，因为您可以将其配置为自动从运行 Promtail 的同一节点上运行的 pod 中抓取日志
+Docker Logging Driver  当使用 Docker 而不是 Kubernetes 时，应该使用 Loki 的 Docker 日志记录驱动程序，因为它会自动添加适合正在运行的容器的标签。
+
+Docker Driver
+Grafana Loki 官方支持一个 Docker 插件，该插件将从 Docker 容器中读取日志并将它们发送到 Loki
+安装
+在每台 Docker 主机安装插件
+
+docker plugin install grafana/loki-docker-driver:latest &ndash;alias loki &ndash;grant-all-permissions
+
+检查是否安装成功:
+
+docker plugin ls
+
+$ docker plugin ls
+ID             NAME          DESCRIPTION           ENABLED
+2aa05FooBar   loki:latest   Loki Logging Driver   true
+插件的使用可以有两种方式：
+
+配置全局 daemon.json,收集此后创建的所有容器的日志。
+运行容器时指定logging类型为loki
+
+这里我们采用第一种方式
+配置全局 daemon.json
+
+sudo vi /etc/docker/daemon.json
+
+{
+    &quot;log-driver&quot;: &quot;loki&quot;,
+    &quot;log-opts&quot;: {
+        &quot;loki-url&quot;: &quot;http://127.0.0.1:3100/loki/api/v1/push&quot;
+    }
+}
+重启docker服务
+
+sudo systemctl restart docker
+
+查看是否生效
+
+docker info
+
+$docker info
+...
+Logging Driver: loki
+说明配置生效。
+测试
+启动测试服务，打开grafana查看，数据源选择 “Loki”。
+搜索选择 compose-service ，由于这边是使用docker-compose启动的服务。
+选择 “你的测试服务”，显示如下。
+
+至此，已经成功收集docker的日志。
+小结
+本篇主要介绍如何利用 Docker Driver插件和配置本地环境来收集dockers日志到loki。
+reference
+
+https://grafana.com/docs/loki/latest/clients/
+http://t.zoukankan.com/turingguo-p-13847003.html
+">
+<meta name="twitter:description" content="上篇传送门介绍和搭建 GrafanaLoki，今天学习实战收集dockers容器的日志。
+Grafana Loki 支持以下官方客户端发送日志：
+
+Promtail
+Docker Driver
+Fluentd
+Fluent Bit
+Logstash
+Lambda Promtail
+
+其中我们关注比较多是：
+
+Promtail 是运行 Kubernetes 时的首选客户端，因为您可以将其配置为自动从运行 Promtail 的同一节点上运行的 pod 中抓取日志
+Docker Logging Driver  当使用 Docker 而不是 Kubernetes 时，应该使用 Loki 的 Docker 日志记录驱动程序，因为它会自动添加适合正在运行的容器的标签。
+
+Docker Driver
+Grafana Loki 官方支持一个 Docker 插件，该插件将从 Docker 容器中读取日志并将它们发送到 Loki
+安装
+在每台 Docker 主机安装插件
+
+docker plugin install grafana/loki-docker-driver:latest &ndash;alias loki &ndash;grant-all-permissions
+
+检查是否安装成功:
+
+docker plugin ls
+
+$ docker plugin ls
+ID             NAME          DESCRIPTION           ENABLED
+2aa05FooBar   loki:latest   Loki Logging Driver   true
+插件的使用可以有两种方式：
+
+配置全局 daemon.json,收集此后创建的所有容器的日志。
+运行容器时指定logging类型为loki
+
+这里我们采用第一种方式
+配置全局 daemon.json
+
+sudo vi /etc/docker/daemon.json
+
+{
+    &quot;log-driver&quot;: &quot;loki&quot;,
+    &quot;log-opts&quot;: {
+        &quot;loki-url&quot;: &quot;http://127.0.0.1:3100/loki/api/v1/push&quot;
+    }
+}
+重启docker服务
+
+sudo systemctl restart docker
+
+查看是否生效
+
+docker info
+
+$docker info
+...
+Logging Driver: loki
+说明配置生效。
+测试
+启动测试服务，打开grafana查看，数据源选择 “Loki”。
+搜索选择 compose-service ，由于这边是使用docker-compose启动的服务。
+选择 “你的测试服务”，显示如下。
+
+至此，已经成功收集docker的日志。
+小结
+本篇主要介绍如何利用 Docker Driver插件和配置本地环境来收集dockers日志到loki。
+reference
+
+https://grafana.com/docs/loki/latest/clients/
+http://t.zoukankan.com/turingguo-p-13847003.html
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-07-09T17:52:50">
+  
+  
+    <meta property="article:modified_time" content="2022-07-09T17:52:50">
+  
+  
+  
+    
+      <meta property="article:section" content="infrastructure">
+    
+      <meta property="article:section" content="log">
+    
+  
+  
+    
+      <meta property="article:tag" content="infrastructure">
+    
+      <meta property="article:tag" content="log">
+    
+      <meta property="article:tag" content="loki">
+    
+      <meta property="article:tag" content="grafana">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>日志聚合系统GrafanaLoki  二、收集本地docker容器日志</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      日志聚合系统GrafanaLoki  二、收集本地docker容器日志
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-07-09T17:52:50&#43;08:00">
+        
+   9, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/infrastructure">infrastructure</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/log">log</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>上篇<a href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/">传送门</a>介绍和搭建 GrafanaLoki，今天学习实战收集dockers容器的日志。</p>
+<p>Grafana Loki 支持以下官方客户端发送日志：</p>
+<ul>
+<li>Promtail</li>
+<li>Docker Driver</li>
+<li>Fluentd</li>
+<li>Fluent Bit</li>
+<li>Logstash</li>
+<li>Lambda Promtail</li>
+</ul>
+<p>其中我们关注比较多是：</p>
+<ul>
+<li>Promtail 是运行 Kubernetes 时的首选客户端，因为您可以将其配置为自动从运行 Promtail 的同一节点上运行的 pod 中抓取日志</li>
+<li>Docker Logging Driver  当使用 Docker 而不是 Kubernetes 时，应该使用 Loki 的 Docker 日志记录驱动程序，因为它会自动添加适合正在运行的容器的标签。</li>
+</ul>
+<h3 id="docker-driver">Docker Driver</h3>
+<p>Grafana Loki 官方支持一个 Docker 插件，该插件将从 Docker 容器中读取日志并将它们发送到 Loki</p>
+<h3 id="安装">安装</h3>
+<p>在每台 Docker 主机安装插件</p>
+<blockquote>
+<p>docker plugin install grafana/loki-docker-driver:latest &ndash;alias loki &ndash;grant-all-permissions</p>
+</blockquote>
+<p>检查是否安装成功:</p>
+<blockquote>
+<p>docker plugin ls</p>
+</blockquote>
+<pre tabindex="0"><code>$ docker plugin ls
+ID             NAME          DESCRIPTION           ENABLED
+2aa05FooBar   loki:latest   Loki Logging Driver   true
+</code></pre><p>插件的使用可以有两种方式：</p>
+<ul>
+<li>配置全局 daemon.json,收集此后创建的所有容器的日志。</li>
+<li>运行容器时指定logging类型为loki</li>
+</ul>
+<p>这里我们采用第一种方式</p>
+<h3 id="配置全局-daemonjson">配置全局 daemon.json</h3>
+<blockquote>
+<p>sudo vi /etc/docker/daemon.json</p>
+</blockquote>
+<pre tabindex="0"><code>{
+    &quot;log-driver&quot;: &quot;loki&quot;,
+    &quot;log-opts&quot;: {
+        &quot;loki-url&quot;: &quot;http://127.0.0.1:3100/loki/api/v1/push&quot;
+    }
+}
+</code></pre><p>重启docker服务</p>
+<blockquote>
+<p>sudo systemctl restart docker</p>
+</blockquote>
+<p>查看是否生效</p>
+<blockquote>
+<p>docker info</p>
+</blockquote>
+<pre tabindex="0"><code>$docker info
+...
+Logging Driver: loki
+</code></pre><p>说明配置生效。</p>
+<h3 id="测试">测试</h3>
+<p>启动测试服务，打开grafana查看，数据源选择 “Loki”。
+搜索选择 compose-service ，由于这边是使用docker-compose启动的服务。
+选择 “你的测试服务”，显示如下。</p>
+<p><img src="https://luckytking.github.io/images/loki-docker.png" alt=""></p>
+<p>至此，已经成功收集docker的日志。</p>
+<h3 id="小结">小结</h3>
+<p>本篇主要介绍如何利用 Docker Driver插件和配置本地环境来收集dockers日志到loki。</p>
+<h3 id="reference">reference</h3>
+<ul>
+<li><a href="https://grafana.com/docs/loki/latest/clients/">https://grafana.com/docs/loki/latest/clients/</a></li>
+<li><a href="http://t.zoukankan.com/turingguo-p-13847003.html">http://t.zoukankan.com/turingguo-p-13847003.html</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/infrastructure/">infrastructure</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/log/">log</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/loki/">loki</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/grafana/">grafana</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" data-tooltip="日志聚合系统GrafanaLoki  一、初试" aria-label=": 日志聚合系统GrafanaLoki  一、初试">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" data-tooltip="日志聚合系统GrafanaLoki  一、初试" aria-label=": 日志聚合系统GrafanaLoki  一、初试">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

@@ -240,6 +240,137 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97/" aria-label="">
+      
+          日志聚合系统GrafanaLoki  二、收集本地docker容器日志
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-07-09T17:52:50&#43;08:00">
+        
+   9, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/infrastructure">infrastructure</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/log">log</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>上篇<a href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/">传送门</a>介绍和搭建 GrafanaLoki，今天学习实战收集dockers容器的日志。</p>
+<p>Grafana Loki 支持以下官方客户端发送日志：</p>
+<ul>
+<li>Promtail</li>
+<li>Docker Driver</li>
+<li>Fluentd</li>
+<li>Fluent Bit</li>
+<li>Logstash</li>
+<li>Lambda Promtail</li>
+</ul>
+<p>其中我们关注比较多是：</p>
+<ul>
+<li>Promtail 是运行 Kubernetes 时的首选客户端，因为您可以将其配置为自动从运行 Promtail 的同一节点上运行的 pod 中抓取日志</li>
+<li>Docker Logging Driver  当使用 Docker 而不是 Kubernetes 时，应该使用 Loki 的 Docker 日志记录驱动程序，因为它会自动添加适合正在运行的容器的标签。</li>
+</ul>
+<h3 id="docker-driver">Docker Driver</h3>
+<p>Grafana Loki 官方支持一个 Docker 插件，该插件将从 Docker 容器中读取日志并将它们发送到 Loki</p>
+<h3 id="安装">安装</h3>
+<p>在每台 Docker 主机安装插件</p>
+<blockquote>
+<p>docker plugin install grafana/loki-docker-driver:latest &ndash;alias loki &ndash;grant-all-permissions</p>
+</blockquote>
+<p>检查是否安装成功:</p>
+<blockquote>
+<p>docker plugin ls</p>
+</blockquote>
+<pre tabindex="0"><code>$ docker plugin ls
+ID             NAME          DESCRIPTION           ENABLED
+2aa05FooBar   loki:latest   Loki Logging Driver   true
+</code></pre><p>插件的使用可以有两种方式：</p>
+<ul>
+<li>配置全局 daemon.json,收集此后创建的所有容器的日志。</li>
+<li>运行容器时指定logging类型为loki</li>
+</ul>
+<p>这里我们采用第一种方式</p>
+<h3 id="配置全局-daemonjson">配置全局 daemon.json</h3>
+<blockquote>
+<p>sudo vi /etc/docker/daemon.json</p>
+</blockquote>
+<pre tabindex="0"><code>{
+    &quot;log-driver&quot;: &quot;loki&quot;,
+    &quot;log-opts&quot;: {
+        &quot;loki-url&quot;: &quot;http://127.0.0.1:3100/loki/api/v1/push&quot;
+    }
+}
+</code></pre><p>重启docker服务</p>
+<blockquote>
+<p>sudo systemctl restart docker</p>
+</blockquote>
+<p>查看是否生效</p>
+<blockquote>
+<p>docker info</p>
+</blockquote>
+<pre tabindex="0"><code>$docker info
+...
+Logging Driver: loki
+</code></pre><p>说明配置生效。</p>
+<h3 id="测试">测试</h3>
+<p>启动测试服务，打开grafana查看，数据源选择 “Loki”。
+搜索选择 compose-service ，由于这边是使用docker-compose启动的服务。
+选择 “你的测试服务”，显示如下。</p>
+<p><img src="https://luckytking.github.io/images/loki-docker.png" alt=""></p>
+<p>至此，已经成功收集docker的日志。</p>
+<h3 id="小结">小结</h3>
+<p>本篇主要介绍如何利用 Docker Driver插件和配置本地环境来收集dockers日志到loki。</p>
+<h3 id="reference">reference</h3>
+<ul>
+<li><a href="https://grafana.com/docs/loki/latest/clients/">https://grafana.com/docs/loki/latest/clients/</a></li>
+<li><a href="http://t.zoukankan.com/turingguo-p-13847003.html">http://t.zoukankan.com/turingguo-p-13847003.html</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" aria-label="">
       
           日志聚合系统GrafanaLoki  一、初试
