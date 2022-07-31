@@ -238,6 +238,210 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/" aria-label="">
+      
+          K8s学习笔记  资源配置和声明式对象配置
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-07-31T18:04:12&#43;08:00">
+        
+   31, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/category">category</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/subcategory">subcategory</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>本文主要记录Kubernetes的资源管理，包括资源配置，声明式管理。</p>
+<blockquote>
+<p>Kubernetes提供了RESTful风格的API，它将各类组件均抽象为“资源”，并通过属性赋值完成实例化 。API主要由资源类型和控制器两部分组成，资源通常以json、yaml格式并写入集群的对象，控制器则在集群资源存储完成后自动创建并启动。</p>
+</blockquote>
+<p>常用的K8s资源有</p>
+<ul>
+<li>Pod</li>
+<li>Deployment</li>
+<li>Service</li>
+<li>Ingress</li>
+</ul>
+<h3 id="资源分类">资源分类</h3>
+<p>依据资源的主要功能作为分类标准，Kubernetes的API对象⼤体可分为</p>
+<ul>
+<li>
+<p>⼯作负载 （Workload）</p>
+<ul>
+<li>ReplicationController</li>
+<li>ReplicaSet</li>
+<li>Deploymen</li>
+<li>StatefulSet</li>
+<li>DaemonSet</li>
+<li>Job</li>
+</ul>
+</li>
+<li>
+<p>发现和负载均衡 （Discovery&amp;LB）</p>
+</li>
+<li>
+<p>配置和存储 （Config&amp;Storage</p>
+</li>
+<li>
+<p>集群 （Cluster）</p>
+<ul>
+<li>Namespace</li>
+<li>Node</li>
+<li>Role</li>
+<li>ClusterRole</li>
+</ul>
+</li>
+<li>
+<p>元数据 （Metadata）</p>
+</li>
+</ul>
+<p>它们基本上都是围绕⼀个核⼼⽬的⽽设计：如何更好地运⾏和丰富Pod资源，从⽽为容器化应⽤提供更灵活、更完善的操作与管理组件。</p>
+<h3 id="资源配置">资源配置</h3>
+<p>标准格式一般包括一级字段</p>
+<ul>
+<li>kind</li>
+<li>apiVersion</li>
+<li>metadata （对象元数据)</li>
+<li>spec（描述所期望的对象应该具有的状态）</li>
+<li>status（字段在对象创建后由系统⾃⾏维护）</li>
+</ul>
+<p>以一个nginx的pod.yaml为例</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-pod</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">containers</span>:
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+      <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx:1.7.9</span>
+      <span style="color:#f92672">ports</span>:
+          - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">80</span>
+</code></pre></div><ul>
+<li>metadata:
+<ul>
+<li>name 当前的对象名称</li>
+<li>labels： 当前对象的标签（键值对）</li>
+</ul>
+</li>
+<li>spec
+<ul>
+<li>containers，它的值是⼀个容器对象列表，⽀持嵌套创建⼀到
+多个容器。</li>
+</ul>
+</li>
+</ul>
+<h3 id="声明式对象配置">声明式对象配置</h3>
+<p>提供配置清单文件给k8s系统，并委托系统来跟踪活动对象的状态变动。管理操作的命令通过apply</p>
+<ul>
+<li>创建</li>
+</ul>
+<pre tabindex="0"><code>$kubectl apply -f &lt;directory&gt;/
+</code></pre><ul>
+<li>更新</li>
+</ul>
+<pre tabindex="0"><code>kubectl apply -f &lt;directory&gt;/
+</code></pre><ul>
+<li>删除</li>
+</ul>
+<pre tabindex="0"><code>kubectl apply -f &lt;directory&gt;/ --prune -l your-label 
+</code></pre><p>建议使用命令式的方法</p>
+<pre tabindex="0"><code>kubectl delete -f  &lt;filename&gt;
+</code></pre><h3 id="实战声明式部署nginx">实战声明式部署nginx</h3>
+<p>定义的deployment文件: nginx_dp.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-deployment</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-dp</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">3</span>
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:
+      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
+  <span style="color:#f92672">template</span>:
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:
+        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
+    <span style="color:#f92672">spec</span>:
+      <span style="color:#f92672">containers</span>:
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+          <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx:1.7.9</span>
+          <span style="color:#f92672">ports</span>:
+            - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>暴露服务，定义service文件nginx_svc.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Service</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-svc</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">type</span>: <span style="color:#ae81ff">NodePort</span>
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
+  <span style="color:#f92672">ports</span>:
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">default</span>
+      <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">TCP</span>
+      <span style="color:#f92672">port</span>: <span style="color:#ae81ff">80</span>
+      <span style="color:#f92672">targetPort</span>: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>访问nginx，output
+<img src="https://luckytking.github.io/images/k8s-nginx.png" alt=""></p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>Kubernetes进阶实战-第2版》  <a href="https://item.jd.com/13140598.html">https://item.jd.com/13140598.html</a></li>
+<li>k8s 部署nginx  <a href="https://github.com/kevinyan815/LearningKubernetes">https://github.com/kevinyan815/LearningKubernetes</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/07/go%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" aria-label="">
       
           Go原子操作
@@ -1605,184 +1809,6 @@ my-service | INFO msg=[HTTP] server listening on: [::]:8000
       <p>
         
           <a href="https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/" aria-label="">
-      
-          Go Copier简介
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-05-22T16:44:15&#43;08:00">
-        
-   22, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e7%ac%ac%e4%b8%89%e6%96%b9%e5%ba%93">第三方库</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要介绍 jinzhu/copier 的使用和常用场景</p>
-<h2 id="简介">简介</h2>
-<p>在go后端项目开发中，内部rpc服务返回的字段跟api服务相差无几，一个个赋值比较费事儿。那么就需要Object、List、HashMap 等进行值拷贝。jinzhu/copier即提供了这些场景的支持。</p>
-<p><strong>copier 特性</strong>：</p>
-<ul>
-<li>从方法复制到具有相同名称的字段</li>
-<li>从字段复制到具有相同名称的方法</li>
-<li>从一个切片复制到另一个切片</li>
-<li>从结构体复制到切片</li>
-<li>从map复制到map</li>
-<li>强制复制带有标记的字段</li>
-<li>忽略带有标记的字段</li>
-<li>深拷贝</li>
-</ul>
-<h2 id="usage">Usage</h2>
-<h3 id="copy-from-struct">Copy from struct</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;github.com/jinzhu/copier&#34;</span>
-	<span style="color:#e6db74">&#34;testing&#34;</span>
-)
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">User</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">Name</span>         <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">Role</span>         <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">Age</span>          <span style="color:#66d9ef">int32</span>
-	<span style="color:#a6e22e">EmployeeCode</span> <span style="color:#66d9ef">int64</span> <span style="color:#e6db74">`copier:&#34;EmployeeNum&#34;`</span> <span style="color:#75715e">// specify field name
-</span><span style="color:#75715e"></span>
-	<span style="color:#75715e">// Explicitly ignored in the destination struct.
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Salary</span> <span style="color:#66d9ef">int</span>
-}
-
-<span style="color:#75715e">//目标结构体中的标签提供了copy指令。复制忽略
-</span><span style="color:#75715e">//或强制复制，如果字段没有被复制则惊慌或返回错误。
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Employee</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#75715e">//告诉copier。如果没有复制此字段，则复制到panic。
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Name</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`copier:&#34;must&#34;`</span>
-
-	<span style="color:#75715e">//告诉copier。 如果没有复制此字段，则返回错误。
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Age</span> <span style="color:#66d9ef">int32</span> <span style="color:#e6db74">`copier:&#34;must,nopanic&#34;`</span>
-
-	<span style="color:#75715e">// 告诉copier。 显式忽略复制此字段。
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Salary</span> <span style="color:#66d9ef">int</span> <span style="color:#e6db74">`copier:&#34;-&#34;`</span>
-
-	<span style="color:#a6e22e">DoubleAge</span>  <span style="color:#66d9ef">int32</span>
-	<span style="color:#a6e22e">EmployeeId</span> <span style="color:#66d9ef">int64</span> <span style="color:#e6db74">`copier:&#34;EmployeeNum&#34;`</span> <span style="color:#75715e">// 指定字段名
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">SuperRole</span>  <span style="color:#66d9ef">string</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestCopyStruct</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#66d9ef">var</span> (
-		<span style="color:#a6e22e">user</span>     = <span style="color:#a6e22e">User</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Jinzhu&#34;</span>, <span style="color:#a6e22e">Age</span>: <span style="color:#ae81ff">18</span>, <span style="color:#a6e22e">Role</span>: <span style="color:#e6db74">&#34;Admin&#34;</span>, <span style="color:#a6e22e">Salary</span>: <span style="color:#ae81ff">200000</span>}
-		<span style="color:#a6e22e">employee</span> = <span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">Salary</span>: <span style="color:#ae81ff">150000</span>}
-	)
-	<span style="color:#a6e22e">copier</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">employee</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">user</span>)
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Logf</span>(<span style="color:#e6db74">&#34;%#v \n&#34;</span>, <span style="color:#a6e22e">employee</span>)
-}
-</code></pre></div><p>output：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">copier_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">47</span>: <span style="color:#a6e22e">main</span>.<span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">Name</span>:<span style="color:#e6db74">&#34;Jinzhu&#34;</span>, <span style="color:#a6e22e">Age</span>:<span style="color:#ae81ff">18</span>, <span style="color:#a6e22e">Salary</span>:<span style="color:#ae81ff">150000</span>, <span style="color:#a6e22e">DoubleAge</span>:<span style="color:#ae81ff">36</span>, <span style="color:#a6e22e">EmployeeId</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">SuperRole</span>:<span style="color:#e6db74">&#34;Super Admin&#34;</span>} 
-
-</code></pre></div><h3 id="copy-from-slice-to-slice">Copy from slice to slice</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestCopySlice</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#66d9ef">var</span> (
-		<span style="color:#a6e22e">users</span>     = []<span style="color:#a6e22e">User</span>{{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Jinzhu&#34;</span>, <span style="color:#a6e22e">Age</span>: <span style="color:#ae81ff">18</span>, <span style="color:#a6e22e">Role</span>: <span style="color:#e6db74">&#34;Admin&#34;</span>, <span style="color:#a6e22e">Salary</span>: <span style="color:#ae81ff">100000</span>}, {<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;jinzhu 2&#34;</span>, <span style="color:#a6e22e">Age</span>: <span style="color:#ae81ff">30</span>, <span style="color:#a6e22e">Role</span>: <span style="color:#e6db74">&#34;Dev&#34;</span>, <span style="color:#a6e22e">Salary</span>: <span style="color:#ae81ff">60000</span>}}
-		<span style="color:#a6e22e">employees</span> = []<span style="color:#a6e22e">Employee</span>{}
-	)
-	<span style="color:#a6e22e">employees</span> = []<span style="color:#a6e22e">Employee</span>{}
-	<span style="color:#a6e22e">copier</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">employees</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">users</span>)
-
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Logf</span>(<span style="color:#e6db74">&#34;%#v \n&#34;</span>, <span style="color:#a6e22e">employees</span>)
-}<span style="color:#960050;background-color:#1e0010">`</span>
-
-</code></pre></div><p>output :</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">copier_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">57</span>: []<span style="color:#a6e22e">main</span>.<span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">main</span>.<span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">Name</span>:<span style="color:#e6db74">&#34;Jinzhu&#34;</span>, <span style="color:#a6e22e">Age</span>:<span style="color:#ae81ff">18</span>, <span style="color:#a6e22e">Salary</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">DoubleAge</span>:<span style="color:#ae81ff">36</span>, <span style="color:#a6e22e">EmployeeId</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">SuperRole</span>:<span style="color:#e6db74">&#34;Super Admin&#34;</span>}, <span style="color:#a6e22e">main</span>.<span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">Name</span>:<span style="color:#e6db74">&#34;jinzhu 2&#34;</span>, <span style="color:#a6e22e">Age</span>:<span style="color:#ae81ff">30</span>, <span style="color:#a6e22e">Salary</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">DoubleAge</span>:<span style="color:#ae81ff">60</span>, <span style="color:#a6e22e">EmployeeId</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">SuperRole</span>:<span style="color:#e6db74">&#34;Super Dev&#34;</span>}} 
-
-</code></pre></div><h3 id="copy-from-map-to-map">Copy from Map to Map</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestCopyMap</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#75715e">// Copy map to map
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">map1</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#66d9ef">int</span>{<span style="color:#ae81ff">3</span>: <span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">4</span>: <span style="color:#ae81ff">8</span>}
-	<span style="color:#a6e22e">map2</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int32</span>]<span style="color:#66d9ef">int8</span>{}
-	<span style="color:#a6e22e">copier</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">map2</span>, <span style="color:#a6e22e">map1</span>)
-
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Logf</span>(<span style="color:#e6db74">&#34;%#v \n&#34;</span>, <span style="color:#a6e22e">map2</span>)
-}
-</code></pre></div><p>output :</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">copier_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">66</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int32</span>]<span style="color:#66d9ef">int8</span>{<span style="color:#ae81ff">3</span>:<span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">4</span>:<span style="color:#ae81ff">8</span>} 
-</code></pre></div><h2 id="场景-1rpcapi">场景 1（rpc&amp;api）</h2>
-<p>实际开发中，免不了服务间通讯，比较前文所说的场景，一个内部的rpc服务返回的参数和api服务差不多，那么就可以使用copier。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//伪代码如下
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ApiLogin</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>,<span style="color:#a6e22e">request</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LoginRequest</span>)(<span style="color:#a6e22e">reply</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LogingReply</span>,<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)  {
-	<span style="color:#a6e22e">grpcClient</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">NewGameGrpcClient</span>(<span style="color:#a6e22e">ctx</span>)
-	<span style="color:#a6e22e">reply</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Login</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">grpc</span>.<span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LoginRequest</span>{ 
-					})
-	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LogingReply</span>.<span style="color:#a6e22e">User</span>{}
- 	<span style="color:#a6e22e">copier</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">user</span>, <span style="color:#a6e22e">reply</span>.<span style="color:#a6e22e">User</span>())
-<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LoginReply</span>{
-	<span style="color:#a6e22e">User</span>:<span style="color:#a6e22e">user</span>,
-},<span style="color:#a6e22e">err</span>
-
-</code></pre></div><h2 id="场景-2-model-objectaggregate">场景 2 (model-object/aggregate)</h2>
-<p>实际开发中，不管是mvc\ddd 都会有从model到object/aggreate的repository,那么就可以使用copier。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">UserRepo</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">uid</span> <span style="color:#66d9ef">int64</span>) (<span style="color:#a6e22e">u</span> <span style="color:#a6e22e">User</span>,<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
-	<span style="color:#a6e22e">model</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">User</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">uid</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span>
-	}
-	<span style="color:#a6e22e">obj</span><span style="color:#f92672">:=</span> <span style="color:#a6e22e">User</span>{}
-	copy(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>,<span style="color:#a6e22e">model</span>)
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>,<span style="color:#66d9ef">nil</span>
-}
-</code></pre></div><h2 id="小结">小结</h2>
-<p>copier提供不同类型之间相同的字段名，使用tag或者方法支持不同的字段名的赋值。减少一些重复的工作量,小巧实用。</p>
-<h2 id="参考">参考</h2>
-<ul>
-<li><a href="https://github.com/jinzhu/copier">https://github.com/jinzhu/copier</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

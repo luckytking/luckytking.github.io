@@ -1,659 +1,160 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>category on What A Wonderful World！</title>
+    <title>category on jefffff&#39;s Blog</title>
     <link>https://luckytking.github.io/categories/category/</link>
-    <description>Recent content in category on What A Wonderful World！</description>
+    <description>Recent content in category on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 07 Apr 2022 21:22:46 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/category/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 31 Jul 2022 18:04:12 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/category/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>第五篇</title>
-      <link>https://luckytking.github.io/post/%E7%AC%AC%E4%BA%94%E7%AF%87/</link>
-      <pubDate>Thu, 07 Apr 2022 21:22:46 +0800</pubDate>
+      <title>K8s学习笔记  资源配置和声明式对象配置</title>
+      <link>https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/</link>
+      <pubDate>Sun, 31 Jul 2022 18:04:12 +0800</pubDate>
       
-      <guid>https://luckytking.github.io/post/%E7%AC%AC%E4%BA%94%E7%AF%87/</guid>
-      <description>&lt;p&gt;基于Docker 容器化技术演进，微服务架构也开始广受欢迎。这里会学习使用go-kratos实现微服务~&lt;/p&gt;
-&lt;p&gt;这篇整体主要介绍一下全图，后续会展开细节~&lt;/p&gt;
-&lt;h2 id=&#34;微服务概念&#34;&gt;微服务概念：&lt;/h2&gt;
-&lt;p&gt;In short, the microservice architectural style is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery.&lt;/p&gt;
-&lt;p&gt;简言之，微服务体系结构风格是一种将单个应用程序开发为一套小型服务的方法，每个服务都在自己的流程中运行，并与轻量级机制（通常是HTTP资源API）通信。这些服务是围绕业务能力构建的，可通过完全自动化的部署机制独立部署。&lt;/p&gt;
-&lt;p&gt;摘自： Martin Fowler 阐述微服务 &lt;a href=&#34;https://martinfowler.com/articles/microservices.html&#34;&gt;https://martinfowler.com/articles/microservices.html&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;什么是-kratos&#34;&gt;什么是 Kratos&lt;/h2&gt;
-&lt;p&gt;官方介绍：&lt;/p&gt;
-&lt;p&gt;Kratos 一套轻量级 Go 微服务框架，包含大量微服务相关框架及工具。&lt;/p&gt;
-&lt;p&gt;摘自： 官网文档：https://go-kratos.dev/docs/&lt;/p&gt;
-&lt;h2 id=&#34;quick-start&#34;&gt;Quick Start&lt;/h2&gt;
-&lt;p&gt;官方介绍的demo例子 &lt;a href=&#34;https://go-kratos.dev/docs/getting-started/start&#34;&gt;https://go-kratos.dev/docs/getting-started/start&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;初步对kratos从四个维度来学习&#34;&gt;初步对kratos从四个维度来学习&lt;/h2&gt;
-&lt;h3 id=&#34;1-使用--构建工具&#34;&gt;1. 使用&amp;ndash;构建工具&lt;/h3&gt;
-&lt;p&gt;构建成功用会生成目录如下&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;  .
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Dockerfile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LICENSE&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Makefile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// 下面维护了微服务使用的proto文件以及根据它们所生成的go文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;helloworld&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v1&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cmd&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 整个项目启动的入口文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 我们使用wire来维护依赖注入
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire_gen&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;configs&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 这里通常维护一些本地调试用的样例配置文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;yaml&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;generate&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;mod&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;internal&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 该服务所有不对外暴露的代码，通常的业务逻辑都在这下面，使用internal避免错误引用
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;// 业务逻辑的组装层，类似 DDD 的 domain 层，data 类似 DDD 的 repo，repo 接口在这里定义，使用依赖倒置的原则。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 内部使用的config的结构定义，使用proto格式生成
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 业务数据访问，包含 cache、db 等封装，实现了 biz 的 repo 接口。我们可能会把 data 与 dao 混淆在一起，data 偏重业务的含义，它所要做的是将领域对象重新拿出来，我们去掉了 DDD 的 infra层。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// http和grpc实例的创建和配置
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 实现了 api 定义的服务层，类似 DDD 的 application 层，处理 DTO 到 biz 领域实体的转换(DTO -&amp;gt; DO)，同时协同各类 biz 交互，但是不应处理复杂逻辑
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;third_party&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// api 依赖的第三方proto
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;google&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;annotations&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;httpbody&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;构建项目一个完整的可运行的App
-通过模板工具可以生成业务代码（internal），其中包括
-DDD（领域驱动设计）presentation-application-domain-infrastructure 相关代码
-路由绑定&lt;/p&gt;
-&lt;h3 id=&#34;2-微服务支撑--微服务拓展库学习也使用&#34;&gt;2. 微服务支撑&amp;ndash;微服务拓展库学习也使用&lt;/h3&gt;
-&lt;p&gt;kratos不仅提供了一个框架，还提供灵活支持拓展插件拓展式设计，也一些中间件可供选择。其次也提供微服务中常用的一些组件。&lt;/p&gt;
+      <guid>https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/</guid>
+      <description>&lt;p&gt;本文主要记录Kubernetes的资源管理，包括资源配置，声明式管理。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Kubernetes提供了RESTful风格的API，它将各类组件均抽象为“资源”，并通过属性赋值完成实例化 。API主要由资源类型和控制器两部分组成，资源通常以json、yaml格式并写入集群的对象，控制器则在集群资源存储完成后自动创建并启动。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;常用的K8s资源有&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;logging: 用于请求日志的记录。&lt;/li&gt;
-&lt;li&gt;metrics: 用于启用metric。&lt;/li&gt;
-&lt;li&gt;recovery: 用于recovery panic。&lt;/li&gt;
-&lt;li&gt;tracing: 用于启用trace。&lt;/li&gt;
-&lt;li&gt;validate: 用于处理参数校验。&lt;/li&gt;
-&lt;li&gt;metadata: 用于启用元信息传递&lt;/li&gt;
-&lt;li&gt;auth: 用于提供基于JWT的认证请求&lt;/li&gt;
-&lt;li&gt;ratelimit: 用于服务端流量限制&lt;/li&gt;
-&lt;li&gt;circuitbreaker: 用于客户端熔断控制&lt;/li&gt;
+&lt;li&gt;Pod&lt;/li&gt;
+&lt;li&gt;Deployment&lt;/li&gt;
+&lt;li&gt;Service&lt;/li&gt;
+&lt;li&gt;Ingress&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;3-运维支持--dockers容器&#34;&gt;3 运维支持&amp;ndash;dockers容器&lt;/h3&gt;
-&lt;p&gt;模板生成的docker-file 可用于直接部署容器环境&lt;/p&gt;
-&lt;h3 id=&#34;4-源码刨析--框架设计思路和中间件基础设施等学习&#34;&gt;4 源码刨析&amp;ndash;框架设计思路和中间件、基础设施等学习&lt;/h3&gt;
+&lt;h3 id=&#34;资源分类&#34;&gt;资源分类&lt;/h3&gt;
+&lt;p&gt;依据资源的主要功能作为分类标准，Kubernetes的API对象⼤体可分为&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;examples/helloworld/helloworld&#34;&gt;APIs&lt;/a&gt;：协议通信以 HTTP/gRPC 为基础，通过 Protobuf 进行定义；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/errors/api&#34;&gt;Errors&lt;/a&gt;：通过 Protobuf 的 Enum 作为错误码定义，以及工具生成判定接口；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metadata&#34;&gt;Metadata&lt;/a&gt;：在协议通信 HTTP/gRPC 中，通过 Middleware 规范化服务元信息传递；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/config&#34;&gt;Config&lt;/a&gt;：支持多数据源方式，进行配置合并铺平，通过 Atomic 方式支持动态配置；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/log&#34;&gt;Logger&lt;/a&gt;：标准日志接口，可方便集成三方 log 库，并可通过 fluentd 收集日志；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metrics&#34;&gt;Metrics&lt;/a&gt;：统一指标接口，可以实现各种指标系统，默认集成 Prometheus；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/traces&#34;&gt;Tracing&lt;/a&gt;：遵循 OpenTelemetry 规范定义，以实现微服务链路追踪；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;encoding&#34;&gt;Encoding&lt;/a&gt;：支持 Accept 和 Content-Type 进行自动选择内容编码；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;transport/transport.go&#34;&gt;Transport&lt;/a&gt;：通用的 &lt;a href=&#34;examples/http/middlewares&#34;&gt;HTTP&lt;/a&gt;/&lt;a href=&#34;examples/middleware/main.go&#34;&gt;gRPC&lt;/a&gt; 传输层，实现统一的 &lt;a href=&#34;middleware&#34;&gt;Middleware&lt;/a&gt; 插件支持；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/registry&#34;&gt;Registry&lt;/a&gt;：实现统一注册中心接口，可插件化对接各种注册中心；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/validate&#34;&gt;Validation&lt;/a&gt;: 通过Protobuf统一定义校验规则，并同时适用于HTTP/gRPC服务.&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/go-kratos/swagger-api/blob/main/examples/helloworld/server/main.go&#34;&gt;SwaggerAPI&lt;/a&gt;: 通过集成第三方&lt;a href=&#34;https://github.com/go-kratos/swagger-api&#34;&gt;Swagger插件&lt;/a&gt;能够自动生成Swagger API json并启动一个内置的Swaager UI服务.&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;⼯作负载 （Workload）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ReplicationController&lt;/li&gt;
+&lt;li&gt;ReplicaSet&lt;/li&gt;
+&lt;li&gt;Deploymen&lt;/li&gt;
+&lt;li&gt;StatefulSet&lt;/li&gt;
+&lt;li&gt;DaemonSet&lt;/li&gt;
+&lt;li&gt;Job&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;总结&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;发现和负载均衡 （Discovery&amp;amp;LB）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;配置和存储 （Config&amp;amp;Storage&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;集群 （Cluster）&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;使用模板工具减少开发重复部分的代码&lt;/li&gt;
-&lt;li&gt;使用wire实现了di&lt;/li&gt;
-&lt;li&gt;传输层抽象transport，支撑拓展&lt;/li&gt;
-&lt;li&gt;业务层使用DDD，而且可以通过模板生成部分代码，简单易用&lt;/li&gt;
-&lt;li&gt;对微服务的有比较多支撑库可供借鉴&lt;/li&gt;
+&lt;li&gt;Namespace&lt;/li&gt;
+&lt;li&gt;Node&lt;/li&gt;
+&lt;li&gt;Role&lt;/li&gt;
+&lt;li&gt;ClusterRole&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;后续介绍&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;使用kratos实现第一个服务&lt;/li&gt;
-&lt;li&gt;各个库使用与源码学习
-未完待续~&lt;/li&gt;
-&lt;/ul&gt;</description>
-    </item>
-    
-    <item>
-      <title>第四篇</title>
-      <link>https://luckytking.github.io/post/%E7%AC%AC%E5%9B%9B%E7%AF%87/</link>
-      <pubDate>Thu, 07 Apr 2022 21:22:40 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/post/%E7%AC%AC%E5%9B%9B%E7%AF%87/</guid>
-      <description>&lt;p&gt;基于Docker 容器化技术演进，微服务架构也开始广受欢迎。这里会学习使用go-kratos实现微服务~&lt;/p&gt;
-&lt;p&gt;这篇整体主要介绍一下全图，后续会展开细节~&lt;/p&gt;
-&lt;h2 id=&#34;微服务概念&#34;&gt;微服务概念：&lt;/h2&gt;
-&lt;p&gt;In short, the microservice architectural style is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery.&lt;/p&gt;
-&lt;p&gt;简言之，微服务体系结构风格是一种将单个应用程序开发为一套小型服务的方法，每个服务都在自己的流程中运行，并与轻量级机制（通常是HTTP资源API）通信。这些服务是围绕业务能力构建的，可通过完全自动化的部署机制独立部署。&lt;/p&gt;
-&lt;p&gt;摘自： Martin Fowler 阐述微服务 &lt;a href=&#34;https://martinfowler.com/articles/microservices.html&#34;&gt;https://martinfowler.com/articles/microservices.html&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;什么是-kratos&#34;&gt;什么是 Kratos&lt;/h2&gt;
-&lt;p&gt;官方介绍：&lt;/p&gt;
-&lt;p&gt;Kratos 一套轻量级 Go 微服务框架，包含大量微服务相关框架及工具。&lt;/p&gt;
-&lt;p&gt;摘自： 官网文档：https://go-kratos.dev/docs/&lt;/p&gt;
-&lt;h2 id=&#34;quick-start&#34;&gt;Quick Start&lt;/h2&gt;
-&lt;p&gt;官方介绍的demo例子 &lt;a href=&#34;https://go-kratos.dev/docs/getting-started/start&#34;&gt;https://go-kratos.dev/docs/getting-started/start&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;初步对kratos从四个维度来学习&#34;&gt;初步对kratos从四个维度来学习&lt;/h2&gt;
-&lt;h3 id=&#34;1-使用--构建工具&#34;&gt;1. 使用&amp;ndash;构建工具&lt;/h3&gt;
-&lt;p&gt;构建成功用会生成目录如下&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;  .
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Dockerfile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LICENSE&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Makefile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// 下面维护了微服务使用的proto文件以及根据它们所生成的go文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;helloworld&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v1&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cmd&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 整个项目启动的入口文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 我们使用wire来维护依赖注入
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire_gen&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;configs&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 这里通常维护一些本地调试用的样例配置文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;yaml&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;generate&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;mod&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;internal&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 该服务所有不对外暴露的代码，通常的业务逻辑都在这下面，使用internal避免错误引用
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;// 业务逻辑的组装层，类似 DDD 的 domain 层，data 类似 DDD 的 repo，repo 接口在这里定义，使用依赖倒置的原则。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 内部使用的config的结构定义，使用proto格式生成
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 业务数据访问，包含 cache、db 等封装，实现了 biz 的 repo 接口。我们可能会把 data 与 dao 混淆在一起，data 偏重业务的含义，它所要做的是将领域对象重新拿出来，我们去掉了 DDD 的 infra层。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// http和grpc实例的创建和配置
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 实现了 api 定义的服务层，类似 DDD 的 application 层，处理 DTO 到 biz 领域实体的转换(DTO -&amp;gt; DO)，同时协同各类 biz 交互，但是不应处理复杂逻辑
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;third_party&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// api 依赖的第三方proto
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;google&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;annotations&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;httpbody&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;构建项目一个完整的可运行的App
-通过模板工具可以生成业务代码（internal），其中包括
-DDD（领域驱动设计）presentation-application-domain-infrastructure 相关代码
-路由绑定&lt;/p&gt;
-&lt;h3 id=&#34;2-微服务支撑--微服务拓展库学习也使用&#34;&gt;2. 微服务支撑&amp;ndash;微服务拓展库学习也使用&lt;/h3&gt;
-&lt;p&gt;kratos不仅提供了一个框架，还提供灵活支持拓展插件拓展式设计，也一些中间件可供选择。其次也提供微服务中常用的一些组件。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;logging: 用于请求日志的记录。&lt;/li&gt;
-&lt;li&gt;metrics: 用于启用metric。&lt;/li&gt;
-&lt;li&gt;recovery: 用于recovery panic。&lt;/li&gt;
-&lt;li&gt;tracing: 用于启用trace。&lt;/li&gt;
-&lt;li&gt;validate: 用于处理参数校验。&lt;/li&gt;
-&lt;li&gt;metadata: 用于启用元信息传递&lt;/li&gt;
-&lt;li&gt;auth: 用于提供基于JWT的认证请求&lt;/li&gt;
-&lt;li&gt;ratelimit: 用于服务端流量限制&lt;/li&gt;
-&lt;li&gt;circuitbreaker: 用于客户端熔断控制&lt;/li&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;元数据 （Metadata）&lt;/p&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;3-运维支持--dockers容器&#34;&gt;3 运维支持&amp;ndash;dockers容器&lt;/h3&gt;
-&lt;p&gt;模板生成的docker-file 可用于直接部署容器环境&lt;/p&gt;
-&lt;h3 id=&#34;4-源码刨析--框架设计思路和中间件基础设施等学习&#34;&gt;4 源码刨析&amp;ndash;框架设计思路和中间件、基础设施等学习&lt;/h3&gt;
+&lt;p&gt;它们基本上都是围绕⼀个核⼼⽬的⽽设计：如何更好地运⾏和丰富Pod资源，从⽽为容器化应⽤提供更灵活、更完善的操作与管理组件。&lt;/p&gt;
+&lt;h3 id=&#34;资源配置&#34;&gt;资源配置&lt;/h3&gt;
+&lt;p&gt;标准格式一般包括一级字段&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;examples/helloworld/helloworld&#34;&gt;APIs&lt;/a&gt;：协议通信以 HTTP/gRPC 为基础，通过 Protobuf 进行定义；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/errors/api&#34;&gt;Errors&lt;/a&gt;：通过 Protobuf 的 Enum 作为错误码定义，以及工具生成判定接口；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metadata&#34;&gt;Metadata&lt;/a&gt;：在协议通信 HTTP/gRPC 中，通过 Middleware 规范化服务元信息传递；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/config&#34;&gt;Config&lt;/a&gt;：支持多数据源方式，进行配置合并铺平，通过 Atomic 方式支持动态配置；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/log&#34;&gt;Logger&lt;/a&gt;：标准日志接口，可方便集成三方 log 库，并可通过 fluentd 收集日志；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metrics&#34;&gt;Metrics&lt;/a&gt;：统一指标接口，可以实现各种指标系统，默认集成 Prometheus；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/traces&#34;&gt;Tracing&lt;/a&gt;：遵循 OpenTelemetry 规范定义，以实现微服务链路追踪；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;encoding&#34;&gt;Encoding&lt;/a&gt;：支持 Accept 和 Content-Type 进行自动选择内容编码；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;transport/transport.go&#34;&gt;Transport&lt;/a&gt;：通用的 &lt;a href=&#34;examples/http/middlewares&#34;&gt;HTTP&lt;/a&gt;/&lt;a href=&#34;examples/middleware/main.go&#34;&gt;gRPC&lt;/a&gt; 传输层，实现统一的 &lt;a href=&#34;middleware&#34;&gt;Middleware&lt;/a&gt; 插件支持；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/registry&#34;&gt;Registry&lt;/a&gt;：实现统一注册中心接口，可插件化对接各种注册中心；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/validate&#34;&gt;Validation&lt;/a&gt;: 通过Protobuf统一定义校验规则，并同时适用于HTTP/gRPC服务.&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/go-kratos/swagger-api/blob/main/examples/helloworld/server/main.go&#34;&gt;SwaggerAPI&lt;/a&gt;: 通过集成第三方&lt;a href=&#34;https://github.com/go-kratos/swagger-api&#34;&gt;Swagger插件&lt;/a&gt;能够自动生成Swagger API json并启动一个内置的Swaager UI服务.&lt;/li&gt;
+&lt;li&gt;kind&lt;/li&gt;
+&lt;li&gt;apiVersion&lt;/li&gt;
+&lt;li&gt;metadata （对象元数据)&lt;/li&gt;
+&lt;li&gt;spec（描述所期望的对象应该具有的状态）&lt;/li&gt;
+&lt;li&gt;status（字段在对象创建后由系统⾃⾏维护）&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;总结&lt;/p&gt;
+&lt;p&gt;以一个nginx的pod.yaml为例&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Pod&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;containers&lt;/span&gt;:
+    - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx:1.7.9&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+          - &lt;span style=&#34;color:#f92672&#34;&gt;containerPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;metadata:
 &lt;ul&gt;
-&lt;li&gt;使用模板工具减少开发重复部分的代码&lt;/li&gt;
-&lt;li&gt;使用wire实现了di&lt;/li&gt;
-&lt;li&gt;传输层抽象transport，支撑拓展&lt;/li&gt;
-&lt;li&gt;业务层使用DDD，而且可以通过模板生成部分代码，简单易用&lt;/li&gt;
-&lt;li&gt;对微服务的有比较多支撑库可供借鉴&lt;/li&gt;
+&lt;li&gt;name 当前的对象名称&lt;/li&gt;
+&lt;li&gt;labels： 当前对象的标签（键值对）&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;后续介绍&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;spec
 &lt;ul&gt;
-&lt;li&gt;使用kratos实现第一个服务&lt;/li&gt;
-&lt;li&gt;各个库使用与源码学习
-未完待续~&lt;/li&gt;
-&lt;/ul&gt;</description>
-    </item>
-    
-    <item>
-      <title>第三篇</title>
-      <link>https://luckytking.github.io/post/%E7%AC%AC%E4%B8%89%E7%AF%87/</link>
-      <pubDate>Thu, 07 Apr 2022 21:22:35 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/post/%E7%AC%AC%E4%B8%89%E7%AF%87/</guid>
-      <description>&lt;p&gt;基于Docker 容器化技术演进，微服务架构也开始广受欢迎。这里会学习使用go-kratos实现微服务~&lt;/p&gt;
-&lt;p&gt;这篇整体主要介绍一下全图，后续会展开细节~&lt;/p&gt;
-&lt;h2 id=&#34;微服务概念&#34;&gt;微服务概念：&lt;/h2&gt;
-&lt;p&gt;In short, the microservice architectural style is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery.&lt;/p&gt;
-&lt;p&gt;简言之，微服务体系结构风格是一种将单个应用程序开发为一套小型服务的方法，每个服务都在自己的流程中运行，并与轻量级机制（通常是HTTP资源API）通信。这些服务是围绕业务能力构建的，可通过完全自动化的部署机制独立部署。&lt;/p&gt;
-&lt;p&gt;摘自： Martin Fowler 阐述微服务 &lt;a href=&#34;https://martinfowler.com/articles/microservices.html&#34;&gt;https://martinfowler.com/articles/microservices.html&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;什么是-kratos&#34;&gt;什么是 Kratos&lt;/h2&gt;
-&lt;p&gt;官方介绍：&lt;/p&gt;
-&lt;p&gt;Kratos 一套轻量级 Go 微服务框架，包含大量微服务相关框架及工具。&lt;/p&gt;
-&lt;p&gt;摘自： 官网文档：https://go-kratos.dev/docs/&lt;/p&gt;
-&lt;h2 id=&#34;quick-start&#34;&gt;Quick Start&lt;/h2&gt;
-&lt;p&gt;官方介绍的demo例子 &lt;a href=&#34;https://go-kratos.dev/docs/getting-started/start&#34;&gt;https://go-kratos.dev/docs/getting-started/start&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;初步对kratos从四个维度来学习&#34;&gt;初步对kratos从四个维度来学习&lt;/h2&gt;
-&lt;h3 id=&#34;1-使用--构建工具&#34;&gt;1. 使用&amp;ndash;构建工具&lt;/h3&gt;
-&lt;p&gt;构建成功用会生成目录如下&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;  .
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Dockerfile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LICENSE&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Makefile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// 下面维护了微服务使用的proto文件以及根据它们所生成的go文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;helloworld&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v1&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cmd&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 整个项目启动的入口文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 我们使用wire来维护依赖注入
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire_gen&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;configs&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 这里通常维护一些本地调试用的样例配置文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;yaml&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;generate&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;mod&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;internal&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 该服务所有不对外暴露的代码，通常的业务逻辑都在这下面，使用internal避免错误引用
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;// 业务逻辑的组装层，类似 DDD 的 domain 层，data 类似 DDD 的 repo，repo 接口在这里定义，使用依赖倒置的原则。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 内部使用的config的结构定义，使用proto格式生成
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 业务数据访问，包含 cache、db 等封装，实现了 biz 的 repo 接口。我们可能会把 data 与 dao 混淆在一起，data 偏重业务的含义，它所要做的是将领域对象重新拿出来，我们去掉了 DDD 的 infra层。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// http和grpc实例的创建和配置
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 实现了 api 定义的服务层，类似 DDD 的 application 层，处理 DTO 到 biz 领域实体的转换(DTO -&amp;gt; DO)，同时协同各类 biz 交互，但是不应处理复杂逻辑
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;third_party&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// api 依赖的第三方proto
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;google&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;annotations&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;httpbody&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;构建项目一个完整的可运行的App
-通过模板工具可以生成业务代码（internal），其中包括
-DDD（领域驱动设计）presentation-application-domain-infrastructure 相关代码
-路由绑定&lt;/p&gt;
-&lt;h3 id=&#34;2-微服务支撑--微服务拓展库学习也使用&#34;&gt;2. 微服务支撑&amp;ndash;微服务拓展库学习也使用&lt;/h3&gt;
-&lt;p&gt;kratos不仅提供了一个框架，还提供灵活支持拓展插件拓展式设计，也一些中间件可供选择。其次也提供微服务中常用的一些组件。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;logging: 用于请求日志的记录。&lt;/li&gt;
-&lt;li&gt;metrics: 用于启用metric。&lt;/li&gt;
-&lt;li&gt;recovery: 用于recovery panic。&lt;/li&gt;
-&lt;li&gt;tracing: 用于启用trace。&lt;/li&gt;
-&lt;li&gt;validate: 用于处理参数校验。&lt;/li&gt;
-&lt;li&gt;metadata: 用于启用元信息传递&lt;/li&gt;
-&lt;li&gt;auth: 用于提供基于JWT的认证请求&lt;/li&gt;
-&lt;li&gt;ratelimit: 用于服务端流量限制&lt;/li&gt;
-&lt;li&gt;circuitbreaker: 用于客户端熔断控制&lt;/li&gt;
+&lt;li&gt;containers，它的值是⼀个容器对象列表，⽀持嵌套创建⼀到
+多个容器。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;3-运维支持--dockers容器&#34;&gt;3 运维支持&amp;ndash;dockers容器&lt;/h3&gt;
-&lt;p&gt;模板生成的docker-file 可用于直接部署容器环境&lt;/p&gt;
-&lt;h3 id=&#34;4-源码刨析--框架设计思路和中间件基础设施等学习&#34;&gt;4 源码刨析&amp;ndash;框架设计思路和中间件、基础设施等学习&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;examples/helloworld/helloworld&#34;&gt;APIs&lt;/a&gt;：协议通信以 HTTP/gRPC 为基础，通过 Protobuf 进行定义；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/errors/api&#34;&gt;Errors&lt;/a&gt;：通过 Protobuf 的 Enum 作为错误码定义，以及工具生成判定接口；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metadata&#34;&gt;Metadata&lt;/a&gt;：在协议通信 HTTP/gRPC 中，通过 Middleware 规范化服务元信息传递；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/config&#34;&gt;Config&lt;/a&gt;：支持多数据源方式，进行配置合并铺平，通过 Atomic 方式支持动态配置；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/log&#34;&gt;Logger&lt;/a&gt;：标准日志接口，可方便集成三方 log 库，并可通过 fluentd 收集日志；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metrics&#34;&gt;Metrics&lt;/a&gt;：统一指标接口，可以实现各种指标系统，默认集成 Prometheus；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/traces&#34;&gt;Tracing&lt;/a&gt;：遵循 OpenTelemetry 规范定义，以实现微服务链路追踪；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;encoding&#34;&gt;Encoding&lt;/a&gt;：支持 Accept 和 Content-Type 进行自动选择内容编码；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;transport/transport.go&#34;&gt;Transport&lt;/a&gt;：通用的 &lt;a href=&#34;examples/http/middlewares&#34;&gt;HTTP&lt;/a&gt;/&lt;a href=&#34;examples/middleware/main.go&#34;&gt;gRPC&lt;/a&gt; 传输层，实现统一的 &lt;a href=&#34;middleware&#34;&gt;Middleware&lt;/a&gt; 插件支持；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/registry&#34;&gt;Registry&lt;/a&gt;：实现统一注册中心接口，可插件化对接各种注册中心；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/validate&#34;&gt;Validation&lt;/a&gt;: 通过Protobuf统一定义校验规则，并同时适用于HTTP/gRPC服务.&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/go-kratos/swagger-api/blob/main/examples/helloworld/server/main.go&#34;&gt;SwaggerAPI&lt;/a&gt;: 通过集成第三方&lt;a href=&#34;https://github.com/go-kratos/swagger-api&#34;&gt;Swagger插件&lt;/a&gt;能够自动生成Swagger API json并启动一个内置的Swaager UI服务.&lt;/li&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;总结&lt;/p&gt;
+&lt;h3 id=&#34;声明式对象配置&#34;&gt;声明式对象配置&lt;/h3&gt;
+&lt;p&gt;提供配置清单文件给k8s系统，并委托系统来跟踪活动对象的状态变动。管理操作的命令通过apply&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;使用模板工具减少开发重复部分的代码&lt;/li&gt;
-&lt;li&gt;使用wire实现了di&lt;/li&gt;
-&lt;li&gt;传输层抽象transport，支撑拓展&lt;/li&gt;
-&lt;li&gt;业务层使用DDD，而且可以通过模板生成部分代码，简单易用&lt;/li&gt;
-&lt;li&gt;对微服务的有比较多支撑库可供借鉴&lt;/li&gt;
+&lt;li&gt;创建&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;后续介绍&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;使用kratos实现第一个服务&lt;/li&gt;
-&lt;li&gt;各个库使用与源码学习
-未完待续~&lt;/li&gt;
-&lt;/ul&gt;</description>
-    </item>
-    
-    <item>
-      <title>第二篇</title>
-      <link>https://luckytking.github.io/post/%E7%AC%AC%E4%BA%8C%E7%AF%87/</link>
-      <pubDate>Thu, 07 Apr 2022 21:21:04 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/post/%E7%AC%AC%E4%BA%8C%E7%AF%87/</guid>
-      <description>&lt;hr&gt;
-&lt;p&gt;title: &amp;ldquo;微服务vsDDD&amp;rdquo;
-date: 2022-04-07T21:15:12+08:00
-categories:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;category&lt;/li&gt;
-&lt;li&gt;subcategory
-tags:&lt;/li&gt;
-&lt;li&gt;tag1&lt;/li&gt;
-&lt;li&gt;tag2
-keywords:&lt;/li&gt;
-&lt;li&gt;tech
-#thumbnailImage: //example.com/image.jpg&lt;/li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$kubectl apply -f &amp;lt;directory&amp;gt;/
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;更新&lt;/li&gt;
 &lt;/ul&gt;
-&lt;hr&gt;
-&lt;p&gt;基于Docker 容器化技术演进，微服务架构也开始广受欢迎。这里会学习使用go-kratos实现微服务~&lt;/p&gt;
-&lt;p&gt;这篇整体主要介绍一下全图，后续会展开细节~&lt;/p&gt;
-&lt;h2 id=&#34;微服务概念&#34;&gt;微服务概念：&lt;/h2&gt;
-&lt;p&gt;In short, the microservice architectural style is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery.&lt;/p&gt;
-&lt;p&gt;简言之，微服务体系结构风格是一种将单个应用程序开发为一套小型服务的方法，每个服务都在自己的流程中运行，并与轻量级机制（通常是HTTP资源API）通信。这些服务是围绕业务能力构建的，可通过完全自动化的部署机制独立部署。&lt;/p&gt;
-&lt;p&gt;摘自： Martin Fowler 阐述微服务 &lt;a href=&#34;https://martinfowler.com/articles/microservices.html&#34;&gt;https://martinfowler.com/articles/microservices.html&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;什么是-kratos&#34;&gt;什么是 Kratos&lt;/h2&gt;
-&lt;p&gt;官方介绍：&lt;/p&gt;
-&lt;p&gt;Kratos 一套轻量级 Go 微服务框架，包含大量微服务相关框架及工具。&lt;/p&gt;
-&lt;p&gt;摘自： 官网文档：https://go-kratos.dev/docs/&lt;/p&gt;
-&lt;h2 id=&#34;quick-start&#34;&gt;Quick Start&lt;/h2&gt;
-&lt;p&gt;官方介绍的demo例子 &lt;a href=&#34;https://go-kratos.dev/docs/getting-started/start&#34;&gt;https://go-kratos.dev/docs/getting-started/start&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;初步对kratos从四个维度来学习&#34;&gt;初步对kratos从四个维度来学习&lt;/h2&gt;
-&lt;h3 id=&#34;1-使用--构建工具&#34;&gt;1. 使用&amp;ndash;构建工具&lt;/h3&gt;
-&lt;p&gt;构建成功用会生成目录如下&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;  .
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Dockerfile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LICENSE&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Makefile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// 下面维护了微服务使用的proto文件以及根据它们所生成的go文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;helloworld&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v1&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cmd&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 整个项目启动的入口文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 我们使用wire来维护依赖注入
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire_gen&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;configs&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 这里通常维护一些本地调试用的样例配置文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;yaml&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;generate&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;mod&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;internal&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 该服务所有不对外暴露的代码，通常的业务逻辑都在这下面，使用internal避免错误引用
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;// 业务逻辑的组装层，类似 DDD 的 domain 层，data 类似 DDD 的 repo，repo 接口在这里定义，使用依赖倒置的原则。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 内部使用的config的结构定义，使用proto格式生成
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 业务数据访问，包含 cache、db 等封装，实现了 biz 的 repo 接口。我们可能会把 data 与 dao 混淆在一起，data 偏重业务的含义，它所要做的是将领域对象重新拿出来，我们去掉了 DDD 的 infra层。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// http和grpc实例的创建和配置
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 实现了 api 定义的服务层，类似 DDD 的 application 层，处理 DTO 到 biz 领域实体的转换(DTO -&amp;gt; DO)，同时协同各类 biz 交互，但是不应处理复杂逻辑
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;third_party&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// api 依赖的第三方proto
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;google&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;annotations&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;httpbody&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;构建项目一个完整的可运行的App
-通过模板工具可以生成业务代码（internal），其中包括
-DDD（领域驱动设计）presentation-application-domain-infrastructure 相关代码
-路由绑定&lt;/p&gt;
-&lt;h3 id=&#34;2-微服务支撑--微服务拓展库学习也使用&#34;&gt;2. 微服务支撑&amp;ndash;微服务拓展库学习也使用&lt;/h3&gt;
-&lt;p&gt;kratos不仅提供了一个框架，还提供灵活支持拓展插件拓展式设计，也一些中间件可供选择。其次也提供微服务中常用的一些组件。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;logging: 用于请求日志的记录。&lt;/li&gt;
-&lt;li&gt;metrics: 用于启用metric。&lt;/li&gt;
-&lt;li&gt;recovery: 用于recovery panic。&lt;/li&gt;
-&lt;li&gt;tracing: 用于启用trace。&lt;/li&gt;
-&lt;li&gt;validate: 用于处理参数校验。&lt;/li&gt;
-&lt;li&gt;metadata: 用于启用元信息传递&lt;/li&gt;
-&lt;li&gt;auth: 用于提供基于JWT的认证请求&lt;/li&gt;
-&lt;li&gt;ratelimit: 用于服务端流量限制&lt;/li&gt;
-&lt;li&gt;circuitbreaker: 用于客户端熔断控制&lt;/li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl apply -f &amp;lt;directory&amp;gt;/
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;删除&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;3-运维支持--dockers容器&#34;&gt;3 运维支持&amp;ndash;dockers容器&lt;/h3&gt;
-&lt;p&gt;模板生成的docker-file 可用于直接部署容器环境&lt;/p&gt;
-&lt;h3 id=&#34;4-源码刨析--框架设计思路和中间件基础设施等学习&#34;&gt;4 源码刨析&amp;ndash;框架设计思路和中间件、基础设施等学习&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl apply -f &amp;lt;directory&amp;gt;/ --prune -l your-label 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;建议使用命令式的方法&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl delete -f  &amp;lt;filename&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;实战声明式部署nginx&#34;&gt;实战声明式部署nginx&lt;/h3&gt;
+&lt;p&gt;定义的deployment文件: nginx_dp.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;apps/v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Deployment&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-deployment&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-dp&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;replicas&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;selector&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;matchLabels&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+        &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;containers&lt;/span&gt;:
+        - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx:1.7.9&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+            - &lt;span style=&#34;color:#f92672&#34;&gt;containerPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;暴露服务，定义service文件nginx_svc.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Service&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-svc&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;type&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;NodePort&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;selector&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+    - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;default&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;protocol&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TCP&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;targetPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;访问nginx，output
+&lt;img src=&#34;https://luckytking.github.io/images/k8s-nginx.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;examples/helloworld/helloworld&#34;&gt;APIs&lt;/a&gt;：协议通信以 HTTP/gRPC 为基础，通过 Protobuf 进行定义；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/errors/api&#34;&gt;Errors&lt;/a&gt;：通过 Protobuf 的 Enum 作为错误码定义，以及工具生成判定接口；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metadata&#34;&gt;Metadata&lt;/a&gt;：在协议通信 HTTP/gRPC 中，通过 Middleware 规范化服务元信息传递；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/config&#34;&gt;Config&lt;/a&gt;：支持多数据源方式，进行配置合并铺平，通过 Atomic 方式支持动态配置；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/log&#34;&gt;Logger&lt;/a&gt;：标准日志接口，可方便集成三方 log 库，并可通过 fluentd 收集日志；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metrics&#34;&gt;Metrics&lt;/a&gt;：统一指标接口，可以实现各种指标系统，默认集成 Prometheus；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/traces&#34;&gt;Tracing&lt;/a&gt;：遵循 OpenTelemetry 规范定义，以实现微服务链路追踪；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;encoding&#34;&gt;Encoding&lt;/a&gt;：支持 Accept 和 Content-Type 进行自动选择内容编码；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;transport/transport.go&#34;&gt;Transport&lt;/a&gt;：通用的 &lt;a href=&#34;examples/http/middlewares&#34;&gt;HTTP&lt;/a&gt;/&lt;a href=&#34;examples/middleware/main.go&#34;&gt;gRPC&lt;/a&gt; 传输层，实现统一的 &lt;a href=&#34;middleware&#34;&gt;Middleware&lt;/a&gt; 插件支持；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/registry&#34;&gt;Registry&lt;/a&gt;：实现统一注册中心接口，可插件化对接各种注册中心；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/validate&#34;&gt;Validation&lt;/a&gt;: 通过Protobuf统一定义校验规则，并同时适用于HTTP/gRPC服务.&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/go-kratos/swagger-api/blob/main/examples/helloworld/server/main.go&#34;&gt;SwaggerAPI&lt;/a&gt;: 通过集成第三方&lt;a href=&#34;https://github.com/go-kratos/swagger-api&#34;&gt;Swagger插件&lt;/a&gt;能够自动生成Swagger API json并启动一个内置的Swaager UI服务.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;总结&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;使用模板工具减少开发重复部分的代码&lt;/li&gt;
-&lt;li&gt;使用wire实现了di&lt;/li&gt;
-&lt;li&gt;传输层抽象transport，支撑拓展&lt;/li&gt;
-&lt;li&gt;业务层使用DDD，而且可以通过模板生成部分代码，简单易用&lt;/li&gt;
-&lt;li&gt;对微服务的有比较多支撑库可供借鉴&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;后续介绍&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;使用kratos实现第一个服务&lt;/li&gt;
-&lt;li&gt;各个库使用与源码学习
-未完待续~&lt;/li&gt;
-&lt;/ul&gt;</description>
-    </item>
-    
-    <item>
-      <title>微服务vsDDD</title>
-      <link>https://luckytking.github.io/post/%E5%BE%AE%E6%9C%8D%E5%8A%A1vsddd/</link>
-      <pubDate>Thu, 07 Apr 2022 21:15:12 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/post/%E5%BE%AE%E6%9C%8D%E5%8A%A1vsddd/</guid>
-      <description>&lt;p&gt;基于Docker 容器化技术演进，微服务架构也开始广受欢迎。这里会学习使用go-kratos实现微服务~&lt;/p&gt;
-&lt;p&gt;这篇整体主要介绍一下全图，后续会展开细节~&lt;/p&gt;
-&lt;h2 id=&#34;微服务概念&#34;&gt;微服务概念：&lt;/h2&gt;
-&lt;p&gt;In short, the microservice architectural style is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery.&lt;/p&gt;
-&lt;p&gt;简言之，微服务体系结构风格是一种将单个应用程序开发为一套小型服务的方法，每个服务都在自己的流程中运行，并与轻量级机制（通常是HTTP资源API）通信。这些服务是围绕业务能力构建的，可通过完全自动化的部署机制独立部署。&lt;/p&gt;
-&lt;p&gt;摘自： Martin Fowler 阐述微服务 &lt;a href=&#34;https://martinfowler.com/articles/microservices.html&#34;&gt;https://martinfowler.com/articles/microservices.html&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;什么是-kratos&#34;&gt;什么是 Kratos&lt;/h2&gt;
-&lt;p&gt;官方介绍：&lt;/p&gt;
-&lt;p&gt;Kratos 一套轻量级 Go 微服务框架，包含大量微服务相关框架及工具。&lt;/p&gt;
-&lt;p&gt;摘自： 官网文档：https://go-kratos.dev/docs/&lt;/p&gt;
-&lt;h2 id=&#34;quick-start&#34;&gt;Quick Start&lt;/h2&gt;
-&lt;p&gt;官方介绍的demo例子 &lt;a href=&#34;https://go-kratos.dev/docs/getting-started/start&#34;&gt;https://go-kratos.dev/docs/getting-started/start&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;初步对kratos从四个维度来学习&#34;&gt;初步对kratos从四个维度来学习&lt;/h2&gt;
-&lt;h3 id=&#34;1-使用--构建工具&#34;&gt;1. 使用&amp;ndash;构建工具&lt;/h3&gt;
-&lt;p&gt;构建成功用会生成目录如下&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;  .
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Dockerfile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LICENSE&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Makefile&lt;/span&gt;  
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// 下面维护了微服务使用的proto文件以及根据它们所生成的go文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;helloworld&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v1&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;error_reason&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;swagger&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;           &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter_http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cmd&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 整个项目启动的入口文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 我们使用wire来维护依赖注入
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wire_gen&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;configs&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 这里通常维护一些本地调试用的样例配置文件
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;yaml&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;generate&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;mod&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;internal&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 该服务所有不对外暴露的代码，通常的业务逻辑都在这下面，使用internal避免错误引用
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;// 业务逻辑的组装层，类似 DDD 的 domain 层，data 类似 DDD 的 repo，repo 接口在这里定义，使用依赖倒置的原则。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;biz&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 内部使用的config的结构定义，使用proto格式生成
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;pb&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;conf&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 业务数据访问，包含 cache、db 等封装，实现了 biz 的 repo 接口。我们可能会把 data 与 dao 混淆在一起，data 偏重业务的含义，它所要做的是将领域对象重新拿出来，我们去掉了 DDD 的 infra层。
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// http和grpc实例的创建和配置
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 实现了 api 定义的服务层，类似 DDD 的 application 层，处理 DTO 到 biz 领域实体的转换(DTO -&amp;gt; DO)，同时协同各类 biz 交互，但是不应处理复杂逻辑
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;greeter&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;service&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;
-&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;third_party&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// api 依赖的第三方proto
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;google&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;   &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;annotations&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;│&lt;/span&gt;       &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;httpbody&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-    &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;├──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;README&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;md&lt;/span&gt;
-        &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;└──&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;proto&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;构建项目一个完整的可运行的App
-通过模板工具可以生成业务代码（internal），其中包括
-DDD（领域驱动设计）presentation-application-domain-infrastructure 相关代码
-路由绑定&lt;/p&gt;
-&lt;h3 id=&#34;2-微服务支撑--微服务拓展库学习也使用&#34;&gt;2. 微服务支撑&amp;ndash;微服务拓展库学习也使用&lt;/h3&gt;
-&lt;p&gt;kratos不仅提供了一个框架，还提供灵活支持拓展插件拓展式设计，也一些中间件可供选择。其次也提供微服务中常用的一些组件。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;logging: 用于请求日志的记录。&lt;/li&gt;
-&lt;li&gt;metrics: 用于启用metric。&lt;/li&gt;
-&lt;li&gt;recovery: 用于recovery panic。&lt;/li&gt;
-&lt;li&gt;tracing: 用于启用trace。&lt;/li&gt;
-&lt;li&gt;validate: 用于处理参数校验。&lt;/li&gt;
-&lt;li&gt;metadata: 用于启用元信息传递&lt;/li&gt;
-&lt;li&gt;auth: 用于提供基于JWT的认证请求&lt;/li&gt;
-&lt;li&gt;ratelimit: 用于服务端流量限制&lt;/li&gt;
-&lt;li&gt;circuitbreaker: 用于客户端熔断控制&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;3-运维支持--dockers容器&#34;&gt;3 运维支持&amp;ndash;dockers容器&lt;/h3&gt;
-&lt;p&gt;模板生成的docker-file 可用于直接部署容器环境&lt;/p&gt;
-&lt;h3 id=&#34;4-源码刨析--框架设计思路和中间件基础设施等学习&#34;&gt;4 源码刨析&amp;ndash;框架设计思路和中间件、基础设施等学习&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;examples/helloworld/helloworld&#34;&gt;APIs&lt;/a&gt;：协议通信以 HTTP/gRPC 为基础，通过 Protobuf 进行定义；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/errors/api&#34;&gt;Errors&lt;/a&gt;：通过 Protobuf 的 Enum 作为错误码定义，以及工具生成判定接口；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metadata&#34;&gt;Metadata&lt;/a&gt;：在协议通信 HTTP/gRPC 中，通过 Middleware 规范化服务元信息传递；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/config&#34;&gt;Config&lt;/a&gt;：支持多数据源方式，进行配置合并铺平，通过 Atomic 方式支持动态配置；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/log&#34;&gt;Logger&lt;/a&gt;：标准日志接口，可方便集成三方 log 库，并可通过 fluentd 收集日志；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/metrics&#34;&gt;Metrics&lt;/a&gt;：统一指标接口，可以实现各种指标系统，默认集成 Prometheus；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/traces&#34;&gt;Tracing&lt;/a&gt;：遵循 OpenTelemetry 规范定义，以实现微服务链路追踪；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;encoding&#34;&gt;Encoding&lt;/a&gt;：支持 Accept 和 Content-Type 进行自动选择内容编码；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;transport/transport.go&#34;&gt;Transport&lt;/a&gt;：通用的 &lt;a href=&#34;examples/http/middlewares&#34;&gt;HTTP&lt;/a&gt;/&lt;a href=&#34;examples/middleware/main.go&#34;&gt;gRPC&lt;/a&gt; 传输层，实现统一的 &lt;a href=&#34;middleware&#34;&gt;Middleware&lt;/a&gt; 插件支持；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/registry&#34;&gt;Registry&lt;/a&gt;：实现统一注册中心接口，可插件化对接各种注册中心；&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;examples/validate&#34;&gt;Validation&lt;/a&gt;: 通过Protobuf统一定义校验规则，并同时适用于HTTP/gRPC服务.&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/go-kratos/swagger-api/blob/main/examples/helloworld/server/main.go&#34;&gt;SwaggerAPI&lt;/a&gt;: 通过集成第三方&lt;a href=&#34;https://github.com/go-kratos/swagger-api&#34;&gt;Swagger插件&lt;/a&gt;能够自动生成Swagger API json并启动一个内置的Swaager UI服务.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;总结&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;使用模板工具减少开发重复部分的代码&lt;/li&gt;
-&lt;li&gt;使用wire实现了di&lt;/li&gt;
-&lt;li&gt;传输层抽象transport，支撑拓展&lt;/li&gt;
-&lt;li&gt;业务层使用DDD，而且可以通过模板生成部分代码，简单易用&lt;/li&gt;
-&lt;li&gt;对微服务的有比较多支撑库可供借鉴&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;后续介绍&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;使用kratos实现第一个服务&lt;/li&gt;
-&lt;li&gt;各个库使用与源码学习
-未完待续~&lt;/li&gt;
+&lt;li&gt;Kubernetes进阶实战-第2版》  &lt;a href=&#34;https://item.jd.com/13140598.html&#34;&gt;https://item.jd.com/13140598.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;k8s 部署nginx  &lt;a href=&#34;https://github.com/kevinyan815/LearningKubernetes&#34;&gt;https://github.com/kevinyan815/LearningKubernetes&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</description>
     </item>
     

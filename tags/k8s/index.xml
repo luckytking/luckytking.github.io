@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>subcategory on jefffff&#39;s Blog</title>
-    <link>https://luckytking.github.io/categories/subcategory/</link>
-    <description>Recent content in subcategory on jefffff&#39;s Blog</description>
+    <title>k8s on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/k8s/</link>
+    <description>Recent content in k8s on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 31 Jul 2022 18:04:12 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/subcategory/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 31 Jul 2022 18:04:12 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/k8s/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>K8s学习笔记  资源配置和声明式对象配置</title>
       <link>https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/</link>
@@ -156,83 +156,6 @@
 &lt;li&gt;Kubernetes进阶实战-第2版》  &lt;a href=&#34;https://item.jd.com/13140598.html&#34;&gt;https://item.jd.com/13140598.html&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;k8s 部署nginx  &lt;a href=&#34;https://github.com/kevinyan815/LearningKubernetes&#34;&gt;https://github.com/kevinyan815/LearningKubernetes&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</description>
-    </item>
-    
-    <item>
-      <title>Go Corntab</title>
-      <link>https://luckytking.github.io/2022/07/go-corntab/</link>
-      <pubDate>Sun, 17 Jul 2022 18:44:07 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/2022/07/go-corntab/</guid>
-      <description>&lt;p&gt;本文简要介绍golang 使用crontab实现定时任务。&lt;/p&gt;
-&lt;h3 id=&#34;linux-crontab&#34;&gt;linux crontab&lt;/h3&gt;
-&lt;p&gt;Linux crontab 是用来定期执行程序的命令。当安装完成操作系统之后，默认便会启动此任务调度命令&lt;/p&gt;
-&lt;p&gt;命令语法：&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;crontab [ -u user ] file&lt;/p&gt;
-&lt;p&gt;crontab [ -u user ] { -l | -r | -e }&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;*    *    *    *    *
--    -    -    -    -
-|    |    |    |    |
-|    |    |    |    +----- 星期中星期几 (0 - 6) (星期天 为0)
-|    |    |    +---------- 月份 (1 - 12) 
-|    |    +--------------- 一个月中的第几天 (1 - 31)
-|    +-------------------- 小时 (0 - 23)
-+------------------------- 分钟 (0 - 59)
-&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;go-cron&#34;&gt;go cron&lt;/h3&gt;
-&lt;p&gt;第三方包“github.com/robfig/cron”来创建 crontab，以实现定时任务&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
-
-&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
-	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
-	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;github.com/robfig/cron&amp;#34;&lt;/span&gt;
-)
-
-&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
-	&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; (
-		&lt;span style=&#34;color:#a6e22e&#34;&gt;cronS&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;cron&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;()
-		&lt;span style=&#34;color:#a6e22e&#34;&gt;spec&lt;/span&gt;  = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;*/2 * * * * &amp;#34;&lt;/span&gt;
-		&lt;span style=&#34;color:#a6e22e&#34;&gt;count&lt;/span&gt; = &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
-	)
-
-	&lt;span style=&#34;color:#a6e22e&#34;&gt;entityID&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cronS&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;AddFunc&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;spec&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;() {
-		&lt;span style=&#34;color:#a6e22e&#34;&gt;count&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;
-		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;count: &amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;count&lt;/span&gt;,&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;now:&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Now&lt;/span&gt;().&lt;span style=&#34;color:#a6e22e&#34;&gt;Unix&lt;/span&gt;())
-	})
-	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
-		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Errorf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;error : %v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
-		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
-	}
-	&lt;span style=&#34;color:#a6e22e&#34;&gt;cronS&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Start&lt;/span&gt;()
-
-	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;entityID&lt;/span&gt;)
-	&lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cronS&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Stop&lt;/span&gt;()
-	&lt;span style=&#34;color:#66d9ef&#34;&gt;select&lt;/span&gt; {}
-}
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;go run main.go&lt;/p&gt;
-&lt;p&gt;输出：&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;count:  1 now: 1658053860
-count:  2 now: 1658053920
-count:  3 now: 1658053980
-count:  4 now: 1658054040
-count:  5 now: 1658054100
-
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可以看到每隔1分钟，执行一次Func，count++&lt;/p&gt;
-&lt;p&gt;默认情况下标准 cron 规范解析（第一个字段是“分钟”)
-可以轻松选择进入秒字段。&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cronS&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;cron&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;cron&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithSeconds&lt;/span&gt;())
-&lt;span style=&#34;color:#75715e&#34;&gt;//注意这里多了一个参数
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;spec&lt;/span&gt;  = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;*/2 * * * * * &amp;#34;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行输出&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;count:  1 now: 1658053640
-count:  2 now: 1658053642
-count:  3 now: 1658053644
-count:  4 now: 1658053646
-count:  5 now: 1658053648 
-
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可以看到每隔两秒执行一次&lt;/p&gt;</description>
     </item>
     
   </channel>
