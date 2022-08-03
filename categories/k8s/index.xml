@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>k8s on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/categories/k8s/</link>
+    <description>Recent content in k8s on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 03 Aug 2022 22:02:43 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/k8s/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Rancher导入k8s集群后状态长时间处于Pending状态</title>
+      <link>https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/</link>
+      <pubDate>Wed, 03 Aug 2022 22:02:43 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/</guid>
+      <description>&lt;h4 id=&#34;问题描述&#34;&gt;问题描述:&lt;/h4&gt;
+&lt;p&gt;在Rancher导入外部k8s集群 ,导入的集群一直处于“pending”状态。&lt;/p&gt;
+&lt;p&gt;这里简要记录一下排查过程和临时解决办法。&lt;/p&gt;
+&lt;h4 id=&#34;问题环境&#34;&gt;问题环境&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;rancher v2.6.6&lt;/li&gt;
+&lt;li&gt;kubernetes v1.24&lt;/li&gt;
+&lt;li&gt;vm1 ubuntu （rancer）&lt;/li&gt;
+&lt;li&gt;vm2-3-4 k8s集群&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;导入步骤:“集群”&amp;ndash;“添加”&amp;ndash;“集群名称”&amp;ndash;创建&amp;ndash;&lt;/p&gt;
+&lt;h4 id=&#34;排查解决&#34;&gt;排查&amp;amp;解决&lt;/h4&gt;
+&lt;p&gt;Rancher 通过 CusterAgent 与集群进行通信（通过cattle-cluster-agent调用 Kubernetes API 与集群通讯），并通过cattle-node-agent与节点进行通信。如果 cattle-cluster-agent 无法连接到已有的 Rancher Server 也就是server-url，集群将保留在 Pending 状态。&lt;/p&gt;
+&lt;h5 id=&#34;1--在k8smaster节点上面查看clusteragent的pod状态是否正常默认的namespace为cattle-system&#34;&gt;1 . 在k8smaster节点上面，查看ClusterAgent的pod状态是否正常，默认的namespace为“cattle-system”&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;kubectl get pods -n cattle-system&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;root@k8s-master:~# kubectl get pods -n cattle-system
+NAME                             READY   STATUS    RESTARTS   AGE
+cattle-cluster-agent-79749...   1/0     Waiting   0              8m52s
+cattle-cluster-agent-79749...   1/0     Waiting   0              5m21s
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;看到pod未正常启动&lt;/p&gt;
+&lt;h5 id=&#34;2-进一步查看pod错误日志&#34;&gt;2. 进一步查看pod错误日志&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;kubectl logs -f [contariner-id] -n cattle-system&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;root@k8s-master:~# kubectl logs -f cattle-cluster-agent-79749... -n cattle-system
+...
+no secret assigned to service account cattle-system/rancher
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;h5 id=&#34;3-查找error处理办法&#34;&gt;3. 查找error处理办法&lt;/h5&gt;
+&lt;p&gt;通过查阅官方issures有提到&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;2.6.6版本说明建议:&lt;/p&gt;
+&lt;p&gt;Rancher v2.6.6是v2.6.5的镜像版本，只做了一个修改，以解决以下问题:&lt;/p&gt;
+&lt;p&gt;-当Rancher试图控制来自下游集群的大量流量时，出现了一个主要的性能问题。这种机制没有正确地处理断开，并将导致无限锁定。看到# 37250。&lt;/p&gt;
+&lt;p&gt;所以我猜他们没有在这个版本中添加K8S 1.24兼容性，因为v2.6.6中的兼容版本是:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;v1.18.20-rancher1-3&lt;/li&gt;
+&lt;li&gt;v1.19.16-rancher1-5&lt;/li&gt;
+&lt;li&gt;v1.20.15-rancher1-3&lt;/li&gt;
+&lt;li&gt;v1.21.12-rancher1-1&lt;/li&gt;
+&lt;li&gt;v1.22.9-rancher1-1&lt;/li&gt;
+&lt;li&gt;v1.23.6-rancher1-1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Rancher 2.6.6 不支持 1.24。根据在此问题上设置的里程碑，计划为 2.6.7 提供支持。&lt;/p&gt;
+&lt;h5 id=&#34;4尝试回滚版本&#34;&gt;4.尝试回滚版本&lt;/h5&gt;
+&lt;p&gt;回滚k8s版本v1.23，rancher重新导入集群，再查看pods状态&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl get pods -n cattle-system
+NAME                                    READY   STATUS    RESTARTS   AGE
+cattle-cluster-agent-79749...   1/1     Running   0          8m52s
+cattle-cluster-agent-79749...   1/1     Running   0          5m21s
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;回到rancher查看导入的k8s状态为 “Active”&lt;/p&gt;
+&lt;p&gt;至此，问题已暂时解决。持续关注Rancher2.6.7版本。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index&#34;&gt;https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rancher/rancher/issues/37027&#34;&gt;https://github.com/rancher/rancher/issues/37027&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/rancher/rancher/issues/37711&#34;&gt;https://github.com/rancher/rancher/issues/37711&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html&#34;&gt;https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

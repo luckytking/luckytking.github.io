@@ -6,7 +6,25 @@
     <description>Recent content in Categories on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 31 Jul 2022 18:04:12 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 03 Aug 2022 22:02:43 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>k8s</title>
+      <link>https://luckytking.github.io/categories/k8s/</link>
+      <pubDate>Wed, 03 Aug 2022 22:02:43 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/categories/k8s/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rancher</title>
+      <link>https://luckytking.github.io/categories/rancher/</link>
+      <pubDate>Wed, 03 Aug 2022 22:02:43 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/categories/rancher/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>category</title>
       <link>https://luckytking.github.io/categories/category/</link>

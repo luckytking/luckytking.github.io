@@ -240,6 +240,129 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" aria-label="">
+      
+          Rancher导入k8s集群后状态长时间处于Pending状态
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-08-03T22:02:43&#43;08:00">
+        
+   3, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/rancher">rancher</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <h4 id="问题描述">问题描述:</h4>
+<p>在Rancher导入外部k8s集群 ,导入的集群一直处于“pending”状态。</p>
+<p>这里简要记录一下排查过程和临时解决办法。</p>
+<h4 id="问题环境">问题环境</h4>
+<ul>
+<li>rancher v2.6.6</li>
+<li>kubernetes v1.24</li>
+<li>vm1 ubuntu （rancer）</li>
+<li>vm2-3-4 k8s集群</li>
+</ul>
+<p>导入步骤:“集群”&ndash;“添加”&ndash;“集群名称”&ndash;创建&ndash;</p>
+<h4 id="排查解决">排查&amp;解决</h4>
+<p>Rancher 通过 CusterAgent 与集群进行通信（通过cattle-cluster-agent调用 Kubernetes API 与集群通讯），并通过cattle-node-agent与节点进行通信。如果 cattle-cluster-agent 无法连接到已有的 Rancher Server 也就是server-url，集群将保留在 Pending 状态。</p>
+<h5 id="1--在k8smaster节点上面查看clusteragent的pod状态是否正常默认的namespace为cattle-system">1 . 在k8smaster节点上面，查看ClusterAgent的pod状态是否正常，默认的namespace为“cattle-system”</h5>
+<blockquote>
+<p>kubectl get pods -n cattle-system</p>
+</blockquote>
+<pre tabindex="0"><code>root@k8s-master:~# kubectl get pods -n cattle-system
+NAME                             READY   STATUS    RESTARTS   AGE
+cattle-cluster-agent-79749...   1/0     Waiting   0              8m52s
+cattle-cluster-agent-79749...   1/0     Waiting   0              5m21s
+</code></pre><p>看到pod未正常启动</p>
+<h5 id="2-进一步查看pod错误日志">2. 进一步查看pod错误日志</h5>
+<blockquote>
+<p>kubectl logs -f [contariner-id] -n cattle-system</p>
+</blockquote>
+<pre tabindex="0"><code>root@k8s-master:~# kubectl logs -f cattle-cluster-agent-79749... -n cattle-system
+...
+no secret assigned to service account cattle-system/rancher
+...
+</code></pre><h5 id="3-查找error处理办法">3. 查找error处理办法</h5>
+<p>通过查阅官方issures有提到</p>
+<blockquote>
+<p>2.6.6版本说明建议:</p>
+<p>Rancher v2.6.6是v2.6.5的镜像版本，只做了一个修改，以解决以下问题:</p>
+<p>-当Rancher试图控制来自下游集群的大量流量时，出现了一个主要的性能问题。这种机制没有正确地处理断开，并将导致无限锁定。看到# 37250。</p>
+<p>所以我猜他们没有在这个版本中添加K8S 1.24兼容性，因为v2.6.6中的兼容版本是:</p>
+<ul>
+<li>v1.18.20-rancher1-3</li>
+<li>v1.19.16-rancher1-5</li>
+<li>v1.20.15-rancher1-3</li>
+<li>v1.21.12-rancher1-1</li>
+<li>v1.22.9-rancher1-1</li>
+<li>v1.23.6-rancher1-1</li>
+</ul>
+</blockquote>
+<p>Rancher 2.6.6 不支持 1.24。根据在此问题上设置的里程碑，计划为 2.6.7 提供支持。</p>
+<h5 id="4尝试回滚版本">4.尝试回滚版本</h5>
+<p>回滚k8s版本v1.23，rancher重新导入集群，再查看pods状态</p>
+<pre tabindex="0"><code>kubectl get pods -n cattle-system
+NAME                                    READY   STATUS    RESTARTS   AGE
+cattle-cluster-agent-79749...   1/1     Running   0          8m52s
+cattle-cluster-agent-79749...   1/1     Running   0          5m21s
+</code></pre><p>回到rancher查看导入的k8s状态为 “Active”</p>
+<p>至此，问题已暂时解决。持续关注Rancher2.6.7版本。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index">https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index</a></li>
+<li><a href="https://github.com/rancher/rancher/issues/37027">https://github.com/rancher/rancher/issues/37027</a></li>
+<li><a href="https://github.com/rancher/rancher/issues/37711">https://github.com/rancher/rancher/issues/37711</a></li>
+<li><a href="https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html">https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/" aria-label="">
       
           K8s学习笔记  资源配置和声明式对象配置
