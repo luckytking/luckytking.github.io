@@ -16,7 +16,7 @@
     
   },
   "name":"jefffff\u0027s Blog",
-  "description":"\u003ch4 id=\u0022问题描述\u0022\u003e问题描述:\u003c\/h4\u003e\n\u003cp\u003e在Rancher导入外部k8s集群 ,导入的集群一直处于“pending”状态。\u003c\/p\u003e\n\u003cp\u003e这里简要记录一下排查过程和临时解决办法。\u003c\/p\u003e\n\u003ch4 id=\u0022问题环境\u0022\u003e问题环境\u003c\/h4\u003e\n\u003cul\u003e\n\u003cli\u003erancher v2.6.6\u003c\/li\u003e\n\u003cli\u003ekubernetes v1.24\u003c\/li\u003e\n\u003cli\u003evm1 ubuntu （rancer）\u003c\/li\u003e\n\u003cli\u003evm2-3-4 k8s集群\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e导入步骤:“集群”\u0026ndash;“添加”\u0026ndash;“集群名称”\u0026ndash;创建\u0026ndash;\u003c\/p\u003e\n\u003ch4 id=\u0022排查解决\u0022\u003e排查\u0026amp;解决\u003c\/h4\u003e\n\u003cp\u003eRancher 通过 CusterAgent 与集群进行通信（通过cattle-cluster-agent调用 Kubernetes API 与集群通讯），并通过cattle-node-agent与节点进行通信。如果 cattle-cluster-agent 无法连接到已有的 Rancher Server 也就是server-url，集群将保留在 Pending 状态。\u003c\/p\u003e\n\u003ch5 id=\u00221--在k8smaster节点上面查看clusteragent的pod状态是否正常默认的namespace为cattle-system\u0022\u003e1 . 在k8smaster节点上面，查看ClusterAgent的pod状态是否正常，默认的namespace为“cattle-system”\u003c\/h5\u003e\n\u003cblockquote\u003e\n\u003cp\u003ekubectl get pods -n cattle-system\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eroot@k8s-master:~# kubectl get pods -n cattle-system\r\nNAME                             READY   STATUS    RESTARTS   AGE\r\ncattle-cluster-agent-79749...   1\/0     Waiting   0              8m52s\r\ncattle-cluster-agent-79749...   1\/0     Waiting   0              5m21s\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e看到pod未正常启动\u003c\/p\u003e\n\u003ch5 id=\u00222-进一步查看pod错误日志\u0022\u003e2. 进一步查看pod错误日志\u003c\/h5\u003e\n\u003cblockquote\u003e\n\u003cp\u003ekubectl logs -f [contariner-id] -n cattle-system\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eroot@k8s-master:~# kubectl logs -f cattle-cluster-agent-79749... -n cattle-system\r\n...\r\nno secret assigned to service account cattle-system\/rancher\r\n...\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch5 id=\u00223-查找error处理办法\u0022\u003e3. 查找error处理办法\u003c\/h5\u003e\n\u003cp\u003e通过查阅官方issures有提到\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e2.6.6版本说明建议:\u003c\/p\u003e\n\u003cp\u003eRancher v2.6.6是v2.6.5的镜像版本，只做了一个修改，以解决以下问题:\u003c\/p\u003e\n\u003cp\u003e-当Rancher试图控制来自下游集群的大量流量时，出现了一个主要的性能问题。这种机制没有正确地处理断开，并将导致无限锁定。看到# 37250。\u003c\/p\u003e\n\u003cp\u003e所以我猜他们没有在这个版本中添加K8S 1.24兼容性，因为v2.6.6中的兼容版本是:\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003ev1.18.20-rancher1-3\u003c\/li\u003e\n\u003cli\u003ev1.19.16-rancher1-5\u003c\/li\u003e\n\u003cli\u003ev1.20.15-rancher1-3\u003c\/li\u003e\n\u003cli\u003ev1.21.12-rancher1-1\u003c\/li\u003e\n\u003cli\u003ev1.22.9-rancher1-1\u003c\/li\u003e\n\u003cli\u003ev1.23.6-rancher1-1\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003eRancher 2.6.6 不支持 1.24。根据在此问题上设置的里程碑，计划为 2.6.7 提供支持。\u003c\/p\u003e\n\u003ch5 id=\u00224尝试回滚版本\u0022\u003e4.尝试回滚版本\u003c\/h5\u003e\n\u003cp\u003e回滚k8s版本v1.23，rancher重新导入集群，再查看pods状态\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003ekubectl get pods -n cattle-system\r\nNAME                                    READY   STATUS    RESTARTS   AGE\r\ncattle-cluster-agent-79749...   1\/1     Running   0          8m52s\r\ncattle-cluster-agent-79749...   1\/1     Running   0          5m21s\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e回到rancher查看导入的k8s状态为 “Active”\u003c\/p\u003e\n\u003cp\u003e至此，问题已暂时解决。持续关注Rancher2.6.7版本。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/docs.rancher.cn\/docs\/rancher2\/cluster-provisioning\/imported-clusters\/_index\u0022\u003ehttps:\/\/docs.rancher.cn\/docs\/rancher2\/cluster-provisioning\/imported-clusters\/_index\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/rancher\/rancher\/issues\/37027\u0022\u003ehttps:\/\/github.com\/rancher\/rancher\/issues\/37027\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/rancher\/rancher\/issues\/37711\u0022\u003ehttps:\/\/github.com\/rancher\/rancher\/issues\/37711\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/lequ7.com\/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html\u0022\u003ehttps:\/\/lequ7.com\/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "description":"\u003ch4 id=\u0022问题描述\u0022\u003e问题描述:\u003c\/h4\u003e\n\u003cp\u003e在Rancher导入外部k8s集群 ,导入的集群一直处于“pending”状态。\u003c\/p\u003e\n\u003cp\u003e这里简要记录一下排查过程和临时解决办法。\u003c\/p\u003e\n\u003ch4 id=\u0022问题环境\u0022\u003e问题环境\u003c\/h4\u003e\n\u003cul\u003e\n\u003cli\u003erancher v2.6.6\u003c\/li\u003e\n\u003cli\u003ekubernetes v1.24\u003c\/li\u003e\n\u003cli\u003evm1 ubuntu （rancer）\u003c\/li\u003e\n\u003cli\u003evm2-3-4 k8s集群\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e导入步骤:“集群”\u0026ndash;“添加”\u0026ndash;“集群名称”\u0026ndash;创建\u0026ndash;\u003c\/p\u003e\n\u003ch4 id=\u0022排查解决\u0022\u003e排查\u0026amp;解决\u003c\/h4\u003e\n\u003cp\u003eRancher 通过 CusterAgent 与集群进行通信（通过cattle-cluster-agent调用 Kubernetes API 与集群通讯），并通过cattle-node-agent与节点进行通信。如果 cattle-cluster-agent 无法连接到已有的 Rancher Server 也就是server-url，集群将保留在 Pending 状态。\u003c\/p\u003e\n\u003ch5 id=\u00221--在k8smaster节点上面查看clusteragent的pod状态是否正常默认的namespace为cattle-system\u0022\u003e1 . 在k8smaster节点上面，查看ClusterAgent的pod状态是否正常，默认的namespace为“cattle-system”\u003c\/h5\u003e\n\u003cblockquote\u003e\n\u003cp\u003ekubectl get pods -n cattle-system\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eroot@k8s-master:~# kubectl get pods -n cattle-system\r\nNAME                             READY   STATUS    RESTARTS   AGE\r\ncattle-cluster-agent-79749...   1\/0     Pending   0              8m52s\r\ncattle-cluster-agent-79749...   1\/0     Pending   0              5m21s\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e看到pod未正常启动\u003c\/p\u003e\n\u003ch5 id=\u00222-进一步查看pod错误日志\u0022\u003e2. 进一步查看pod错误日志\u003c\/h5\u003e\n\u003cblockquote\u003e\n\u003cp\u003ekubectl logs -f [contariner-id] -n cattle-system\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eroot@k8s-master:~# kubectl logs -f cattle-cluster-agent-79749... -n cattle-system\r\n...\r\nno secret assigned to service account cattle-system\/rancher\r\n...\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch5 id=\u00223-查找error处理办法\u0022\u003e3. 查找error处理办法\u003c\/h5\u003e\n\u003cp\u003e通过查阅官方issures有提到\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e2.6.6版本说明建议:\u003c\/p\u003e\n\u003cp\u003eRancher v2.6.6是v2.6.5的镜像版本，只做了一个修改，以解决以下问题:\u003c\/p\u003e\n\u003cp\u003e-当Rancher试图控制来自下游集群的大量流量时，出现了一个主要的性能问题。这种机制没有正确地处理断开，并将导致无限锁定。看到# 37250。\u003c\/p\u003e\n\u003cp\u003e所以我猜他们没有在这个版本中添加K8S 1.24兼容性，因为v2.6.6中的兼容版本是:\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003ev1.18.20-rancher1-3\u003c\/li\u003e\n\u003cli\u003ev1.19.16-rancher1-5\u003c\/li\u003e\n\u003cli\u003ev1.20.15-rancher1-3\u003c\/li\u003e\n\u003cli\u003ev1.21.12-rancher1-1\u003c\/li\u003e\n\u003cli\u003ev1.22.9-rancher1-1\u003c\/li\u003e\n\u003cli\u003ev1.23.6-rancher1-1\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003eRancher 2.6.6 不支持 1.24。根据在此问题上设置的里程碑，计划为 2.6.7 提供支持。\u003c\/p\u003e\n\u003ch5 id=\u00224尝试回滚版本\u0022\u003e4.尝试回滚版本\u003c\/h5\u003e\n\u003cp\u003e回滚k8s版本v1.23，rancher重新导入集群，再查看pods状态\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003ekubectl get pods -n cattle-system\r\nNAME                                    READY   STATUS    RESTARTS   AGE\r\ncattle-cluster-agent-79749...   1\/1     Running   0          8m52s\r\ncattle-cluster-agent-79749...   1\/1     Running   0          5m21s\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e回到rancher查看导入的k8s状态为 “Active”\u003c\/p\u003e\n\u003cp\u003e至此，问题已暂时解决。持续关注Rancher2.6.7版本。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/docs.rancher.cn\/docs\/rancher2\/cluster-provisioning\/imported-clusters\/_index\u0022\u003ehttps:\/\/docs.rancher.cn\/docs\/rancher2\/cluster-provisioning\/imported-clusters\/_index\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/rancher\/rancher\/issues\/37027\u0022\u003ehttps:\/\/github.com\/rancher\/rancher\/issues\/37027\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/rancher\/rancher\/issues\/37711\u0022\u003ehttps:\/\/github.com\/rancher\/rancher\/issues\/37711\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/lequ7.com\/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html\u0022\u003ehttps:\/\/lequ7.com\/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
   "url":"https:\/\/luckytking.github.io\/2022\/08\/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81\/",
   "keywords":"[导入一直pending]"
 }
@@ -47,8 +47,8 @@ kubectl get pods -n cattle-system
 
 root@k8s-master:~# kubectl get pods -n cattle-system
 NAME                             READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/0     Waiting   0              8m52s
-cattle-cluster-agent-79749...   1/0     Waiting   0              5m21s
+cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
+cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
 看到pod未正常启动
 2. 进一步查看pod错误日志
 
@@ -111,8 +111,8 @@ kubectl get pods -n cattle-system
 
 root@k8s-master:~# kubectl get pods -n cattle-system
 NAME                             READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/0     Waiting   0              8m52s
-cattle-cluster-agent-79749...   1/0     Waiting   0              5m21s
+cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
+cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
 看到pod未正常启动
 2. 进一步查看pod错误日志
 
@@ -179,8 +179,8 @@ kubectl get pods -n cattle-system
 
 root@k8s-master:~# kubectl get pods -n cattle-system
 NAME                             READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/0     Waiting   0              8m52s
-cattle-cluster-agent-79749...   1/0     Waiting   0              5m21s
+cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
+cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
 看到pod未正常启动
 2. 进一步查看pod错误日志
 
@@ -241,8 +241,8 @@ kubectl get pods -n cattle-system
 
 root@k8s-master:~# kubectl get pods -n cattle-system
 NAME                             READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/0     Waiting   0              8m52s
-cattle-cluster-agent-79749...   1/0     Waiting   0              5m21s
+cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
+cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
 看到pod未正常启动
 2. 进一步查看pod错误日志
 
@@ -534,8 +534,8 @@ https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html
 </blockquote>
 <pre tabindex="0"><code>root@k8s-master:~# kubectl get pods -n cattle-system
 NAME                             READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/0     Waiting   0              8m52s
-cattle-cluster-agent-79749...   1/0     Waiting   0              5m21s
+cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
+cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
 </code></pre><p>看到pod未正常启动</p>
 <h5 id="2-进一步查看pod错误日志">2. 进一步查看pod错误日志</h5>
 <blockquote>

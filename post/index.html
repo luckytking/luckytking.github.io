@@ -287,8 +287,8 @@
 </blockquote>
 <pre tabindex="0"><code>root@k8s-master:~# kubectl get pods -n cattle-system
 NAME                             READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/0     Waiting   0              8m52s
-cattle-cluster-agent-79749...   1/0     Waiting   0              5m21s
+cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
+cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
 </code></pre><p>看到pod未正常启动</p>
 <h5 id="2-进一步查看pod错误日志">2. 进一步查看pod错误日志</h5>
 <blockquote>
