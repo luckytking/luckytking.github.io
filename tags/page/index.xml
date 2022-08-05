@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>page on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/page/</link>
+    <description>Recent content in page on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 05 Jun 2022 16:23:04 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/page/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Redis实现对象存储和列表分页</title>
+      <link>https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/</link>
+      <pubDate>Sun, 05 Jun 2022 16:23:04 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/</guid>
+      <description>&lt;h2 id=&#34;场景&#34;&gt;场景&lt;/h2&gt;
+&lt;p&gt;在项目开发中，需要用到缓存和对一个列表数据分页查询，但由于redis是key-value的存储方式，我们期望的使用类似postgresql的offset和limit，不至于需要一个个key遍历过去。&lt;/p&gt;
+&lt;h2 id=&#34;设计&#34;&gt;设计&lt;/h2&gt;
+&lt;p&gt;分析一下我们需求，那么需求需要实现的接口大概是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;FindByPage&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;page&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;size&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;) ([]&lt;span style=&#34;color:#a6e22e&#34;&gt;Object&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;大致我们需要解决两个问题:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;存储对象&lt;/li&gt;
+&lt;li&gt;列表分页快速查找&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;对象存储&#34;&gt;对象存储&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Redis hash 是一个 string 类型的 field（字段） 和 value（值） 的映射表，hash 特别适合用于存储对象。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;HDEL key field1 [field2]删除一个或多个哈希表字段&lt;/li&gt;
+&lt;li&gt;HEXISTS key field查看哈希表 key 中，指定的字段是否存在。&lt;/li&gt;
+&lt;li&gt;HGET key field获取存储在哈希表中指定字段的值。&lt;/li&gt;
+&lt;li&gt;HGETALL key获取在哈希表中指定 key 的所有字段和值&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如此，我们可以 redis hash 和 json.Encoding 来存储。
+获得一个Object&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//【ObjectID】= &amp;#34;{&amp;#34;foo&amp;#34;: &amp;#34;123&amp;#34;, &amp;#34;bar&amp;#34;:&amp;#34;456&amp;#34;}&amp;#34;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt;  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;github.com/go-redis/redis/v8&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;result&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rdb&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;HGet&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;key&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;String&lt;/span&gt;()).&lt;span style=&#34;color:#a6e22e&#34;&gt;Result&lt;/span&gt;()
+&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+     &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+}
+&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;obj&lt;/span&gt; = &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;YourObject&lt;/span&gt;{}
+&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Unmarshal&lt;/span&gt;([]byte(&lt;span style=&#34;color:#a6e22e&#34;&gt;result&lt;/span&gt;), &lt;span style=&#34;color:#a6e22e&#34;&gt;obj&lt;/span&gt;)
+&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+     &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;增加一个Object：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ob&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Marshal&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;Object&lt;/span&gt;{}&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;）&lt;/span&gt;) 
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;repo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;data&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;rdb&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;HSet&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;key&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;ob&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;ID&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;ob&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;Err&lt;/span&gt;()
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+	}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;分页&#34;&gt;分页&lt;/h3&gt;
+&lt;p&gt;我们的需求中，ObjectID是一个唯一的int，那么可以使用 zset&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;ZXyy redis 有序集合的基本命令。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ZADD key score1 member1 [score2 member2]向有序集合添加一个或多个成员，或者更新已存在成员的分数&lt;/li&gt;
+&lt;li&gt;ZCARD key获取有序集合的成员数&lt;/li&gt;
+&lt;li&gt;ZRANGE key start stop [WITHSCORES]通过索引区间返回有序集合指定区间内的成员&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;那么可以把 zset 的key 和 value 都设置为 ObjectID
+增加一个Object的代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rdb&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;ZAdd&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;key&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;redis&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Z&lt;/span&gt;{
+     &lt;span style=&#34;color:#a6e22e&#34;&gt;Score&lt;/span&gt;:  float64(&lt;span style=&#34;color:#a6e22e&#34;&gt;Object&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;ID&lt;/span&gt;),
+     &lt;span style=&#34;color:#a6e22e&#34;&gt;Member&lt;/span&gt;: &lt;span style=&#34;color:#a6e22e&#34;&gt;strconv&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Itoa&lt;/span&gt;(int(&lt;span style=&#34;color:#a6e22e&#34;&gt;Object&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;ID&lt;/span&gt;)),
+}).&lt;span style=&#34;color:#a6e22e&#34;&gt;Err&lt;/span&gt;(); &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+     &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;获取X分页的代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; (
+     &lt;span style=&#34;color:#a6e22e&#34;&gt;start&lt;/span&gt; = int64((&lt;span style=&#34;color:#a6e22e&#34;&gt;page&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;size&lt;/span&gt;)
+     &lt;span style=&#34;color:#a6e22e&#34;&gt;end&lt;/span&gt;   = &lt;span style=&#34;color:#a6e22e&#34;&gt;start&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; int64(&lt;span style=&#34;color:#a6e22e&#34;&gt;size&lt;/span&gt;)
+)
+&lt;span style=&#34;color:#a6e22e&#34;&gt;result&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rdb&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;ZRange&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;key&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;start&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;end&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;Result&lt;/span&gt;()
+&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+     &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;测试&#34;&gt;测试&lt;/h3&gt;
+&lt;p&gt;我们增加N个Object：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[1 a]
+[2 b]
+[3 c]
+[11 aa]
+[12 bb]
+[13 cc]
+[21 aaaa]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;每页的长度为4，获取第一页&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[1 2 3 11]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;第二页：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[12 13 21]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;第三页：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[ ]
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;参考&#34;&gt;参考&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://cloud.tencent.com/developer/article/1802288&#34;&gt;https://cloud.tencent.com/developer/article/1802288&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

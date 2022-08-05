@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e本文主要记录 Android app 第三方（google和meta\/facebook)登入的后端(go)验证。\u003c\/p\u003e\n\u003ch2 id=\u0022android-sdk-接入流程\u0022\u003eandroid sdk 接入流程\u003c\/h2\u003e\n\u003cp\u003e可参考\n\u003ca href=\u0022https:\/\/juejin.cn\/post\/7094889100389384228\u0022\u003ehttps:\/\/juejin.cn\/post\/7094889100389384228\u003c\/a\u003e\u003c\/p\u003e\n\u003ch2 id=\u0022google\u0022\u003egoogle\u003c\/h2\u003e\n\u003cp\u003e官网链接: (\u003ca href=\u0022https:\/\/developers.google.com\/identity\/sign-in\/web\/backend-auth\u0022\u003ehttps:\/\/developers.google.com\/identity\/sign-in\/web\/backend-auth\u003c\/a\u003e)\n官网推荐两中验证方式 ：\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e\u003cstrong\u003e使用谷歌API客户端库\u003c\/strong\u003e，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。\u003cstrong\u003ego客户端库\u003c\/strong\u003e：https:\/\/github.com\/googleapis\/google-api-go-client)\u003c\/li\u003e\n\u003cli\u003e\u003cstrong\u003e调用谷歌API\u003c\/strong\u003e（https:\/\/oauth2.googleapis.com\/tokeninfo?id_token=XYZ123）\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cp\u003e这里采用第一种，参考代码：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;context\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;fmt\u0026#34;\u003c\/span\u003e \n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;google.golang.org\/api\/oauth2\/v2\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;google.golang.org\/api\/option\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;net\/http\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n   \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 从客户端获取的谷歌token\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003egoogleToken\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e`user token from client`\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eoatuService\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eoauth2\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewService\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBackground\u003c\/span\u003e(), \u003cspan style=\u0022color:#a6e22e\u0022\u003eoption\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithHTTPClient\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eDefaultClient\u003c\/span\u003e))\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e { \n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etokenInfoCall\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eoatuService\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTokeninfo\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etokenInfoCall\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eIdToken\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003egoogleToken\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etokenInfo\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003etokenInfoCall\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eDo\u003c\/span\u003e() \n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e { \n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003etokenInfo\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003etokenInfo\u003c\/span\u003e)\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/可以拿客户端发送的id，和 tokenInfo.Id 做校验\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch2 id=\u0022metafacebook-登入\u0022\u003emeta(facebook) 登入\u003c\/h2\u003e\n\u003cp\u003emeta 的验证和 google 类型，调用验证api\u003c\/p\u003e\n\u003cp\u003e官网链接:\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e\u003cstrong\u003eAndroid版本Facebook快速入门\u003c\/strong\u003e：https:\/\/developers.facebook.com\/docs\/facebook-login\/android\u003c\/li\u003e\n\u003cli\u003e\u003cstrong\u003e后端验证\u003c\/strong\u003e : (\u003ca href=\u0022https:\/\/developers.facebook.com\/docs\/facebook-login\/guides\/%20access-tokens\/get-session-info\u0022\u003ehttps:\/\/developers.facebook.com\/docs\/facebook-login\/guides\/%20access-tokens\/get-session-info\u003c\/a\u003e)\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cp\u003e请求格式：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eGET \/debug_token?\r\n  input_token={session-info-token}\u0026amp;\r\n  access_token={your-access-token}\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e\u003cstrong\u003ego-api\u003c\/strong\u003e : \u003ca href=\u0022https:\/\/developers.facebook.com\/docs\/facebook-login\/guides\/%20access-tokens\/get-session-info\u0022\u003ehttps:\/\/developers.facebook.com\/docs\/facebook-login\/guides\/%20access-tokens\/get-session-info\u003c\/a\u003e\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;fmt\u0026#34;\u003c\/span\u003e\n    \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;net\/http\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efb\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/huandu\/facebook\/v2\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n   \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/客户端传递过来的 token\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003einputToken\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;token from client\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eglobalApp\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003efb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNew\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;developer-app-client-id\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;develop-app-client-secret\u0026#34;\u003c\/span\u003e)\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/生成 access_token\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etoken\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eglobalApp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eAppAccessToken\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003esession\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eglobalApp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSession\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003etoken\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eresp\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esession\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eGet\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;debug_token\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003efb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eParams\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;input_token\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#a6e22e\u0022\u003einputToken\u003c\/span\u003e,\n\t})\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch2 id=\u0022参考\u0022\u003e参考\u003c\/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/developers.google.com\/identity\/sign-in\/web\/backend-auth\u0022\u003ehttps:\/\/developers.google.com\/identity\/sign-in\/web\/backend-auth\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/googleapis\/google-api-go-client\u0022\u003ehttps:\/\/github.com\/googleapis\/google-api-go-client\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/juejin.cn\/post\/7094889100389384228\u0022\u003ehttps:\/\/juejin.cn\/post\/7094889100389384228\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/developers.facebook.com\/docs\/facebook-login\/guides\/%20access-tokens\/get-session-info\u0022\u003ehttps:\/\/developers.facebook.com\/docs\/facebook-login\/guides\/%20access-tokens\/get-session-info\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/huandu\/facebook\/v2\u0022\u003ehttps:\/\/github.com\/huandu\/facebook\/v2\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/05\/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81\/",
+  "keywords":"[google sign in, facebook sign in]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="google sign in, facebook sign in">
+<meta name="description" content="本文主要记录 Android app 第三方（google和meta/facebook)登入的后端(go)验证。
+android sdk 接入流程
+可参考
+https://juejin.cn/post/7094889100389384228
+google
+官网链接: (https://developers.google.com/identity/sign-in/web/backend-auth)
+官网推荐两中验证方式 ：
+
+使用谷歌API客户端库，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。go客户端库：https://github.com/googleapis/google-api-go-client)
+调用谷歌API（https://oauth2.googleapis.com/tokeninfo?id_token=XYZ123）
+
+这里采用第一种，参考代码：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34; 
+	&#34;google.golang.org/api/oauth2/v2&#34;
+	&#34;google.golang.org/api/option&#34;
+	&#34;net/http&#34;
+)
+
+func main() {
+   // 从客户端获取的谷歌token
+	googleToken := `user token from client`
+	oatuService, err := oauth2.NewService(context.Background(), option.WithHTTPClient(http.DefaultClient))
+	if err != nil { 
+		fmt.Println(err)
+	}
+	tokenInfoCall := oatuService.Tokeninfo()
+	tokenInfoCall.IdToken(googleToken)
+	tokenInfo, err := tokenInfoCall.Do() 
+	if err != nil { 
+		fmt.Println(err)
+	}
+	fmt.Println(tokenInfo)
+	fmt.Printf(&#34;%v&#34;, tokenInfo)
+    //可以拿客户端发送的id，和 tokenInfo.Id 做校验
+}
+meta(facebook) 登入
+meta 的验证和 google 类型，调用验证api
+官网链接:
+
+Android版本Facebook快速入门：https://developers.facebook.com/docs/facebook-login/android
+后端验证 : (https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info)
+
+请求格式：
+GET /debug_token?
+  input_token={session-info-token}&amp;
+  access_token={your-access-token}
+go-api : https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info
+package main
+
+import (
+	&#34;fmt&#34;
+    &#34;net/http&#34;
+	fb &#34;github.com/huandu/facebook/v2&#34;
+)
+
+func main() {
+   //客户端传递过来的 token
+	inputToken := &#34;token from client&#34;
+	globalApp := fb.New(&#34;developer-app-client-id&#34;, &#34;develop-app-client-secret&#34;)
+    //生成 access_token
+	token := globalApp.AppAccessToken()
+	session := globalApp.Session(token)
+	resp, err := session.Get(&#34;debug_token&#34;, fb.Params{
+		&#34;input_token&#34;: inputToken,
+	})
+	if err != nil {
+		return
+	}
+}
+参考
+
+https://developers.google.com/identity/sign-in/web/backend-auth
+https://github.com/googleapis/google-api-go-client
+https://juejin.cn/post/7094889100389384228
+https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info
+https://github.com/huandu/facebook/v2
+">
+
+
+<meta property="og:description" content="本文主要记录 Android app 第三方（google和meta/facebook)登入的后端(go)验证。
+android sdk 接入流程
+可参考
+https://juejin.cn/post/7094889100389384228
+google
+官网链接: (https://developers.google.com/identity/sign-in/web/backend-auth)
+官网推荐两中验证方式 ：
+
+使用谷歌API客户端库，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。go客户端库：https://github.com/googleapis/google-api-go-client)
+调用谷歌API（https://oauth2.googleapis.com/tokeninfo?id_token=XYZ123）
+
+这里采用第一种，参考代码：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34; 
+	&#34;google.golang.org/api/oauth2/v2&#34;
+	&#34;google.golang.org/api/option&#34;
+	&#34;net/http&#34;
+)
+
+func main() {
+   // 从客户端获取的谷歌token
+	googleToken := `user token from client`
+	oatuService, err := oauth2.NewService(context.Background(), option.WithHTTPClient(http.DefaultClient))
+	if err != nil { 
+		fmt.Println(err)
+	}
+	tokenInfoCall := oatuService.Tokeninfo()
+	tokenInfoCall.IdToken(googleToken)
+	tokenInfo, err := tokenInfoCall.Do() 
+	if err != nil { 
+		fmt.Println(err)
+	}
+	fmt.Println(tokenInfo)
+	fmt.Printf(&#34;%v&#34;, tokenInfo)
+    //可以拿客户端发送的id，和 tokenInfo.Id 做校验
+}
+meta(facebook) 登入
+meta 的验证和 google 类型，调用验证api
+官网链接:
+
+Android版本Facebook快速入门：https://developers.facebook.com/docs/facebook-login/android
+后端验证 : (https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info)
+
+请求格式：
+GET /debug_token?
+  input_token={session-info-token}&amp;
+  access_token={your-access-token}
+go-api : https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info
+package main
+
+import (
+	&#34;fmt&#34;
+    &#34;net/http&#34;
+	fb &#34;github.com/huandu/facebook/v2&#34;
+)
+
+func main() {
+   //客户端传递过来的 token
+	inputToken := &#34;token from client&#34;
+	globalApp := fb.New(&#34;developer-app-client-id&#34;, &#34;develop-app-client-secret&#34;)
+    //生成 access_token
+	token := globalApp.AppAccessToken()
+	session := globalApp.Session(token)
+	resp, err := session.Get(&#34;debug_token&#34;, fb.Params{
+		&#34;input_token&#34;: inputToken,
+	})
+	if err != nil {
+		return
+	}
+}
+参考
+
+https://developers.google.com/identity/sign-in/web/backend-auth
+https://github.com/googleapis/google-api-go-client
+https://juejin.cn/post/7094889100389384228
+https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info
+https://github.com/huandu/facebook/v2
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Google、meta第三方登入后端验证">
+<meta name="twitter:title" content="Google、meta第三方登入后端验证">
+<meta property="og:url" content="https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="本文主要记录 Android app 第三方（google和meta/facebook)登入的后端(go)验证。
+android sdk 接入流程
+可参考
+https://juejin.cn/post/7094889100389384228
+google
+官网链接: (https://developers.google.com/identity/sign-in/web/backend-auth)
+官网推荐两中验证方式 ：
+
+使用谷歌API客户端库，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。go客户端库：https://github.com/googleapis/google-api-go-client)
+调用谷歌API（https://oauth2.googleapis.com/tokeninfo?id_token=XYZ123）
+
+这里采用第一种，参考代码：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34; 
+	&#34;google.golang.org/api/oauth2/v2&#34;
+	&#34;google.golang.org/api/option&#34;
+	&#34;net/http&#34;
+)
+
+func main() {
+   // 从客户端获取的谷歌token
+	googleToken := `user token from client`
+	oatuService, err := oauth2.NewService(context.Background(), option.WithHTTPClient(http.DefaultClient))
+	if err != nil { 
+		fmt.Println(err)
+	}
+	tokenInfoCall := oatuService.Tokeninfo()
+	tokenInfoCall.IdToken(googleToken)
+	tokenInfo, err := tokenInfoCall.Do() 
+	if err != nil { 
+		fmt.Println(err)
+	}
+	fmt.Println(tokenInfo)
+	fmt.Printf(&#34;%v&#34;, tokenInfo)
+    //可以拿客户端发送的id，和 tokenInfo.Id 做校验
+}
+meta(facebook) 登入
+meta 的验证和 google 类型，调用验证api
+官网链接:
+
+Android版本Facebook快速入门：https://developers.facebook.com/docs/facebook-login/android
+后端验证 : (https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info)
+
+请求格式：
+GET /debug_token?
+  input_token={session-info-token}&amp;
+  access_token={your-access-token}
+go-api : https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info
+package main
+
+import (
+	&#34;fmt&#34;
+    &#34;net/http&#34;
+	fb &#34;github.com/huandu/facebook/v2&#34;
+)
+
+func main() {
+   //客户端传递过来的 token
+	inputToken := &#34;token from client&#34;
+	globalApp := fb.New(&#34;developer-app-client-id&#34;, &#34;develop-app-client-secret&#34;)
+    //生成 access_token
+	token := globalApp.AppAccessToken()
+	session := globalApp.Session(token)
+	resp, err := session.Get(&#34;debug_token&#34;, fb.Params{
+		&#34;input_token&#34;: inputToken,
+	})
+	if err != nil {
+		return
+	}
+}
+参考
+
+https://developers.google.com/identity/sign-in/web/backend-auth
+https://github.com/googleapis/google-api-go-client
+https://juejin.cn/post/7094889100389384228
+https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info
+https://github.com/huandu/facebook/v2
+">
+<meta name="twitter:description" content="本文主要记录 Android app 第三方（google和meta/facebook)登入的后端(go)验证。
+android sdk 接入流程
+可参考
+https://juejin.cn/post/7094889100389384228
+google
+官网链接: (https://developers.google.com/identity/sign-in/web/backend-auth)
+官网推荐两中验证方式 ：
+
+使用谷歌API客户端库，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。go客户端库：https://github.com/googleapis/google-api-go-client)
+调用谷歌API（https://oauth2.googleapis.com/tokeninfo?id_token=XYZ123）
+
+这里采用第一种，参考代码：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34; 
+	&#34;google.golang.org/api/oauth2/v2&#34;
+	&#34;google.golang.org/api/option&#34;
+	&#34;net/http&#34;
+)
+
+func main() {
+   // 从客户端获取的谷歌token
+	googleToken := `user token from client`
+	oatuService, err := oauth2.NewService(context.Background(), option.WithHTTPClient(http.DefaultClient))
+	if err != nil { 
+		fmt.Println(err)
+	}
+	tokenInfoCall := oatuService.Tokeninfo()
+	tokenInfoCall.IdToken(googleToken)
+	tokenInfo, err := tokenInfoCall.Do() 
+	if err != nil { 
+		fmt.Println(err)
+	}
+	fmt.Println(tokenInfo)
+	fmt.Printf(&#34;%v&#34;, tokenInfo)
+    //可以拿客户端发送的id，和 tokenInfo.Id 做校验
+}
+meta(facebook) 登入
+meta 的验证和 google 类型，调用验证api
+官网链接:
+
+Android版本Facebook快速入门：https://developers.facebook.com/docs/facebook-login/android
+后端验证 : (https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info)
+
+请求格式：
+GET /debug_token?
+  input_token={session-info-token}&amp;
+  access_token={your-access-token}
+go-api : https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info
+package main
+
+import (
+	&#34;fmt&#34;
+    &#34;net/http&#34;
+	fb &#34;github.com/huandu/facebook/v2&#34;
+)
+
+func main() {
+   //客户端传递过来的 token
+	inputToken := &#34;token from client&#34;
+	globalApp := fb.New(&#34;developer-app-client-id&#34;, &#34;develop-app-client-secret&#34;)
+    //生成 access_token
+	token := globalApp.AppAccessToken()
+	session := globalApp.Session(token)
+	resp, err := session.Get(&#34;debug_token&#34;, fb.Params{
+		&#34;input_token&#34;: inputToken,
+	})
+	if err != nil {
+		return
+	}
+}
+参考
+
+https://developers.google.com/identity/sign-in/web/backend-auth
+https://github.com/googleapis/google-api-go-client
+https://juejin.cn/post/7094889100389384228
+https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info
+https://github.com/huandu/facebook/v2
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-05-29T16:01:18">
+  
+  
+    <meta property="article:modified_time" content="2022-05-29T16:01:18">
+  
+  
+  
+    
+      <meta property="article:section" content="go开发">
+    
+      <meta property="article:section" content="第三方登入">
+    
+  
+  
+    
+      <meta property="article:tag" content="meta登入">
+    
+      <meta property="article:tag" content="facebook登入">
+    
+      <meta property="article:tag" content="google登入">
+    
+      <meta property="article:tag" content="go开发">
+    
+      <meta property="article:tag" content="第三方登入">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Google、meta第三方登入后端验证</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Google、meta第三方登入后端验证
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-05-29T16:01:18&#43;08:00">
+        
+   29, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e7%ac%ac%e4%b8%89%e6%96%b9%e7%99%bb%e5%85%a5">第三方登入</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>本文主要记录 Android app 第三方（google和meta/facebook)登入的后端(go)验证。</p>
+<h2 id="android-sdk-接入流程">android sdk 接入流程</h2>
+<p>可参考
+<a href="https://juejin.cn/post/7094889100389384228">https://juejin.cn/post/7094889100389384228</a></p>
+<h2 id="google">google</h2>
+<p>官网链接: (<a href="https://developers.google.com/identity/sign-in/web/backend-auth">https://developers.google.com/identity/sign-in/web/backend-auth</a>)
+官网推荐两中验证方式 ：</p>
+<ol>
+<li><strong>使用谷歌API客户端库</strong>，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。<strong>go客户端库</strong>：https://github.com/googleapis/google-api-go-client)</li>
+<li><strong>调用谷歌API</strong>（https://oauth2.googleapis.com/tokeninfo?id_token=XYZ123）</li>
+</ol>
+<p>这里采用第一种，参考代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span> 
+	<span style="color:#e6db74">&#34;google.golang.org/api/oauth2/v2&#34;</span>
+	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+   <span style="color:#75715e">// 从客户端获取的谷歌token
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">googleToken</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">`user token from client`</span>
+	<span style="color:#a6e22e">oatuService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">oauth2</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithHTTPClient</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">DefaultClient</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> { 
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">tokenInfoCall</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">oatuService</span>.<span style="color:#a6e22e">Tokeninfo</span>()
+	<span style="color:#a6e22e">tokenInfoCall</span>.<span style="color:#a6e22e">IdToken</span>(<span style="color:#a6e22e">googleToken</span>)
+	<span style="color:#a6e22e">tokenInfo</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tokenInfoCall</span>.<span style="color:#a6e22e">Do</span>() 
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> { 
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">tokenInfo</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v&#34;</span>, <span style="color:#a6e22e">tokenInfo</span>)
+    <span style="color:#75715e">//可以拿客户端发送的id，和 tokenInfo.Id 做校验
+</span><span style="color:#75715e"></span>}
+</code></pre></div><h2 id="metafacebook-登入">meta(facebook) 登入</h2>
+<p>meta 的验证和 google 类型，调用验证api</p>
+<p>官网链接:</p>
+<ol>
+<li><strong>Android版本Facebook快速入门</strong>：https://developers.facebook.com/docs/facebook-login/android</li>
+<li><strong>后端验证</strong> : (<a href="https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info">https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info</a>)</li>
+</ol>
+<p>请求格式：</p>
+<pre tabindex="0"><code>GET /debug_token?
+  input_token={session-info-token}&amp;
+  access_token={your-access-token}
+</code></pre><p><strong>go-api</strong> : <a href="https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info">https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+    <span style="color:#e6db74">&#34;net/http&#34;</span>
+	<span style="color:#a6e22e">fb</span> <span style="color:#e6db74">&#34;github.com/huandu/facebook/v2&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+   <span style="color:#75715e">//客户端传递过来的 token
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">inputToken</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;token from client&#34;</span>
+	<span style="color:#a6e22e">globalApp</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fb</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;developer-app-client-id&#34;</span>, <span style="color:#e6db74">&#34;develop-app-client-secret&#34;</span>)
+    <span style="color:#75715e">//生成 access_token
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">globalApp</span>.<span style="color:#a6e22e">AppAccessToken</span>()
+	<span style="color:#a6e22e">session</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">globalApp</span>.<span style="color:#a6e22e">Session</span>(<span style="color:#a6e22e">token</span>)
+	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">session</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;debug_token&#34;</span>, <span style="color:#a6e22e">fb</span>.<span style="color:#a6e22e">Params</span>{
+		<span style="color:#e6db74">&#34;input_token&#34;</span>: <span style="color:#a6e22e">inputToken</span>,
+	})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span>
+	}
+}
+</code></pre></div><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://developers.google.com/identity/sign-in/web/backend-auth">https://developers.google.com/identity/sign-in/web/backend-auth</a></li>
+<li><a href="https://github.com/googleapis/google-api-go-client">https://github.com/googleapis/google-api-go-client</a></li>
+<li><a href="https://juejin.cn/post/7094889100389384228">https://juejin.cn/post/7094889100389384228</a></li>
+<li><a href="https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info">https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info</a></li>
+<li><a href="https://github.com/huandu/facebook/v2">https://github.com/huandu/facebook/v2</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/meta%E7%99%BB%E5%85%A5/">meta登入</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/facebook%E7%99%BB%E5%85%A5/">facebook登入</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/google%E7%99%BB%E5%85%A5/">google登入</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/go%E5%BC%80%E5%8F%91/">go开发</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5/">第三方登入</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/" data-tooltip="Go Copier简介" aria-label=": Go Copier简介">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" data-tooltip="Redis实现对象存储和列表分页" aria-label=": Redis实现对象存储和列表分页">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/" data-tooltip="Go Copier简介" aria-label=": Go Copier简介">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" data-tooltip="Redis实现对象存储和列表分页" aria-label=": Redis实现对象存储和列表分页">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

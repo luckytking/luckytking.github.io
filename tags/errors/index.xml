@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>errors on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/errors/</link>
+    <description>Recent content in errors on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 05 May 2022 18:53:15 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/errors/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go开发常用第三方库之errors</title>
+      <link>https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Berrors/</link>
+      <pubDate>Thu, 05 May 2022 18:53:15 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Berrors/</guid>
+      <description>&lt;p&gt;本文主要介绍 在go开发中 errors 的处理和第三方库 &lt;strong&gt;github.com/pkg/errors&lt;/strong&gt; 的使用。&lt;/p&gt;
+&lt;h2 id=&#34;error-interface&#34;&gt;error interface&lt;/h2&gt;
+&lt;p&gt;官方定义：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// The error built-in interface type is the conventional interface for
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// representing an error condition, with the nil value representing no error.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Error&lt;/span&gt;() &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;常用的声明方式&#34;&gt;常用的声明方式&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//方式一
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;err1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Errorf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;io.EOF&amp;#34;&lt;/span&gt;)
+&lt;span style=&#34;color:#75715e&#34;&gt;//方式二
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;err2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;errors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;io.EOF&amp;#34;&lt;/span&gt;)
+&lt;span style=&#34;color:#75715e&#34;&gt;//方式三: 实现interface
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err3&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt;{
+}
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;e&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err3&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Error&lt;/span&gt;() &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;err3&amp;#34;&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;go的错误常见是把错误层层传递，这样可能带来一些不友好的地方：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;错误判断，经过层次包裹的错误，使用层不好判断真实错误&lt;/li&gt;
+&lt;li&gt;定位错误，error库过于简单，没有提供粗错误堆栈，不好定位问题&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;错误判断&#34;&gt;错误判断&lt;/h3&gt;
+&lt;p&gt;常见错误的判断方式是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt;{}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;e&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Error&lt;/span&gt;() &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;base error&amp;#34;&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wrapBase&lt;/span&gt;() &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Errorf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;wrapBase: %w&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;{})
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TestErrors&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Run&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;==&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;{}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;bar&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;{}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Log&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Log&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;bar&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Log&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bar&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;assert&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;True&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bar&lt;/span&gt;)
+	})
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Run&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;断言&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;_&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;ok&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;.(&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;assert&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;False&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;ok&lt;/span&gt;)
+	})
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Run&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Is&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;{}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;wrapFoo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wrapBase&lt;/span&gt;()
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;assert&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;False&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wrapFoo&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;assert&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;True&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;errors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Is&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;wrapFoo&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;))
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;assert&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;False&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;errors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Is&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;wrapFoo&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;{}))
+	})
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Run&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;As&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;{}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;wrapFoo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wrapBase&lt;/span&gt;()
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;assert&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;False&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;wrapFoo&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;assert&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;True&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;errors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;As&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;wrapFoo&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;base&lt;/span&gt;{}))
+	})
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;OutPut：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;--- PASS: TestErrors (0.00s)
+--- PASS: TestErrors/== (0.00s)
+--- PASS: TestErrors/断言 (0.00s)
+--- PASS: TestErrors/Is (0.00s)
+ --- PASS: TestErrors/As (0.00s)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;当没有嵌套错误，可以使用 ==来判断；&lt;/li&gt;
+&lt;li&gt;当有多层嵌套，可以使用 Is() ：
+&lt;ul&gt;
+&lt;li&gt;//一个错误被认为匹配一个目标，如果它等于那个目标或如果它实现了一个方法Is(error) bool，使Is(target)返回true。&lt;/li&gt;
+&lt;li&gt;// As在err&amp;rsquo;s chain中找到第一个与target匹配的错误，如果找到，则设置指向错误值并返回true。否则，返回false&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;定位错误&#34;&gt;定位错误&lt;/h3&gt;
+&lt;p&gt;常用的第三方库&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;github.com/pkg/errors/errors.go
+提供了以下功能：&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;WithStack 包装堆栈&lt;/li&gt;
+&lt;li&gt;WithMessagef 包装异常&lt;/li&gt;
+&lt;li&gt;等&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TestWithStackCompare&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Run&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt.Errorf，无堆栈，不好定位&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;err1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Errorf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;io.EOF&amp;#34;&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;err1: %+v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err1&lt;/span&gt;)
+	})
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Run&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;errors ，无堆栈，不好定位&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;err2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;errors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;io.EOF&amp;#34;&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;err2: %+v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err2&lt;/span&gt;)
+	})
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Run&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pkgerrors，有堆栈，方便定位&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;err3&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;pkgerrors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithStack&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;io&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;EOF&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;err3: %+v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err3&lt;/span&gt;)
+	})
+
+}
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;OutPut:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;=== RUN   TestWithStackCompare
+=== RUN   TestWithStackCompare/fmt.Errorf，无堆栈，不好定位
+err1: io.EOF=== RUN   TestWithStackCompare/errors_，无堆栈，不好定位
+err2: io.EOF=== RUN   TestWithStackCompare/pkgerrors，有堆栈，便以定位
+err3: EOF
+tkingo.vip/egs/goerrors-demo.TestWithStackCompare.func3
+	$ workspace/goerrors-demo/errors_test.go:113
+testing.tRunner
+	$ workspace/Go/src/testing/testing.go:1439
+runtime.goexit
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TestWithMessagef&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;tests&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; []&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;     &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;want&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	}{
+		{&lt;span style=&#34;color:#a6e22e&#34;&gt;io&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;EOF&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;read error&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;read error: EOF&amp;#34;&lt;/span&gt;},
+		{&lt;span style=&#34;color:#a6e22e&#34;&gt;pkgerrors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithMessagef&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;io&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;EOF&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;read error without format specifier&amp;#34;&lt;/span&gt;), &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;client error&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;client error: read error without format specifier: EOF&amp;#34;&lt;/span&gt;},
+		{&lt;span style=&#34;color:#a6e22e&#34;&gt;pkgerrors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithMessagef&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;io&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;EOF&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;read error with %d format specifier&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;), &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;client error&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;client error: read error with 1 format specifier: EOF&amp;#34;&lt;/span&gt;},
+	}
+
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;_&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;tt&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;range&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tests&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;got&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;pkgerrors&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithMessagef&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;tt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;tt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;Error&lt;/span&gt;()
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;got&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;want&lt;/span&gt; {
+			&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Errorf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;WithMessage(%v, %q): got: %q, want %q&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;tt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;tt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;got&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;tt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;want&lt;/span&gt;)
+		}
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;总结&#34;&gt;总结&lt;/h3&gt;
+&lt;p&gt;pkg errors 应该能够支持错误堆栈、不同的打印格式很好的补充了go errors 的一些短板&lt;/p&gt;
+&lt;p&gt;参考：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;github.com/pkg/errors&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

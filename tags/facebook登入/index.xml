@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>facebook登入 on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/facebook%E7%99%BB%E5%85%A5/</link>
+    <description>Recent content in facebook登入 on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 29 May 2022 16:01:18 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/facebook%E7%99%BB%E5%85%A5/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Google、meta第三方登入后端验证</title>
+      <link>https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/</guid>
+      <description>&lt;p&gt;本文主要记录 Android app 第三方（google和meta/facebook)登入的后端(go)验证。&lt;/p&gt;
+&lt;h2 id=&#34;android-sdk-接入流程&#34;&gt;android sdk 接入流程&lt;/h2&gt;
+&lt;p&gt;可参考
+&lt;a href=&#34;https://juejin.cn/post/7094889100389384228&#34;&gt;https://juejin.cn/post/7094889100389384228&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;google&#34;&gt;google&lt;/h2&gt;
+&lt;p&gt;官网链接: (&lt;a href=&#34;https://developers.google.com/identity/sign-in/web/backend-auth&#34;&gt;https://developers.google.com/identity/sign-in/web/backend-auth&lt;/a&gt;)
+官网推荐两中验证方式 ：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;使用谷歌API客户端库&lt;/strong&gt;，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。&lt;strong&gt;go客户端库&lt;/strong&gt;：https://github.com/googleapis/google-api-go-client)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;调用谷歌API&lt;/strong&gt;（https://oauth2.googleapis.com/tokeninfo?id_token=XYZ123）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;这里采用第一种，参考代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;context&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt; 
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;google.golang.org/api/oauth2/v2&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;google.golang.org/api/option&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;net/http&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+   &lt;span style=&#34;color:#75715e&#34;&gt;// 从客户端获取的谷歌token
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;googleToken&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`user token from client`&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;oatuService&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;oauth2&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewService&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Background&lt;/span&gt;(), &lt;span style=&#34;color:#a6e22e&#34;&gt;option&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithHTTPClient&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;DefaultClient&lt;/span&gt;))
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; { 
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfoCall&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;oatuService&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Tokeninfo&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfoCall&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;IdToken&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;googleToken&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfo&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfoCall&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Do&lt;/span&gt;() 
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; { 
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfo&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfo&lt;/span&gt;)
+    &lt;span style=&#34;color:#75715e&#34;&gt;//可以拿客户端发送的id，和 tokenInfo.Id 做校验
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;metafacebook-登入&#34;&gt;meta(facebook) 登入&lt;/h2&gt;
+&lt;p&gt;meta 的验证和 google 类型，调用验证api&lt;/p&gt;
+&lt;p&gt;官网链接:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Android版本Facebook快速入门&lt;/strong&gt;：https://developers.facebook.com/docs/facebook-login/android&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;后端验证&lt;/strong&gt; : (&lt;a href=&#34;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&#34;&gt;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&lt;/a&gt;)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;请求格式：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;GET /debug_token?
+  input_token={session-info-token}&amp;amp;
+  access_token={your-access-token}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;go-api&lt;/strong&gt; : &lt;a href=&#34;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&#34;&gt;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;net/http&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fb&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;github.com/huandu/facebook/v2&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+   &lt;span style=&#34;color:#75715e&#34;&gt;//客户端传递过来的 token
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;inputToken&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;token from client&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;globalApp&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fb&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;developer-app-client-id&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;develop-app-client-secret&amp;#34;&lt;/span&gt;)
+    &lt;span style=&#34;color:#75715e&#34;&gt;//生成 access_token
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;globalApp&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;AppAccessToken&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;session&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;globalApp&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Session&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;resp&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;session&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Get&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;debug_token&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;fb&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Params&lt;/span&gt;{
+		&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;input_token&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#a6e22e&#34;&gt;inputToken&lt;/span&gt;,
+	})
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://developers.google.com/identity/sign-in/web/backend-auth&#34;&gt;https://developers.google.com/identity/sign-in/web/backend-auth&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/googleapis/google-api-go-client&#34;&gt;https://github.com/googleapis/google-api-go-client&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://juejin.cn/post/7094889100389384228&#34;&gt;https://juejin.cn/post/7094889100389384228&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&#34;&gt;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/huandu/facebook/v2&#34;&gt;https://github.com/huandu/facebook/v2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

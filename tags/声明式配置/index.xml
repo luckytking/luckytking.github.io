@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>声明式配置 on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/%E5%A3%B0%E6%98%8E%E5%BC%8F%E9%85%8D%E7%BD%AE/</link>
+    <description>Recent content in 声明式配置 on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 31 Jul 2022 18:04:12 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/%E5%A3%B0%E6%98%8E%E5%BC%8F%E9%85%8D%E7%BD%AE/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>K8s学习笔记  资源配置和声明式对象配置</title>
+      <link>https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/</link>
+      <pubDate>Sun, 31 Jul 2022 18:04:12 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/</guid>
+      <description>&lt;p&gt;本文主要记录Kubernetes的资源管理，包括资源配置，声明式管理。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Kubernetes提供了RESTful风格的API，它将各类组件均抽象为“资源”，并通过属性赋值完成实例化 。API主要由资源类型和控制器两部分组成，资源通常以json、yaml格式并写入集群的对象，控制器则在集群资源存储完成后自动创建并启动。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;常用的K8s资源有&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Pod&lt;/li&gt;
+&lt;li&gt;Deployment&lt;/li&gt;
+&lt;li&gt;Service&lt;/li&gt;
+&lt;li&gt;Ingress&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;资源分类&#34;&gt;资源分类&lt;/h3&gt;
+&lt;p&gt;依据资源的主要功能作为分类标准，Kubernetes的API对象⼤体可分为&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;⼯作负载 （Workload）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ReplicationController&lt;/li&gt;
+&lt;li&gt;ReplicaSet&lt;/li&gt;
+&lt;li&gt;Deploymen&lt;/li&gt;
+&lt;li&gt;StatefulSet&lt;/li&gt;
+&lt;li&gt;DaemonSet&lt;/li&gt;
+&lt;li&gt;Job&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;发现和负载均衡 （Discovery&amp;amp;LB）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;配置和存储 （Config&amp;amp;Storage&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;集群 （Cluster）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Namespace&lt;/li&gt;
+&lt;li&gt;Node&lt;/li&gt;
+&lt;li&gt;Role&lt;/li&gt;
+&lt;li&gt;ClusterRole&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;元数据 （Metadata）&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;它们基本上都是围绕⼀个核⼼⽬的⽽设计：如何更好地运⾏和丰富Pod资源，从⽽为容器化应⽤提供更灵活、更完善的操作与管理组件。&lt;/p&gt;
+&lt;h3 id=&#34;资源配置&#34;&gt;资源配置&lt;/h3&gt;
+&lt;p&gt;标准格式一般包括一级字段&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;kind&lt;/li&gt;
+&lt;li&gt;apiVersion&lt;/li&gt;
+&lt;li&gt;metadata （对象元数据)&lt;/li&gt;
+&lt;li&gt;spec（描述所期望的对象应该具有的状态）&lt;/li&gt;
+&lt;li&gt;status（字段在对象创建后由系统⾃⾏维护）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;以一个nginx的pod.yaml为例&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Pod&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;containers&lt;/span&gt;:
+    - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx:1.7.9&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+          - &lt;span style=&#34;color:#f92672&#34;&gt;containerPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;metadata:
+&lt;ul&gt;
+&lt;li&gt;name 当前的对象名称&lt;/li&gt;
+&lt;li&gt;labels： 当前对象的标签（键值对）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;spec
+&lt;ul&gt;
+&lt;li&gt;containers，它的值是⼀个容器对象列表，⽀持嵌套创建⼀到
+多个容器。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;声明式对象配置&#34;&gt;声明式对象配置&lt;/h3&gt;
+&lt;p&gt;提供配置清单文件给k8s系统，并委托系统来跟踪活动对象的状态变动。管理操作的命令通过apply&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;创建&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$kubectl apply -f &amp;lt;directory&amp;gt;/
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;更新&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl apply -f &amp;lt;directory&amp;gt;/
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;删除&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl apply -f &amp;lt;directory&amp;gt;/ --prune -l your-label 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;建议使用命令式的方法&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl delete -f  &amp;lt;filename&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;实战声明式部署nginx&#34;&gt;实战声明式部署nginx&lt;/h3&gt;
+&lt;p&gt;定义的deployment文件: nginx_dp.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;apps/v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Deployment&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-deployment&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-dp&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;replicas&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;selector&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;matchLabels&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+        &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;containers&lt;/span&gt;:
+        - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx:1.7.9&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+            - &lt;span style=&#34;color:#f92672&#34;&gt;containerPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;暴露服务，定义service文件nginx_svc.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Service&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-svc&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;type&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;NodePort&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;selector&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx-pod&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+    - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;default&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;protocol&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TCP&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;targetPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;访问nginx，output
+&lt;img src=&#34;https://luckytking.github.io/images/k8s-nginx.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Kubernetes进阶实战-第2版》  &lt;a href=&#34;https://item.jd.com/13140598.html&#34;&gt;https://item.jd.com/13140598.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;k8s 部署nginx  &lt;a href=&#34;https://github.com/kevinyan815/LearningKubernetes&#34;&gt;https://github.com/kevinyan815/LearningKubernetes&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

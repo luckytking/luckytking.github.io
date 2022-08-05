@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>mac m1 on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/mac-m1/</link>
+    <description>Recent content in mac m1 on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 09 Jun 2022 21:52:17 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/mac-m1/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>在MacM1上构建x86系统架构Docker镜像</title>
+      <link>https://luckytking.github.io/2022/06/%E5%9C%A8macm1%E4%B8%8A%E6%9E%84%E5%BB%BAx86%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84docker%E9%95%9C%E5%83%8F/</link>
+      <pubDate>Thu, 09 Jun 2022 21:52:17 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/06/%E5%9C%A8macm1%E4%B8%8A%E6%9E%84%E5%BB%BAx86%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84docker%E9%95%9C%E5%83%8F/</guid>
+      <description>&lt;h3 id=&#34;问题&#34;&gt;问题&lt;/h3&gt;
+&lt;p&gt;在mac m1 构建的docker镜像（image:v1.0），在ubuntu上面运行报错：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;smart-service | standard_init_linux.go:228: exec user process caused: exec format error&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ uname -m
+ arm64
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;由于m1是arm64架构,而ubuntu的是x86_64架构，那有没有可以在mac上面构建x86_64的镜像的方法呢？&lt;/p&gt;
+&lt;h3 id=&#34;解决步骤&#34;&gt;解决步骤&lt;/h3&gt;
+&lt;p&gt;在 Docker 19.03+ 版本中可以使用&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker buildx build
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;命令使用 BuildKit 构建镜像。该命令支持 &amp;ndash;platform 参数可以同时构建支持多种系统架构的 Docker 镜像。
+更多参考：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://docs.docker.com/engine/reference/commandline/buildx/&#34;&gt;https://docs.docker.com/engine/reference/commandline/buildx/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;sep1--启用experimental-features&#34;&gt;Sep1  启用experimental features&lt;/h4&gt;
+&lt;p&gt;Docker 的 buildx 还是实验性功能，需要在 Docker Desktop 设置中开启。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Preferences &amp;gt; Experimental Features &amp;gt; Enable CLI experimental features&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;sep2--创建builder&#34;&gt;Sep2  创建builder&lt;/h4&gt;
+&lt;p&gt;由于 Docker 默认的 builder 实例不支持同时指定多个 &amp;ndash;platform，我们必须首先创建一个新的 builder 实例。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker buildx create --use --name my_builder
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;国内环境使用:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;网易云镜像&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker buildx create --use --name=mybuilder --driver docker-container --driver-opt image=dockerpracticesig/buildkit:master
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;百度云镜像&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker buildx create --use --name=mybuilder --driver docker-container --driver-opt image=dockerpracticesig/buildkit:master-baidu
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;查看实例详情：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;docker buildx inspect --bootstrap
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;output:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker buildx inspect --bootstrap
+[+] Building 4.9s (1/1) FINISHED
+ =&amp;gt; [internal] booting buildkit                           
+ =&amp;gt; =&amp;gt; starting container buildx_buildkit_my_builder0     
+Name:   my_builder
+Driver: docker-container
+
+Nodes:
+Name:      my_builder0
+Endpoint:  unix:///var/run/docker.sock
+Status:    running
+Platforms: linux/arm64, linux/amd64, linux/amd64/v2, linux/riscv64, linux/ppc64le, linux/s390x, linux/386, linux/mips64le, linux/mips64, linux/arm/v7, linux/arm/v6
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;sep3-构建&#34;&gt;Sep3 构建&lt;/h4&gt;
+&lt;p&gt;使用 $ docker buildx build 命令构建镜像&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;     docker buildx build &lt;br&gt;
+      &amp;ndash;platform linux/amd64,linux/arm64  &amp;ndash;push -t  myusername:v2.0 .&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;&amp;ndash;platfrom 不同的架构&lt;/li&gt;
+&lt;li&gt;&amp;ndash;push   将构建好的镜像推送到 Docker 仓库&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;构建完 push 上去以后，可以查看远程仓库的 manifest：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt; docker buildx imagetools inspect myusername:v2.0 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;output:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker buildx imagetools inspect myusername:v2.0 
+Name:      myusername:v2.0 
+MediaType: application/vnd.docker.distribution.manifest.list.v2+json
+Digest:    sha256:c234123456XXXyyyy3a7123456XXXyyyyd28de6c376d2f123456XXXyyyy9edf2
+
+Manifests:
+  Name:      myusername:v2.0 @sha123456XXXyyyy777122
+  MediaType: application/vnd.docker.distribution.manifest.v2+json
+  Platform:  linux/amd64
+
+  Name:      myusername:v2.0 @sha123456XXXyyyy777123
+  MediaType: application/vnd.docker.distribution.manifest.v2+json
+  Platform:  linux/arm64
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;显示已经支持不同架构&lt;/p&gt;
+&lt;h4 id=&#34;sep4-测试&#34;&gt;Sep4 测试&lt;/h4&gt;
+&lt;p&gt;在Ubuntu下（v2.0镜像）运行&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Status: Downloaded newer image for 
+myusername:v0.2
+Recreating my-service ... done 
+my-service | INFO msg=[HTTP] server listening on: [::]:8000
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;正常运行 Succeed&lt;/p&gt;
+&lt;h3 id=&#34;总结&#34;&gt;总结&lt;/h3&gt;
+&lt;p&gt;本文主要介绍 使用 buildx 构建多种系统架构支持的 Docker 镜像&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考：&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.docker.com/desktop/mac/apple-silicon/&#34;&gt;https://docs.docker.com/desktop/mac/apple-silicon/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.docker.com/engine/reference/commandline/buildx/&#34;&gt;https://docs.docker.com/engine/reference/commandline/buildx/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://yeasy.gitbook.io/docker_practice/buildx/multi-arch-images&#34;&gt;https://yeasy.gitbook.io/docker_practice/buildx/multi-arch-images&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://prinsss.github.io/build-x86-docker-images-on-an-m1-macs&#34;&gt;https://prinsss.github.io/build-x86-docker-images-on-an-m1-macs&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

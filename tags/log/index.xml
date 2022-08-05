@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>log on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/log/</link>
+    <description>Recent content in log on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 09 Jul 2022 17:52:50 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/log/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>日志聚合系统GrafanaLoki  二、收集本地docker容器日志</title>
+      <link>https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97/</link>
+      <pubDate>Sat, 09 Jul 2022 17:52:50 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97/</guid>
+      <description>&lt;p&gt;上篇&lt;a href=&#34;https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/&#34;&gt;传送门&lt;/a&gt;介绍和搭建 GrafanaLoki，今天学习实战收集dockers容器的日志。&lt;/p&gt;
+&lt;p&gt;Grafana Loki 支持以下官方客户端发送日志：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Promtail&lt;/li&gt;
+&lt;li&gt;Docker Driver&lt;/li&gt;
+&lt;li&gt;Fluentd&lt;/li&gt;
+&lt;li&gt;Fluent Bit&lt;/li&gt;
+&lt;li&gt;Logstash&lt;/li&gt;
+&lt;li&gt;Lambda Promtail&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;其中我们关注比较多是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Promtail 是运行 Kubernetes 时的首选客户端，因为您可以将其配置为自动从运行 Promtail 的同一节点上运行的 pod 中抓取日志&lt;/li&gt;
+&lt;li&gt;Docker Logging Driver  当使用 Docker 而不是 Kubernetes 时，应该使用 Loki 的 Docker 日志记录驱动程序，因为它会自动添加适合正在运行的容器的标签。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;docker-driver&#34;&gt;Docker Driver&lt;/h3&gt;
+&lt;p&gt;Grafana Loki 官方支持一个 Docker 插件，该插件将从 Docker 容器中读取日志并将它们发送到 Loki&lt;/p&gt;
+&lt;h3 id=&#34;安装&#34;&gt;安装&lt;/h3&gt;
+&lt;p&gt;在每台 Docker 主机安装插件&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;docker plugin install grafana/loki-docker-driver:latest &amp;ndash;alias loki &amp;ndash;grant-all-permissions&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;检查是否安装成功:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;docker plugin ls&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker plugin ls
+ID             NAME          DESCRIPTION           ENABLED
+2aa05FooBar   loki:latest   Loki Logging Driver   true
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;插件的使用可以有两种方式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;配置全局 daemon.json,收集此后创建的所有容器的日志。&lt;/li&gt;
+&lt;li&gt;运行容器时指定logging类型为loki&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这里我们采用第一种方式&lt;/p&gt;
+&lt;h3 id=&#34;配置全局-daemonjson&#34;&gt;配置全局 daemon.json&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;sudo vi /etc/docker/daemon.json&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;{
+    &amp;quot;log-driver&amp;quot;: &amp;quot;loki&amp;quot;,
+    &amp;quot;log-opts&amp;quot;: {
+        &amp;quot;loki-url&amp;quot;: &amp;quot;http://127.0.0.1:3100/loki/api/v1/push&amp;quot;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;重启docker服务&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;sudo systemctl restart docker&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;查看是否生效&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;docker info&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$docker info
+...
+Logging Driver: loki
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;说明配置生效。&lt;/p&gt;
+&lt;h3 id=&#34;测试&#34;&gt;测试&lt;/h3&gt;
+&lt;p&gt;启动测试服务，打开grafana查看，数据源选择 “Loki”。
+搜索选择 compose-service ，由于这边是使用docker-compose启动的服务。
+选择 “你的测试服务”，显示如下。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/loki-docker.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;至此，已经成功收集docker的日志。&lt;/p&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;本篇主要介绍如何利用 Docker Driver插件和配置本地环境来收集dockers日志到loki。&lt;/p&gt;
+&lt;h3 id=&#34;reference&#34;&gt;reference&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://grafana.com/docs/loki/latest/clients/&#34;&gt;https://grafana.com/docs/loki/latest/clients/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://t.zoukankan.com/turingguo-p-13847003.html&#34;&gt;http://t.zoukankan.com/turingguo-p-13847003.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+    <item>
+      <title>日志聚合系统GrafanaLoki  一、初试</title>
+      <link>https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/</link>
+      <pubDate>Sat, 02 Jul 2022 17:34:59 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/</guid>
+      <description>&lt;p&gt;为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。&lt;/p&gt;
+&lt;h3 id=&#34;简介&#34;&gt;简介&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;相关组件&#34;&gt;相关组件&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Loki是主服务器，负责存储日志和处理查询。&lt;/li&gt;
+&lt;li&gt;Promtail是代理，负责收集日志并将其发送给 loki 。&lt;/li&gt;
+&lt;li&gt;Grafana用于 UI 展示。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;部署&#34;&gt;部署&lt;/h3&gt;
+&lt;p&gt;这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;启动 loki 、promtail、grafana&lt;/li&gt;
+&lt;li&gt;配置日志收集方式&lt;/li&gt;
+&lt;li&gt;观测日志是否采集、聚合&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4 id=&#34;启动-loki-promtailgrafana&#34;&gt;启动 loki 、promtail、grafana&lt;/h4&gt;
+&lt;p&gt;在工作目录底下创建 docker-compose.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;3&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;networks&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;loki&lt;/span&gt;:
+
+&lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;loki&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;grafana/loki:latest&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;3100:3100&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;command&lt;/span&gt;: -&lt;span style=&#34;color:#ae81ff&#34;&gt;config.file=/etc/loki/local-config.yaml&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;networks&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;loki&lt;/span&gt;
+
+  &lt;span style=&#34;color:#f92672&#34;&gt;promtail&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;grafana/promtail:latest&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;volumes&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;/var/log:/var/log&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;command&lt;/span&gt;: -&lt;span style=&#34;color:#ae81ff&#34;&gt;config.file=/etc/promtail/config.yml&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;networks&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;loki&lt;/span&gt;
+
+  &lt;span style=&#34;color:#f92672&#34;&gt;grafana&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;grafana/grafana:latest&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;3000:3000&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;networks&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;loki&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看是否启动：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;docker-compose ls&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;输出：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;smartgo$ docker-compose ls
+NAME                STATUS              CONFIG FILES
+xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;配置数据源&#34;&gt;配置数据源&lt;/h4&gt;
+&lt;p&gt;访问Grafana： yournode:3000
+,选择数据源：&lt;strong&gt;Explore&amp;ndash;DataSource&lt;/strong&gt;
+&lt;img src=&#34;https://luckytking.github.io/images/loki_data_source1.png&#34; alt=&#34;&#34;&gt;
+可以看到Grafana支持的数据源,点击选择  &lt;strong&gt;Loki&lt;/strong&gt;
+&lt;img src=&#34;https://luckytking.github.io/images/loki_data_source2.png&#34; alt=&#34;&#34;&gt;
+设置地址为：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;http://loki:3100&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;保存即可,点击 &lt;strong&gt;SaveAndTest&lt;/strong&gt; 
+&lt;img src=&#34;https://luckytking.github.io/images/loki_data_source3.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;观测日志是否采集聚合&#34;&gt;观测日志是否采集、聚合&lt;/h4&gt;
+&lt;p&gt;搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
+&lt;img src=&#34;https://luckytking.github.io/images/loki_output.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。&lt;/p&gt;
+&lt;h3 id=&#34;todo&#34;&gt;ToDo&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;收集Dockers的日志&lt;/li&gt;
+&lt;li&gt;LogQL &lt;a href=&#34;https://grafana.com/docs/loki/latest/logql/&#34;&gt;https://grafana.com/docs/loki/latest/logql/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;reference&#34;&gt;reference&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Loki Github： &lt;a href=&#34;https://github.com/grafana/loki/&#34;&gt;https://github.com/grafana/loki/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Loki DockerCompose 安装 &lt;a href=&#34;https://grafana.com/docs/loki/latest/installation/docker/&#34;&gt;https://grafana.com/docs/loki/latest/installation/docker/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

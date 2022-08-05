@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>config on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/config/</link>
+    <description>Recent content in config on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 14 May 2022 22:18:53 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/config/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Kratos项目配置的定义和读取</title>
+      <link>https://luckytking.github.io/2022/05/kratos%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE%E7%9A%84%E5%AE%9A%E4%B9%89%E5%92%8C%E8%AF%BB%E5%8F%96/</link>
+      <pubDate>Sat, 14 May 2022 22:18:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/05/kratos%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE%E7%9A%84%E5%AE%9A%E4%B9%89%E5%92%8C%E8%AF%BB%E5%8F%96/</guid>
+      <description>&lt;p&gt;本文主要记录kratos项目配置的定义、读取和源码的学习&lt;/p&gt;
+&lt;h2 id=&#34;at-first&#34;&gt;at first&lt;/h2&gt;
+&lt;p&gt;服务在启动的基本都会用到配置文件，那么如果是你来写config工具库，它所能提供的功能是什么？&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;读取不同场景的配置&lt;/li&gt;
+&lt;li&gt;读取不同格式的配置&lt;/li&gt;
+&lt;li&gt;支持热更&lt;/li&gt;
+&lt;li&gt;支持拓展，提供自定义实现&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;kratosconfig-有那些功能&#34;&gt;kratos/config 有那些功能&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;kratos/config包支持多种配置源，包括
+&lt;ul&gt;
+&lt;li&gt;本地文件&lt;/li&gt;
+&lt;li&gt;本地环境&lt;/li&gt;
+&lt;li&gt;contrib/config支持配置中心&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;kratos/config 支持多种配置格式
+&lt;ul&gt;
+&lt;li&gt;json&lt;/li&gt;
+&lt;li&gt;proto&lt;/li&gt;
+&lt;li&gt;xml&lt;/li&gt;
+&lt;li&gt;yaml&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;支持热更&lt;/li&gt;
+&lt;li&gt;支持其它格式的配置文件&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;定义配置&#34;&gt;定义配置&lt;/h2&gt;
+&lt;p&gt;在项目目录下创建文件: 
+workspace/configs/config.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;service&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;config&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1.0.0&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;http&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;server&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;address&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;0.0.0.0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;8000&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;timeout&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1s&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;grpc&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;server&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;address&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;0.0.0.0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;9000&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;timeout&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1s&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;加载配置文件&#34;&gt;加载配置文件&lt;/h2&gt;
+&lt;h3 id=&#34;withsource&#34;&gt;WithSource&lt;/h3&gt;
+&lt;p&gt;使用withsoure指定数据源为本地文件&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;flag&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;log&amp;#34;&lt;/span&gt;
+
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;github.com/go-kratos/kratos/v2/config&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;github.com/go-kratos/kratos/v2/config/file&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;flagconf&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;init&lt;/span&gt;() {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;flag&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;StringVar&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;flagconf&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;conf&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;config.yaml&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;config path, eg: -conf config.yaml&amp;#34;&lt;/span&gt;)
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;flag&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Parse&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;(
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithSource&lt;/span&gt;(
+			&lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewSource&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;flagconf&lt;/span&gt;),
+		),
+	)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Load&lt;/span&gt;(); &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		panic(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+	}
+
+	&lt;span style=&#34;color:#75715e&#34;&gt;//定义配置JSON字段
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Service&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+			&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`json:&amp;#34;name&amp;#34;`&lt;/span&gt;
+			&lt;span style=&#34;color:#a6e22e&#34;&gt;Version&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`json:&amp;#34;version&amp;#34;`&lt;/span&gt;
+		} &lt;span style=&#34;color:#e6db74&#34;&gt;`json:&amp;#34;service&amp;#34;`&lt;/span&gt;
+	}
+
+	&lt;span style=&#34;color:#75715e&#34;&gt;//将配置Unmarshal 到struct  
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Scan&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;v&lt;/span&gt;); &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		panic(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;config: %+v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;v&lt;/span&gt;)
+
+	&lt;span style=&#34;color:#75715e&#34;&gt;//获取与该键关联的值
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;service.name&amp;#34;&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;String&lt;/span&gt;()
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		panic(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;service: %s&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;)
+
+	&lt;span style=&#34;color:#75715e&#34;&gt;// 热更执行钩子
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Watch&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;service.name&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;key&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;value&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;config changed: %s = %v\n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;key&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;value&lt;/span&gt;)
+	}); &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		panic(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+	}
+
+	&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;-&lt;/span&gt;make(&lt;span style=&#34;color:#66d9ef&#34;&gt;chan&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt;{})
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;output：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$  config: {Service:{Name:config Version:v1.0.0}}
+$  service: config
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;withdecoder&#34;&gt;WithDecoder&lt;/h3&gt;
+&lt;p&gt;Decoder用于将配置文件内容用特定的反序列化方法解析出来&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;(
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithSource&lt;/span&gt;(
+			&lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewSource&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;flagconf&lt;/span&gt;),
+		),
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithDecoder&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;src&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;KeyValue&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;target&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;]&lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}) &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt; {
+			&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;src&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Format&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt; {
+				&lt;span style=&#34;color:#75715e&#34;&gt;// expand key &amp;#34;aaa.bbb&amp;#34; into map[aaa]map[bbb]interface{}
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;				&lt;span style=&#34;color:#a6e22e&#34;&gt;keys&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;strings&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Split&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;src&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Key&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;.&amp;#34;&lt;/span&gt;)
+				&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;k&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;range&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;keys&lt;/span&gt; {
+					&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; len(&lt;span style=&#34;color:#a6e22e&#34;&gt;keys&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; {
+						&lt;span style=&#34;color:#a6e22e&#34;&gt;target&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;k&lt;/span&gt;] = &lt;span style=&#34;color:#a6e22e&#34;&gt;src&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;
+					} &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+						&lt;span style=&#34;color:#a6e22e&#34;&gt;sub&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; make(&lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;]&lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{})
+						&lt;span style=&#34;color:#a6e22e&#34;&gt;target&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;k&lt;/span&gt;] = &lt;span style=&#34;color:#a6e22e&#34;&gt;sub&lt;/span&gt;
+						&lt;span style=&#34;color:#a6e22e&#34;&gt;target&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;sub&lt;/span&gt;
+					}
+				}
+				&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt;
+			}
+			&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;codec&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;encoding&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;GetCodec&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;src&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Format&lt;/span&gt;); &lt;span style=&#34;color:#a6e22e&#34;&gt;codec&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+				&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;codec&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Unmarshal&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;src&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;target&lt;/span&gt;)
+			}
+			&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Errorf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;unsupported key: %s format: %s&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;src&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Key&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;src&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Format&lt;/span&gt;)
+		}),
+	)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;output 和上例一致&lt;/p&gt;
+&lt;h2 id=&#34;原理&#34;&gt;原理&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Config is a config interface.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Config&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Load&lt;/span&gt;() &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Scan&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;v&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}) &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;key&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Watch&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;key&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;o&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Observer&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Close&lt;/span&gt;() &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol&gt;
+&lt;li&gt;指定数据源的这样会将整个目录中的所有文件进行解析加载，合并到同一个map中&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    c := config.New(
+            config.WithSource(
+                file.NewSource(flagconf),
+            ),
+        )
+        if err := c.Load(); err != nil {
+            panic(err)
+         }
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;使用之前创建好的config实例，调用.Scan方法，读取配置文件的内容到结构体中，这种方式适用于完整获取整个配置文件的内容&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    if err := c.Scan(&amp;amp;v); err != nil {
+      panic(err)
+    }
+    fmt.Printf(&amp;quot;config: %+v&amp;quot;, v)
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;New的时候会有一个默认的 decoder&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;opts&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;Option&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Config&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;o&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;options&lt;/span&gt;{
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;logger&lt;/span&gt;:   &lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;DefaultLogger&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;decoder&lt;/span&gt;:  &lt;span style=&#34;color:#a6e22e&#34;&gt;defaultDecoder&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;resolver&lt;/span&gt;: &lt;span style=&#34;color:#a6e22e&#34;&gt;defaultResolver&lt;/span&gt;,
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;_&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;opt&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;range&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;opts&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;opt&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;o&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;{
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;opts&lt;/span&gt;:   &lt;span style=&#34;color:#a6e22e&#34;&gt;o&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;reader&lt;/span&gt;: &lt;span style=&#34;color:#a6e22e&#34;&gt;newReader&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;o&lt;/span&gt;),
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;:    &lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewHelper&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;o&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;logger&lt;/span&gt;),
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;通过option可以拓展自定义 decoder&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;WithDecoder&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;d&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Decoder&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Option&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;o&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;options&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;o&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;decoder&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;d&lt;/span&gt;
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/go-kratos/kratos/v2/config&#34;&gt;https://github.com/go-kratos/kratos/v2/config&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/go-kratos/kratos/tree/main/contrib/config&#34;&gt;https://github.com/go-kratos/kratos/tree/main/contrib/config&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://go-kratos.dev/docs/component/config&#34;&gt;https://go-kratos.dev/docs/component/config&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

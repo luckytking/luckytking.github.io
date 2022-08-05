@@ -1,31 +1,306 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tags on My New Hugo Site</title>
-    <link>http://example.org/tags/</link>
-    <description>Recent content in Tags on My New Hugo Site</description>
+    <title>Tags on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/</link>
+    <description>Recent content in Tags on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Tue, 09 Nov 2021 21:24:48 +0800</lastBuildDate>
-    
-	<atom:link href="http://example.org/tags/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 03 Aug 2022 22:02:43 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>tag1</title>
-      <link>http://example.org/tags/tag1/</link>
-      <pubDate>Tue, 09 Nov 2021 21:24:48 +0800</pubDate>
+      <title>k8s</title>
+      <link>https://luckytking.github.io/tags/k8s/</link>
+      <pubDate>Wed, 03 Aug 2022 22:02:43 +0800</pubDate>
       
-      <guid>http://example.org/tags/tag1/</guid>
+      <guid>https://luckytking.github.io/tags/k8s/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>tag2</title>
-      <link>http://example.org/tags/tag2/</link>
-      <pubDate>Tue, 09 Nov 2021 21:24:48 +0800</pubDate>
+      <title>rancher</title>
+      <link>https://luckytking.github.io/tags/rancher/</link>
+      <pubDate>Wed, 03 Aug 2022 22:02:43 +0800</pubDate>
       
-      <guid>http://example.org/tags/tag2/</guid>
+      <guid>https://luckytking.github.io/tags/rancher/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>k8s学习笔记</title>
+      <link>https://luckytking.github.io/tags/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Sun, 31 Jul 2022 18:04:12 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>声明式配置</title>
+      <link>https://luckytking.github.io/tags/%E5%A3%B0%E6%98%8E%E5%BC%8F%E9%85%8D%E7%BD%AE/</link>
+      <pubDate>Sun, 31 Jul 2022 18:04:12 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/%E5%A3%B0%E6%98%8E%E5%BC%8F%E9%85%8D%E7%BD%AE/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>go-atomic</title>
+      <link>https://luckytking.github.io/tags/go-atomic/</link>
+      <pubDate>Sat, 23 Jul 2022 22:51:37 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/go-atomic/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>并发编程</title>
+      <link>https://luckytking.github.io/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</link>
+      <pubDate>Sat, 23 Jul 2022 22:51:37 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>crontab</title>
+      <link>https://luckytking.github.io/tags/crontab/</link>
+      <pubDate>Sun, 17 Jul 2022 18:44:07 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/crontab/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>go开发</title>
+      <link>https://luckytking.github.io/tags/go%E5%BC%80%E5%8F%91/</link>
+      <pubDate>Sun, 17 Jul 2022 18:44:07 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/go%E5%BC%80%E5%8F%91/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>第三方库</title>
+      <link>https://luckytking.github.io/tags/%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/</link>
+      <pubDate>Sun, 17 Jul 2022 18:44:07 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>grafana</title>
+      <link>https://luckytking.github.io/tags/grafana/</link>
+      <pubDate>Sat, 09 Jul 2022 17:52:50 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/grafana/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>infrastructure</title>
+      <link>https://luckytking.github.io/tags/infrastructure/</link>
+      <pubDate>Sat, 09 Jul 2022 17:52:50 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/infrastructure/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>log</title>
+      <link>https://luckytking.github.io/tags/log/</link>
+      <pubDate>Sat, 09 Jul 2022 17:52:50 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/log/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>loki</title>
+      <link>https://luckytking.github.io/tags/loki/</link>
+      <pubDate>Sat, 09 Jul 2022 17:52:50 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/loki/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>boomer</title>
+      <link>https://luckytking.github.io/tags/boomer/</link>
+      <pubDate>Thu, 23 Jun 2022 21:53:01 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/boomer/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>go</title>
+      <link>https://luckytking.github.io/tags/go/</link>
+      <pubDate>Thu, 23 Jun 2022 21:53:01 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/go/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>locust</title>
+      <link>https://luckytking.github.io/tags/locust/</link>
+      <pubDate>Thu, 23 Jun 2022 21:53:01 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/locust/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>pressure test</title>
+      <link>https://luckytking.github.io/tags/pressure-test/</link>
+      <pubDate>Thu, 23 Jun 2022 21:53:01 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/pressure-test/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>docker buildx</title>
+      <link>https://luckytking.github.io/tags/docker-buildx/</link>
+      <pubDate>Thu, 09 Jun 2022 21:52:17 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/docker-buildx/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>mac m1</title>
+      <link>https://luckytking.github.io/tags/mac-m1/</link>
+      <pubDate>Thu, 09 Jun 2022 21:52:17 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/mac-m1/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>go-redis</title>
+      <link>https://luckytking.github.io/tags/go-redis/</link>
+      <pubDate>Sun, 05 Jun 2022 16:23:04 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/go-redis/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>page</title>
+      <link>https://luckytking.github.io/tags/page/</link>
+      <pubDate>Sun, 05 Jun 2022 16:23:04 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/page/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>redis</title>
+      <link>https://luckytking.github.io/tags/redis/</link>
+      <pubDate>Sun, 05 Jun 2022 16:23:04 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/redis/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>facebook登入</title>
+      <link>https://luckytking.github.io/tags/facebook%E7%99%BB%E5%85%A5/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/facebook%E7%99%BB%E5%85%A5/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>google登入</title>
+      <link>https://luckytking.github.io/tags/google%E7%99%BB%E5%85%A5/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/google%E7%99%BB%E5%85%A5/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>meta登入</title>
+      <link>https://luckytking.github.io/tags/meta%E7%99%BB%E5%85%A5/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/meta%E7%99%BB%E5%85%A5/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>第三方登入</title>
+      <link>https://luckytking.github.io/tags/%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>copier</title>
+      <link>https://luckytking.github.io/tags/copier/</link>
+      <pubDate>Sun, 22 May 2022 16:44:15 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/copier/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>config</title>
+      <link>https://luckytking.github.io/tags/config/</link>
+      <pubDate>Sat, 14 May 2022 22:18:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/config/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>kratos</title>
+      <link>https://luckytking.github.io/tags/kratos/</link>
+      <pubDate>Sat, 14 May 2022 22:18:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/kratos/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>micro service</title>
+      <link>https://luckytking.github.io/tags/micro-service/</link>
+      <pubDate>Sat, 14 May 2022 22:18:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/micro-service/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>errors</title>
+      <link>https://luckytking.github.io/tags/errors/</link>
+      <pubDate>Thu, 05 May 2022 18:53:15 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/errors/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>now</title>
+      <link>https://luckytking.github.io/tags/now/</link>
+      <pubDate>Thu, 05 May 2022 18:53:15 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/now/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>time</title>
+      <link>https://luckytking.github.io/tags/time/</link>
+      <pubDate>Thu, 05 May 2022 18:53:15 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/time/</guid>
       <description></description>
     </item>
     

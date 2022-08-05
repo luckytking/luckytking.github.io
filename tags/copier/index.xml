@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>copier on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/copier/</link>
+    <description>Recent content in copier on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 22 May 2022 16:44:15 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/copier/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go Copier简介</title>
+      <link>https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/</link>
+      <pubDate>Sun, 22 May 2022 16:44:15 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/</guid>
+      <description>&lt;p&gt;本文主要介绍 jinzhu/copier 的使用和常用场景&lt;/p&gt;
+&lt;h2 id=&#34;简介&#34;&gt;简介&lt;/h2&gt;
+&lt;p&gt;在go后端项目开发中，内部rpc服务返回的字段跟api服务相差无几，一个个赋值比较费事儿。那么就需要Object、List、HashMap 等进行值拷贝。jinzhu/copier即提供了这些场景的支持。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;copier 特性&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;从方法复制到具有相同名称的字段&lt;/li&gt;
+&lt;li&gt;从字段复制到具有相同名称的方法&lt;/li&gt;
+&lt;li&gt;从一个切片复制到另一个切片&lt;/li&gt;
+&lt;li&gt;从结构体复制到切片&lt;/li&gt;
+&lt;li&gt;从map复制到map&lt;/li&gt;
+&lt;li&gt;强制复制带有标记的字段&lt;/li&gt;
+&lt;li&gt;忽略带有标记的字段&lt;/li&gt;
+&lt;li&gt;深拷贝&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;usage&#34;&gt;Usage&lt;/h2&gt;
+&lt;h3 id=&#34;copy-from-struct&#34;&gt;Copy from struct&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;github.com/jinzhu/copier&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;testing&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;         &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Role&lt;/span&gt;         &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Age&lt;/span&gt;          &lt;span style=&#34;color:#66d9ef&#34;&gt;int32&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;EmployeeCode&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int64&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`copier:&amp;#34;EmployeeNum&amp;#34;`&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// specify field name
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+	&lt;span style=&#34;color:#75715e&#34;&gt;// Explicitly ignored in the destination struct.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#75715e&#34;&gt;//目标结构体中的标签提供了copy指令。复制忽略
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//或强制复制，如果字段没有被复制则惊慌或返回错误。
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Employee&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#75715e&#34;&gt;//告诉copier。如果没有复制此字段，则复制到panic。
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`copier:&amp;#34;must&amp;#34;`&lt;/span&gt;
+
+	&lt;span style=&#34;color:#75715e&#34;&gt;//告诉copier。 如果没有复制此字段，则返回错误。
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;Age&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int32&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`copier:&amp;#34;must,nopanic&amp;#34;`&lt;/span&gt;
+
+	&lt;span style=&#34;color:#75715e&#34;&gt;// 告诉copier。 显式忽略复制此字段。
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`copier:&amp;#34;-&amp;#34;`&lt;/span&gt;
+
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;DoubleAge&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int32&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;EmployeeId&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int64&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`copier:&amp;#34;EmployeeNum&amp;#34;`&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// 指定字段名
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;SuperRole&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TestCopyStruct&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; (
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;     = &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;{&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Jinzhu&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Age&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Role&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Admin&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;200000&lt;/span&gt;}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;employee&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;Employee&lt;/span&gt;{&lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;150000&lt;/span&gt;}
+	)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;copier&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Copy&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;employee&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Logf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%#v \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;employee&lt;/span&gt;)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;output：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;copier_test&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;47&lt;/span&gt;: &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Employee&lt;/span&gt;{&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;:&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Jinzhu&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Age&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;150000&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;DoubleAge&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;36&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;EmployeeId&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;SuperRole&lt;/span&gt;:&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Super Admin&amp;#34;&lt;/span&gt;} 
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;copy-from-slice-to-slice&#34;&gt;Copy from slice to slice&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TestCopySlice&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; (
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;users&lt;/span&gt;     = []&lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;{{&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Jinzhu&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Age&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Role&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Admin&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;100000&lt;/span&gt;}, {&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;jinzhu 2&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Age&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Role&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Dev&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;60000&lt;/span&gt;}}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;employees&lt;/span&gt; = []&lt;span style=&#34;color:#a6e22e&#34;&gt;Employee&lt;/span&gt;{}
+	)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;employees&lt;/span&gt; = []&lt;span style=&#34;color:#a6e22e&#34;&gt;Employee&lt;/span&gt;{}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;copier&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Copy&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;employees&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;users&lt;/span&gt;)
+
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Logf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%#v \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;employees&lt;/span&gt;)
+}&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;`&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;output :&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;copier_test&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;57&lt;/span&gt;: []&lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Employee&lt;/span&gt;{&lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Employee&lt;/span&gt;{&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;:&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Jinzhu&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Age&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;DoubleAge&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;36&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;EmployeeId&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;SuperRole&lt;/span&gt;:&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Super Admin&amp;#34;&lt;/span&gt;}, &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Employee&lt;/span&gt;{&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;:&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;jinzhu 2&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Age&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;Salary&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;DoubleAge&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;60&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;EmployeeId&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;SuperRole&lt;/span&gt;:&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Super Dev&amp;#34;&lt;/span&gt;}} 
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;copy-from-map-to-map&#34;&gt;Copy from Map to Map&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TestCopyMap&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+	&lt;span style=&#34;color:#75715e&#34;&gt;// Copy map to map
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;map1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;]&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;{&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;map2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;int32&lt;/span&gt;]&lt;span style=&#34;color:#66d9ef&#34;&gt;int8&lt;/span&gt;{}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;copier&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Copy&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;map2&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;map1&lt;/span&gt;)
+
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Logf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%#v \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;map2&lt;/span&gt;)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;output :&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;copier_test&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;66&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;int32&lt;/span&gt;]&lt;span style=&#34;color:#66d9ef&#34;&gt;int8&lt;/span&gt;{&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;} 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;场景-1rpcapi&#34;&gt;场景 1（rpc&amp;amp;api）&lt;/h2&gt;
+&lt;p&gt;实际开发中，免不了服务间通讯，比较前文所说的场景，一个内部的rpc服务返回的参数和api服务差不多，那么就可以使用copier。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//伪代码如下
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ApiLogin&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;,&lt;span style=&#34;color:#a6e22e&#34;&gt;request&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;LoginRequest&lt;/span&gt;)(&lt;span style=&#34;color:#a6e22e&#34;&gt;reply&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;LogingReply&lt;/span&gt;,&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;)  {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;grpcClient&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;v1&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewGameGrpcClient&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;reply&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;client&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Login&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;LoginRequest&lt;/span&gt;{ 
+					})
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;LogingReply&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;{}
+ 	&lt;span style=&#34;color:#a6e22e&#34;&gt;copier&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Copy&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;reply&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;())
+&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;api&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;LoginReply&lt;/span&gt;{
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;:&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;,
+},&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;场景-2-model-objectaggregate&#34;&gt;场景 2 (model-object/aggregate)&lt;/h2&gt;
+&lt;p&gt;实际开发中，不管是mvc\ddd 都会有从model到object/aggreate的repository,那么就可以使用copier。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;r&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;UserRepo&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Get&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;uid&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int64&lt;/span&gt;) (&lt;span style=&#34;color:#a6e22e&#34;&gt;u&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;,&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;) {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;model&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;db&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Get&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;uid&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;obj&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;{}
+	copy(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;obj&lt;/span&gt;,&lt;span style=&#34;color:#a6e22e&#34;&gt;model&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;obj&lt;/span&gt;,&lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;小结&#34;&gt;小结&lt;/h2&gt;
+&lt;p&gt;copier提供不同类型之间相同的字段名，使用tag或者方法支持不同的字段名的赋值。减少一些重复的工作量,小巧实用。&lt;/p&gt;
+&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jinzhu/copier&#34;&gt;https://github.com/jinzhu/copier&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

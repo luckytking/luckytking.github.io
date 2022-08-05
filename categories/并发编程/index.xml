@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>并发编程 on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</link>
+    <description>Recent content in 并发编程 on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 23 Jul 2022 22:51:37 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go原子操作</title>
+      <link>https://luckytking.github.io/2022/07/go%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/</link>
+      <pubDate>Sat, 23 Jul 2022 22:51:37 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/07/go%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/</guid>
+      <description>&lt;h3 id=&#34;原子操作&#34;&gt;原子操作&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;原子操作即执行过程不能被中断的操作。在针对某个值的原子操作执行过程当值，cpu绝不会再去执行其他针对该值的操作，无论这些其他操作是否为原子操作。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;go-atomic&#34;&gt;go-atomic&lt;/h3&gt;
+&lt;p&gt;查看Mutex、RWMutex的源码，底层是通过atomic包中的一些原子操作来实现。&lt;/p&gt;
+&lt;p&gt;Go标准库 sync/atomic 提供了对基础类型 int32、int64、uint32、uint64、uintptr、Pointer（Add 方法不支持） 的原子级内存操作。其中包括：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Add （给第一个参数地址中的值增加一个 delta 值）&lt;/li&gt;
+&lt;li&gt;CompareAndSwap（判断相等即替换)）&lt;/li&gt;
+&lt;li&gt;Swap（不需要比较旧值，直接替换，返回旧值）&lt;/li&gt;
+&lt;li&gt;Load（方法会取出 addr 地址中的值）&lt;/li&gt;
+&lt;li&gt;Store（ 方法会把一个值存入到指定的 addr 地址中）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;我们通过一个例子可以快速了解atomic封装的这些api&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;sync/atomic&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int32&lt;/span&gt; = &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+
+	&lt;span style=&#34;color:#75715e&#34;&gt;//func AddInt32(addr *int32, delta int32) (new int32)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;y&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;AddInt32&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;, int32(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;))
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;x=%d,y=%d \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;y&lt;/span&gt;)
+	&lt;span style=&#34;color:#75715e&#34;&gt;//OutPut: x=1,y=1
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+	&lt;span style=&#34;color:#75715e&#34;&gt;// func CompareAndSwapInt32(addr *int32, old, new int32) (swapped bool)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;// addr 地址里的值是不是 old，如果不等于 old，就返回 false；如果等于 old，就把此地址的值替换成 new 值，返回 true
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;isCompare&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;CompareAndSwapInt32&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;, int32(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;), int32(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;))
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;isCompare=%v,x=%d  \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;isCompare&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;)
+	&lt;span style=&#34;color:#75715e&#34;&gt;//OutPut: isCompare=false,x=1
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;//不相等，故x还是1
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;isCompare2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;CompareAndSwapInt32&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;, int32(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;), int32(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;))
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;isCompare=%v,x=%d  \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;isCompare2&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;)
+	&lt;span style=&#34;color:#75715e&#34;&gt;//OutPut: isCompare=true,x=2
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;//相等，故x还是2
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+	&lt;span style=&#34;color:#75715e&#34;&gt;//func SwapInt32(addr *int32, new int32) (old int32)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;xOld&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;SwapInt32&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;, int32(&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;))
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;xOld=%d,x=%d  \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;xOld&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;)
+	&lt;span style=&#34;color:#75715e&#34;&gt;//OutPut: xOld=2,x=3
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;//不比较，故x替换3
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+	&lt;span style=&#34;color:#75715e&#34;&gt;//func LoadInt32(addr *int32) (val int32)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;vValue&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;LoadInt32&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;vValue=%d \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;vValue&lt;/span&gt;)
+	&lt;span style=&#34;color:#75715e&#34;&gt;//OutPut: xOld=2,x=3
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;//获取x的值3
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+	&lt;span style=&#34;color:#75715e&#34;&gt;//func StoreInt32(addr *int32, val int32)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;StoreInt32&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;vValue2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;LoadInt32&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;vValue2=%d \n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;vValue2&lt;/span&gt;)
+	&lt;span style=&#34;color:#75715e&#34;&gt;//OutPut:vValue2=8 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;小试牛刀&#34;&gt;小试牛刀&lt;/h3&gt;
+&lt;p&gt;atomic 比较常见的类型 还提供了一个特殊的类型：Value，但是只支持  load、store。
+这里模拟一个场景：当配置变更后，期待其他goroutine可以收到通知和变更。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;sync&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;sync/atomic&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;time&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Config&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Network&lt;/span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Addr&lt;/span&gt;         &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;ReadTimeout&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int32&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;WriteTimeout&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int32&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;loadConfig&lt;/span&gt;() &lt;span style=&#34;color:#a6e22e&#34;&gt;Config&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Config&lt;/span&gt;{
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Network&lt;/span&gt;:      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;redis&amp;#34;&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Addr&lt;/span&gt;:         &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;127.0.0.1:6379&amp;#34;&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;ReadTimeout&lt;/span&gt;:  &lt;span style=&#34;color:#ae81ff&#34;&gt;60&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;WriteTimeout&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;60&lt;/span&gt;,
+	}
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; (
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;done&lt;/span&gt;   &lt;span style=&#34;color:#66d9ef&#34;&gt;bool&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Value&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Store&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;loadConfig&lt;/span&gt;())
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;sync&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewCond&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;sync&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Mutex&lt;/span&gt;{})
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;waitForLoad&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;waitForLoad&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;beginLoad&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;select&lt;/span&gt; {}
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;beginLoad&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;sync&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Cond&lt;/span&gt;) {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Sleep&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Second&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Store&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;loadConfig&lt;/span&gt;())
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Broadcast&lt;/span&gt;()
+	}
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;waitForLoad&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;node&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;sync&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Cond&lt;/span&gt;) {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;L&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Lock&lt;/span&gt;()
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; !&lt;span style=&#34;color:#a6e22e&#34;&gt;done&lt;/span&gt; {
+			&lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Wait&lt;/span&gt;()
+		}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Load&lt;/span&gt;().(&lt;span style=&#34;color:#a6e22e&#34;&gt;Config&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;node: %d - redis config: %+v\n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;node&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;)
+
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;cond&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;L&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Unlock&lt;/span&gt;()
+}
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;OutPut：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;node: 2 - redis config: {Network:redis Addr:127.0.0.1:6379 ReadTimeout:60 WriteTimeout:60}
+node: 1 - redis config: {Network:redis Addr:127.0.0.1:6379 ReadTimeout:60 WriteTimeout:60}
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;uber-goatomic&#34;&gt;uber-go/atomic&lt;/h3&gt;
+&lt;p&gt;uber-go/atomic对标准库进行进一步封装，采用面向对象的使用方式。
+这些类型包括 Bool、Duration、Error、Float64、Int32、Int64、String、Uint32、Uint64 等
+举个例子uint32的减法你可能是这么写的&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;AddUint32&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;x&lt;/span&gt;, ^(&lt;span style=&#34;color:#a6e22e&#34;&gt;delta&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;))
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;利用计算机补码的规则，把减法变成加法 。uber-go对它进行了封装&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atom&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;atomic&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Uint32&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;atom&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Store&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;)
+&lt;span style=&#34;color:#a6e22e&#34;&gt;atom&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Sub&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+&lt;span style=&#34;color:#a6e22e&#34;&gt;atom&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;CAS&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;本文简要介绍原子操作和go-atomic，使用场景，以及第三库uber-go/atomic。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/uber-go/atomic&#34;&gt;https://github.com/uber-go/atomic&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

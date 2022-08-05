@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e上一篇（\u003ca href=\u0022https:\/\/luckytking.github.io\/2022\/06\/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80\/\u0022\u003e传送门\u003c\/a\u003e）介绍了测试平台 locust \u002b boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。\u003c\/p\u003e\n\u003ch4 id=\u0022setup\u0022\u003esetup\u003c\/h4\u003e\n\u003ch5 id=\u0022install-the-master-branch\u0022\u003eInstall the master branch\u003c\/h5\u003e\n\u003cblockquote\u003e\n\u003cp\u003e$ go get github.com\/myzhan\/boomer\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch5 id=\u0022install-a-tagged-version-that-works-with-locust-160\u0022\u003eInstall a tagged version that works with locust 1.6.0\u003c\/h5\u003e\n\u003cblockquote\u003e\n\u003cp\u003e$ go get \u003ca href=\u0022mailto:github.com\/myzhan\/boomer@v1.6.0\u0022\u003egithub.com\/myzhan\/boomer@v1.6.0\u003c\/a\u003e\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch5 id=\u0022install-gomq\u0022\u003einstall gomq\u003c\/h5\u003e\n\u003cblockquote\u003e\n\u003cp\u003e$ go get -u github.com\/zeromq\/gomq\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch4 id=\u0022quick-start\u0022\u003equick start\u003c\/h4\u003e\n\u003ch5 id=\u0022run-master\u0022\u003erun master\u003c\/h5\u003e\n\u003cp\u003e创建python文件 workspace\/dummy.py\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-python\u0022 data-lang=\u0022python\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003efrom\u003c\/span\u003e locust \u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e Locust, TaskSet, task\n\u003cspan style=\u0022color:#66d9ef\u0022\u003eclass\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eMyTaskSet\u003c\/span\u003e(TaskSet):\n    \u003cspan style=\u0022color:#a6e22e\u0022\u003e@task\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e20\u003c\/span\u003e)\n    \u003cspan style=\u0022color:#66d9ef\u0022\u003edef\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehello\u003c\/span\u003e(self):\n        \u003cspan style=\u0022color:#66d9ef\u0022\u003epass\u003c\/span\u003e\n\u003cspan style=\u0022color:#66d9ef\u0022\u003eclass\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eDummy\u003c\/span\u003e(Locust):\n    task_set \u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e MyTaskSet\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e运行：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e$ locust \u0026ndash;master -f dummy.py\noutput：\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-bash\u0022 data-lang=\u0022bash\u0022\u003e$locust.main: Starting web interface at http:\/\/0.0.0.0:8089 \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003eaccepting connections from all network interfaces\u003cspan style=\u0022color:#f92672\u0022\u003e)\u003c\/span\u003e\n$locust.main: Starting Locust 2.9.1.dev23\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch5 id=\u0022run-slave\u0022\u003erun slave\u003c\/h5\u003e\n\u003cp\u003e创建go文件 workspace\/main.go\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e(\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;fmt\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;io\/ioutil\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;net\/http\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;time\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/myzhan\/boomer\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehelloTask\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003estart\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNow\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eHttpGet\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;hello\u0026#34;\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eelapsed\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSince\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003estart\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eboomer\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRecordFailure\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;http\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;world\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eelapsed\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNanoseconds\u003c\/span\u003e()\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003eint64(\u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMillisecond\u003c\/span\u003e), \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eError\u003c\/span\u003e())\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n    \n\u003cspan style=\u0022color:#75715e\u0022\u003e\/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=\u0026#34;http\u0026#34;, name=\u0026#34;world\u0026#34;, response_time=100, response_length=10)    *\/\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eboomer\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRecordSuccess\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;http\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;world\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eelapsed\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNanoseconds\u003c\/span\u003e()\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003eint64(\u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMillisecond\u003c\/span\u003e), int64(\u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e))\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eworldTask\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003estart\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNow\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eHttpGet\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;world\u0026#34;\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eelapsed\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSince\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003estart\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eboomer\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRecordFailure\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;udp\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;world\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eelapsed\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNanoseconds\u003c\/span\u003e()\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003eint64(\u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMillisecond\u003c\/span\u003e), \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eError\u003c\/span\u003e())\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t} \n\u003cspan style=\u0022color:#75715e\u0022\u003e\/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=\u0026#34;udp\u0026#34;, name=\u0026#34;hello\u0026#34;, response_time=100, exception=Exception(\u0026#34;udp error\u0026#34;))    *\/\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eboomer\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRecordSuccess\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;udp\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;world\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eelapsed\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNanoseconds\u003c\/span\u003e()\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003eint64(\u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMillisecond\u003c\/span\u003e), int64(\u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e))\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etask1\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eboomer\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTask\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eWeight\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eFn\u003c\/span\u003e:     \u003cspan style=\u0022color:#a6e22e\u0022\u003ehelloTask\u003c\/span\u003e,\n\t}\n\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etask2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eboomer\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTask\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eWeight\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eFn\u003c\/span\u003e:     \u003cspan style=\u0022color:#a6e22e\u0022\u003eworldTask\u003c\/span\u003e,\n\t}\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 连接到 master，等待页面上下发指令，支持多个 Task\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eboomer\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRun\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003etask1\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003etask2\u003c\/span\u003e)\n}\n\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eHttpGet\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003epath\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eurl\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSprintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;http:\/\/localhost:8090\/%s\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003epath\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emethod\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;GET\u0026#34;\u003c\/span\u003e\n\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eclient\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eClient\u003c\/span\u003e{}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ereq\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewRequest\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003emethod\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eurl\u003c\/span\u003e, \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eres\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eclient\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eDo\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ereq\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003edefer\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eres\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBody\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eClose\u003c\/span\u003e()\n\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebody\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eioutil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eReadAll\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eres\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBody\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(string(\u003cspan style=\u0022color:#a6e22e\u0022\u003ebody\u003c\/span\u003e))\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e\n}\n\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cblockquote\u003e\n\u003cp\u003ego run main.go\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003eoutput\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ Boomer is built with gomq support.\r\n$ Boomer is connected to master(tcp:\/\/127.0.0.1:5557) press Ctrl\u002bc to quit.\r\n\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e说明启动slave成功，查看是否连接上master\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$ locust.runners: Client \u0027crazyMac.local_axxbyy123456\u0027 reported as ready. Currently 1 clients ready to swarm.\r\n\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e说明已经连接上master\n。\u003c\/p\u003e\n\u003ch4 id=\u0022testing\u0022\u003etesting\u003c\/h4\u003e\n\u003cp\u003e启动测试，output\n\u003cimg src=\u0022\/images\/locust-boomer.png\u0022 alt=\u0022\u0022\u003e\u003c\/p\u003e\n\u003cp\u003esucceed\u003c\/p\u003e\n\u003ch4 id=\u0022小结\u0022\u003e小结\u003c\/h4\u003e\n\u003cp\u003e本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。\u003c\/p\u003e\n\u003ch4 id=\u0022reference\u0022\u003ereference\u003c\/h4\u003e\n\u003cul\u003e\n\u003cli\u003eLocust Website: \u003ca href=\u0022locust.io\u0022\u003elocust.io\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eLocust Documentation: \u003ca href=\u0022docs.locust.io\u0022\u003edocs.locust.io\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eBoomer Documentation: \u003ca href=\u0022boomer.readthedocs.io\u0022\u003eboomer.readthedocs.io\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eExamples :\u003ca href=\u0022https:\/\/github.com\/myzhan\/boomer\/blob\/master\/_examples\/default\/main.go\u0022\u003e https:\/\/github.com\/myzhan\/boomer\/blob\/master\/_examples\/default\/main.go\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eDummy.py : \u003ca href=\u0022https:\/\/www.cnblogs.com\/Detector\/p\/11469233.html\u0022\u003ehttps:\/\/www.cnblogs.com\/Detector\/p\/11469233.html\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/06\/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C\/",
+  "keywords":"[locust, boomer, go, pressure test, stress]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="locust, boomer, go, pressure test, stress">
+<meta name="description" content="上一篇（传送门）介绍了测试平台 locust &#43; boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。
+setup
+Install the master branch
+
+$ go get github.com/myzhan/boomer
+
+Install a tagged version that works with locust 1.6.0
+
+$ go get github.com/myzhan/boomer@v1.6.0
+
+install gomq
+
+$ go get -u github.com/zeromq/gomq
+
+quick start
+run master
+创建python文件 workspace/dummy.py
+from locust import Locust, TaskSet, task
+class MyTaskSet(TaskSet):
+    @task(20)
+    def hello(self):
+        pass
+class Dummy(Locust):
+    task_set = MyTaskSet
+运行：
+
+$ locust &ndash;master -f dummy.py
+output：
+
+$locust.main: Starting web interface at http://0.0.0.0:8089 (accepting connections from all network interfaces)
+$locust.main: Starting Locust 2.9.1.dev23
+run slave
+创建go文件 workspace/main.go
+package main
+
+import(
+	&#34;fmt&#34;
+	&#34;io/ioutil&#34;
+	&#34;net/http&#34;
+	&#34;time&#34;
+	&#34;github.com/myzhan/boomer&#34;
+)
+
+func helloTask() {
+	start := time.Now()
+	err := HttpGet(&#34;hello&#34;)
+	elapsed := time.Since(start)
+	if err != nil {
+		boomer.RecordFailure(&#34;http&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), err.Error())
+		return
+	}
+    
+/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=&#34;http&#34;, name=&#34;world&#34;, response_time=100, response_length=10)    */
+	boomer.RecordSuccess(&#34;http&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), int64(10))
+}
+
+func worldTask() {
+	start := time.Now()
+	err := HttpGet(&#34;world&#34;)
+	elapsed := time.Since(start)
+	if err != nil {
+		boomer.RecordFailure(&#34;udp&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), err.Error())
+		return
+	} 
+/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=&#34;udp&#34;, name=&#34;hello&#34;, response_time=100, exception=Exception(&#34;udp error&#34;))    */
+	boomer.RecordSuccess(&#34;udp&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), int64(10))
+}
+
+func main() {
+	task1 := &amp;boomer.Task{
+		// 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines
+		Weight: 10,
+		Fn:     helloTask,
+	}
+
+	task2 := &amp;boomer.Task{
+		Weight: 10,
+		Fn:     worldTask,
+	}
+
+	// 连接到 master，等待页面上下发指令，支持多个 Task
+	boomer.Run(task1, task2)
+}
+
+
+func HttpGet(path string) error {
+	url := fmt.Sprintf(&#34;http://localhost:8090/%s&#34;, path)
+	method := &#34;GET&#34;
+
+	client := &amp;http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println(string(body))
+	return nil
+}
+
+
+
+go run main.go
+
+output
+$ Boomer is built with gomq support.
+$ Boomer is connected to master(tcp://127.0.0.1:5557) press Ctrl&#43;c to quit.
+
+说明启动slave成功，查看是否连接上master
+$ locust.runners: Client &#39;crazyMac.local_axxbyy123456&#39; reported as ready. Currently 1 clients ready to swarm.
+
+说明已经连接上master
+。
+testing
+启动测试，output
+
+succeed
+小结
+本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。
+reference
+
+Locust Website: locust.io
+Locust Documentation: docs.locust.io
+Boomer Documentation: boomer.readthedocs.io
+Examples : https://github.com/myzhan/boomer/blob/master/_examples/default/main.go
+Dummy.py : https://www.cnblogs.com/Detector/p/11469233.html
+">
+
+
+<meta property="og:description" content="上一篇（传送门）介绍了测试平台 locust &#43; boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。
+setup
+Install the master branch
+
+$ go get github.com/myzhan/boomer
+
+Install a tagged version that works with locust 1.6.0
+
+$ go get github.com/myzhan/boomer@v1.6.0
+
+install gomq
+
+$ go get -u github.com/zeromq/gomq
+
+quick start
+run master
+创建python文件 workspace/dummy.py
+from locust import Locust, TaskSet, task
+class MyTaskSet(TaskSet):
+    @task(20)
+    def hello(self):
+        pass
+class Dummy(Locust):
+    task_set = MyTaskSet
+运行：
+
+$ locust &ndash;master -f dummy.py
+output：
+
+$locust.main: Starting web interface at http://0.0.0.0:8089 (accepting connections from all network interfaces)
+$locust.main: Starting Locust 2.9.1.dev23
+run slave
+创建go文件 workspace/main.go
+package main
+
+import(
+	&#34;fmt&#34;
+	&#34;io/ioutil&#34;
+	&#34;net/http&#34;
+	&#34;time&#34;
+	&#34;github.com/myzhan/boomer&#34;
+)
+
+func helloTask() {
+	start := time.Now()
+	err := HttpGet(&#34;hello&#34;)
+	elapsed := time.Since(start)
+	if err != nil {
+		boomer.RecordFailure(&#34;http&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), err.Error())
+		return
+	}
+    
+/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=&#34;http&#34;, name=&#34;world&#34;, response_time=100, response_length=10)    */
+	boomer.RecordSuccess(&#34;http&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), int64(10))
+}
+
+func worldTask() {
+	start := time.Now()
+	err := HttpGet(&#34;world&#34;)
+	elapsed := time.Since(start)
+	if err != nil {
+		boomer.RecordFailure(&#34;udp&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), err.Error())
+		return
+	} 
+/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=&#34;udp&#34;, name=&#34;hello&#34;, response_time=100, exception=Exception(&#34;udp error&#34;))    */
+	boomer.RecordSuccess(&#34;udp&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), int64(10))
+}
+
+func main() {
+	task1 := &amp;boomer.Task{
+		// 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines
+		Weight: 10,
+		Fn:     helloTask,
+	}
+
+	task2 := &amp;boomer.Task{
+		Weight: 10,
+		Fn:     worldTask,
+	}
+
+	// 连接到 master，等待页面上下发指令，支持多个 Task
+	boomer.Run(task1, task2)
+}
+
+
+func HttpGet(path string) error {
+	url := fmt.Sprintf(&#34;http://localhost:8090/%s&#34;, path)
+	method := &#34;GET&#34;
+
+	client := &amp;http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println(string(body))
+	return nil
+}
+
+
+
+go run main.go
+
+output
+$ Boomer is built with gomq support.
+$ Boomer is connected to master(tcp://127.0.0.1:5557) press Ctrl&#43;c to quit.
+
+说明启动slave成功，查看是否连接上master
+$ locust.runners: Client &#39;crazyMac.local_axxbyy123456&#39; reported as ready. Currently 1 clients ready to swarm.
+
+说明已经连接上master
+。
+testing
+启动测试，output
+
+succeed
+小结
+本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。
+reference
+
+Locust Website: locust.io
+Locust Documentation: docs.locust.io
+Boomer Documentation: boomer.readthedocs.io
+Examples : https://github.com/myzhan/boomer/blob/master/_examples/default/main.go
+Dummy.py : https://www.cnblogs.com/Detector/p/11469233.html
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="性能测试平台（locust&#43;boomer）之二">
+<meta name="twitter:title" content="性能测试平台（locust&#43;boomer）之二">
+<meta property="og:url" content="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="上一篇（传送门）介绍了测试平台 locust &#43; boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。
+setup
+Install the master branch
+
+$ go get github.com/myzhan/boomer
+
+Install a tagged version that works with locust 1.6.0
+
+$ go get github.com/myzhan/boomer@v1.6.0
+
+install gomq
+
+$ go get -u github.com/zeromq/gomq
+
+quick start
+run master
+创建python文件 workspace/dummy.py
+from locust import Locust, TaskSet, task
+class MyTaskSet(TaskSet):
+    @task(20)
+    def hello(self):
+        pass
+class Dummy(Locust):
+    task_set = MyTaskSet
+运行：
+
+$ locust &ndash;master -f dummy.py
+output：
+
+$locust.main: Starting web interface at http://0.0.0.0:8089 (accepting connections from all network interfaces)
+$locust.main: Starting Locust 2.9.1.dev23
+run slave
+创建go文件 workspace/main.go
+package main
+
+import(
+	&#34;fmt&#34;
+	&#34;io/ioutil&#34;
+	&#34;net/http&#34;
+	&#34;time&#34;
+	&#34;github.com/myzhan/boomer&#34;
+)
+
+func helloTask() {
+	start := time.Now()
+	err := HttpGet(&#34;hello&#34;)
+	elapsed := time.Since(start)
+	if err != nil {
+		boomer.RecordFailure(&#34;http&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), err.Error())
+		return
+	}
+    
+/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=&#34;http&#34;, name=&#34;world&#34;, response_time=100, response_length=10)    */
+	boomer.RecordSuccess(&#34;http&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), int64(10))
+}
+
+func worldTask() {
+	start := time.Now()
+	err := HttpGet(&#34;world&#34;)
+	elapsed := time.Since(start)
+	if err != nil {
+		boomer.RecordFailure(&#34;udp&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), err.Error())
+		return
+	} 
+/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=&#34;udp&#34;, name=&#34;hello&#34;, response_time=100, exception=Exception(&#34;udp error&#34;))    */
+	boomer.RecordSuccess(&#34;udp&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), int64(10))
+}
+
+func main() {
+	task1 := &amp;boomer.Task{
+		// 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines
+		Weight: 10,
+		Fn:     helloTask,
+	}
+
+	task2 := &amp;boomer.Task{
+		Weight: 10,
+		Fn:     worldTask,
+	}
+
+	// 连接到 master，等待页面上下发指令，支持多个 Task
+	boomer.Run(task1, task2)
+}
+
+
+func HttpGet(path string) error {
+	url := fmt.Sprintf(&#34;http://localhost:8090/%s&#34;, path)
+	method := &#34;GET&#34;
+
+	client := &amp;http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println(string(body))
+	return nil
+}
+
+
+
+go run main.go
+
+output
+$ Boomer is built with gomq support.
+$ Boomer is connected to master(tcp://127.0.0.1:5557) press Ctrl&#43;c to quit.
+
+说明启动slave成功，查看是否连接上master
+$ locust.runners: Client &#39;crazyMac.local_axxbyy123456&#39; reported as ready. Currently 1 clients ready to swarm.
+
+说明已经连接上master
+。
+testing
+启动测试，output
+
+succeed
+小结
+本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。
+reference
+
+Locust Website: locust.io
+Locust Documentation: docs.locust.io
+Boomer Documentation: boomer.readthedocs.io
+Examples : https://github.com/myzhan/boomer/blob/master/_examples/default/main.go
+Dummy.py : https://www.cnblogs.com/Detector/p/11469233.html
+">
+<meta name="twitter:description" content="上一篇（传送门）介绍了测试平台 locust &#43; boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。
+setup
+Install the master branch
+
+$ go get github.com/myzhan/boomer
+
+Install a tagged version that works with locust 1.6.0
+
+$ go get github.com/myzhan/boomer@v1.6.0
+
+install gomq
+
+$ go get -u github.com/zeromq/gomq
+
+quick start
+run master
+创建python文件 workspace/dummy.py
+from locust import Locust, TaskSet, task
+class MyTaskSet(TaskSet):
+    @task(20)
+    def hello(self):
+        pass
+class Dummy(Locust):
+    task_set = MyTaskSet
+运行：
+
+$ locust &ndash;master -f dummy.py
+output：
+
+$locust.main: Starting web interface at http://0.0.0.0:8089 (accepting connections from all network interfaces)
+$locust.main: Starting Locust 2.9.1.dev23
+run slave
+创建go文件 workspace/main.go
+package main
+
+import(
+	&#34;fmt&#34;
+	&#34;io/ioutil&#34;
+	&#34;net/http&#34;
+	&#34;time&#34;
+	&#34;github.com/myzhan/boomer&#34;
+)
+
+func helloTask() {
+	start := time.Now()
+	err := HttpGet(&#34;hello&#34;)
+	elapsed := time.Since(start)
+	if err != nil {
+		boomer.RecordFailure(&#34;http&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), err.Error())
+		return
+	}
+    
+/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=&#34;http&#34;, name=&#34;world&#34;, response_time=100, response_length=10)    */
+	boomer.RecordSuccess(&#34;http&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), int64(10))
+}
+
+func worldTask() {
+	start := time.Now()
+	err := HttpGet(&#34;world&#34;)
+	elapsed := time.Since(start)
+	if err != nil {
+		boomer.RecordFailure(&#34;udp&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), err.Error())
+		return
+	} 
+/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=&#34;udp&#34;, name=&#34;hello&#34;, response_time=100, exception=Exception(&#34;udp error&#34;))    */
+	boomer.RecordSuccess(&#34;udp&#34;, &#34;world&#34;, elapsed.Nanoseconds()/int64(time.Millisecond), int64(10))
+}
+
+func main() {
+	task1 := &amp;boomer.Task{
+		// 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines
+		Weight: 10,
+		Fn:     helloTask,
+	}
+
+	task2 := &amp;boomer.Task{
+		Weight: 10,
+		Fn:     worldTask,
+	}
+
+	// 连接到 master，等待页面上下发指令，支持多个 Task
+	boomer.Run(task1, task2)
+}
+
+
+func HttpGet(path string) error {
+	url := fmt.Sprintf(&#34;http://localhost:8090/%s&#34;, path)
+	method := &#34;GET&#34;
+
+	client := &amp;http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println(string(body))
+	return nil
+}
+
+
+
+go run main.go
+
+output
+$ Boomer is built with gomq support.
+$ Boomer is connected to master(tcp://127.0.0.1:5557) press Ctrl&#43;c to quit.
+
+说明启动slave成功，查看是否连接上master
+$ locust.runners: Client &#39;crazyMac.local_axxbyy123456&#39; reported as ready. Currently 1 clients ready to swarm.
+
+说明已经连接上master
+。
+testing
+启动测试，output
+
+succeed
+小结
+本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。
+reference
+
+Locust Website: locust.io
+Locust Documentation: docs.locust.io
+Boomer Documentation: boomer.readthedocs.io
+Examples : https://github.com/myzhan/boomer/blob/master/_examples/default/main.go
+Dummy.py : https://www.cnblogs.com/Detector/p/11469233.html
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-06-23T21:53:01">
+  
+  
+    <meta property="article:modified_time" content="2022-06-23T21:53:01">
+  
+  
+  
+    
+      <meta property="article:section" content="go开发">
+    
+      <meta property="article:section" content="压力测试">
+    
+  
+  
+    
+      <meta property="article:tag" content="locust">
+    
+      <meta property="article:tag" content="boomer">
+    
+      <meta property="article:tag" content="go">
+    
+      <meta property="article:tag" content="pressure test">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>性能测试平台（locust&#43;boomer）之二</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      性能测试平台（locust&#43;boomer）之二
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-06-23T21:53:01&#43;08:00">
+        
+   23, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%8e%8b%e5%8a%9b%e6%b5%8b%e8%af%95">压力测试</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>上一篇（<a href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/">传送门</a>）介绍了测试平台 locust + boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。</p>
+<h4 id="setup">setup</h4>
+<h5 id="install-the-master-branch">Install the master branch</h5>
+<blockquote>
+<p>$ go get github.com/myzhan/boomer</p>
+</blockquote>
+<h5 id="install-a-tagged-version-that-works-with-locust-160">Install a tagged version that works with locust 1.6.0</h5>
+<blockquote>
+<p>$ go get <a href="mailto:github.com/myzhan/boomer@v1.6.0">github.com/myzhan/boomer@v1.6.0</a></p>
+</blockquote>
+<h5 id="install-gomq">install gomq</h5>
+<blockquote>
+<p>$ go get -u github.com/zeromq/gomq</p>
+</blockquote>
+<h4 id="quick-start">quick start</h4>
+<h5 id="run-master">run master</h5>
+<p>创建python文件 workspace/dummy.py</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> locust <span style="color:#f92672">import</span> Locust, TaskSet, task
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyTaskSet</span>(TaskSet):
+    <span style="color:#a6e22e">@task</span>(<span style="color:#ae81ff">20</span>)
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">hello</span>(self):
+        <span style="color:#66d9ef">pass</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Dummy</span>(Locust):
+    task_set <span style="color:#f92672">=</span> MyTaskSet
+</code></pre></div><p>运行：</p>
+<blockquote>
+<p>$ locust &ndash;master -f dummy.py
+output：</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$locust.main: Starting web interface at http://0.0.0.0:8089 <span style="color:#f92672">(</span>accepting connections from all network interfaces<span style="color:#f92672">)</span>
+$locust.main: Starting Locust 2.9.1.dev23
+</code></pre></div><h5 id="run-slave">run slave</h5>
+<p>创建go文件 workspace/main.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span>(
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;io/ioutil&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/myzhan/boomer&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">helloTask</span>() {
+	<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#e6db74">&#34;hello&#34;</span>)
+	<span style="color:#a6e22e">elapsed</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">start</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordFailure</span>(<span style="color:#e6db74">&#34;http&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+		<span style="color:#66d9ef">return</span>
+	}
+    
+<span style="color:#75715e">/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=&#34;http&#34;, name=&#34;world&#34;, response_time=100, response_length=10)    */</span>
+	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordSuccess</span>(<span style="color:#e6db74">&#34;http&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), int64(<span style="color:#ae81ff">10</span>))
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">worldTask</span>() {
+	<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#e6db74">&#34;world&#34;</span>)
+	<span style="color:#a6e22e">elapsed</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">start</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordFailure</span>(<span style="color:#e6db74">&#34;udp&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+		<span style="color:#66d9ef">return</span>
+	} 
+<span style="color:#75715e">/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=&#34;udp&#34;, name=&#34;hello&#34;, response_time=100, exception=Exception(&#34;udp error&#34;))    */</span>
+	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordSuccess</span>(<span style="color:#e6db74">&#34;udp&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), int64(<span style="color:#ae81ff">10</span>))
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">task1</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Task</span>{
+		<span style="color:#75715e">// 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">Weight</span>: <span style="color:#ae81ff">10</span>,
+		<span style="color:#a6e22e">Fn</span>:     <span style="color:#a6e22e">helloTask</span>,
+	}
+
+	<span style="color:#a6e22e">task2</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Task</span>{
+		<span style="color:#a6e22e">Weight</span>: <span style="color:#ae81ff">10</span>,
+		<span style="color:#a6e22e">Fn</span>:     <span style="color:#a6e22e">worldTask</span>,
+	}
+
+	<span style="color:#75715e">// 连接到 master，等待页面上下发指令，支持多个 Task
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">task1</span>, <span style="color:#a6e22e">task2</span>)
+}
+
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#a6e22e">path</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#a6e22e">url</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;http://localhost:8090/%s&#34;</span>, <span style="color:#a6e22e">path</span>)
+	<span style="color:#a6e22e">method</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;GET&#34;</span>
+
+	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Client</span>{}
+	<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#a6e22e">method</span>, <span style="color:#a6e22e">url</span>, <span style="color:#66d9ef">nil</span>)
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">req</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">Close</span>()
+
+	<span style="color:#a6e22e">body</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Body</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(string(<span style="color:#a6e22e">body</span>))
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+}
+
+
+</code></pre></div><blockquote>
+<p>go run main.go</p>
+</blockquote>
+<p>output</p>
+<pre tabindex="0"><code>$ Boomer is built with gomq support.
+$ Boomer is connected to master(tcp://127.0.0.1:5557) press Ctrl+c to quit.
+
+</code></pre><p>说明启动slave成功，查看是否连接上master</p>
+<pre tabindex="0"><code>$ locust.runners: Client 'crazyMac.local_axxbyy123456' reported as ready. Currently 1 clients ready to swarm.
+
+</code></pre><p>说明已经连接上master
+。</p>
+<h4 id="testing">testing</h4>
+<p>启动测试，output
+<img src="https://luckytking.github.io/images/locust-boomer.png" alt=""></p>
+<p>succeed</p>
+<h4 id="小结">小结</h4>
+<p>本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。</p>
+<h4 id="reference">reference</h4>
+<ul>
+<li>Locust Website: <a href="locust.io">locust.io</a></li>
+<li>Locust Documentation: <a href="docs.locust.io">docs.locust.io</a></li>
+<li>Boomer Documentation: <a href="boomer.readthedocs.io">boomer.readthedocs.io</a></li>
+<li>Examples :<a href="https://github.com/myzhan/boomer/blob/master/_examples/default/main.go"> https://github.com/myzhan/boomer/blob/master/_examples/default/main.go</a></li>
+<li>Dummy.py : <a href="https://www.cnblogs.com/Detector/p/11469233.html">https://www.cnblogs.com/Detector/p/11469233.html</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/locust/">locust</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/boomer/">boomer</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/go/">go</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/pressure-test/">pressure test</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/" data-tooltip="性能测试平台（locust&#43;boomer）之一" aria-label=": 性能测试平台（locust&#43;boomer）之一">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" data-tooltip="日志聚合系统GrafanaLoki  一、初试" aria-label=": 日志聚合系统GrafanaLoki  一、初试">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/" data-tooltip="性能测试平台（locust&#43;boomer）之一" aria-label=": 性能测试平台（locust&#43;boomer）之一">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" data-tooltip="日志聚合系统GrafanaLoki  一、初试" aria-label=": 日志聚合系统GrafanaLoki  一、初试">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e本文主要记录kratos项目配置的定义、读取和源码的学习\u003c\/p\u003e\n\u003ch2 id=\u0022at-first\u0022\u003eat first\u003c\/h2\u003e\n\u003cp\u003e服务在启动的基本都会用到配置文件，那么如果是你来写config工具库，它所能提供的功能是什么？\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e读取不同场景的配置\u003c\/li\u003e\n\u003cli\u003e读取不同格式的配置\u003c\/li\u003e\n\u003cli\u003e支持热更\u003c\/li\u003e\n\u003cli\u003e支持拓展，提供自定义实现\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003ch2 id=\u0022kratosconfig-有那些功能\u0022\u003ekratos\/config 有那些功能\u003c\/h2\u003e\n\u003col\u003e\n\u003cli\u003ekratos\/config包支持多种配置源，包括\n\u003cul\u003e\n\u003cli\u003e本地文件\u003c\/li\u003e\n\u003cli\u003e本地环境\u003c\/li\u003e\n\u003cli\u003econtrib\/config支持配置中心\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003c\/li\u003e\n\u003cli\u003ekratos\/config 支持多种配置格式\n\u003cul\u003e\n\u003cli\u003ejson\u003c\/li\u003e\n\u003cli\u003eproto\u003c\/li\u003e\n\u003cli\u003exml\u003c\/li\u003e\n\u003cli\u003eyaml\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003c\/li\u003e\n\u003cli\u003e支持热更\u003c\/li\u003e\n\u003cli\u003e支持其它格式的配置文件\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003ch2 id=\u0022定义配置\u0022\u003e定义配置\u003c\/h2\u003e\n\u003cp\u003e在项目目录下创建文件: \nworkspace\/configs\/config.yaml\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eservice\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003ename\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003econfig\u003c\/span\u003e\n  \u003cspan style=\u0022color:#f92672\u0022\u003eversion\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003ev1.0.0\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003ehttp\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003eserver\u003c\/span\u003e:\n    \u003cspan style=\u0022color:#f92672\u0022\u003eaddress\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e0.0.0.0\u003c\/span\u003e:\u003cspan style=\u0022color:#ae81ff\u0022\u003e8000\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003etimeout\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e1s\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003egrpc\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003eserver\u003c\/span\u003e:\n    \u003cspan style=\u0022color:#f92672\u0022\u003eaddress\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e0.0.0.0\u003c\/span\u003e:\u003cspan style=\u0022color:#ae81ff\u0022\u003e9000\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003etimeout\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e1s\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch2 id=\u0022加载配置文件\u0022\u003e加载配置文件\u003c\/h2\u003e\n\u003ch3 id=\u0022withsource\u0022\u003eWithSource\u003c\/h3\u003e\n\u003cp\u003e使用withsoure指定数据源为本地文件\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;flag\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;log\u0026#34;\u003c\/span\u003e\n\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-kratos\/kratos\/v2\/config\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-kratos\/kratos\/v2\/config\/file\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eflagconf\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003einit\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eflag\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eStringVar\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eflagconf\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;conf\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;config.yaml\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;config path, eg: -conf config.yaml\u0026#34;\u003c\/span\u003e)\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eflag\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eParse\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNew\u003c\/span\u003e(\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithSource\u003c\/span\u003e(\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efile\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewSource\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eflagconf\u003c\/span\u003e),\n\t\t),\n\t)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLoad\u003c\/span\u003e(); \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/定义配置JSON字段\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eService\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e    \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e`json:\u0026#34;name\u0026#34;`\u003c\/span\u003e\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eVersion\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e`json:\u0026#34;version\u0026#34;`\u003c\/span\u003e\n\t\t} \u003cspan style=\u0022color:#e6db74\u0022\u003e`json:\u0026#34;service\u0026#34;`\u003c\/span\u003e\n\t}\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/将配置Unmarshal 到struct  \n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eScan\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e); \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;config: %\u002bv\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/获取与该键关联的值\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;service.name\u0026#34;\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eString\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;service: %s\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 热更执行钩子\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWatch\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;service.name\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ekey\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003evalue\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e) {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;config changed: %s = %v\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ekey\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003evalue\u003c\/span\u003e)\n\t}); \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\n\t\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;-\u003c\/span\u003emake(\u003cspan style=\u0022color:#66d9ef\u0022\u003echan\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e{})\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eoutput：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e$  config: {Service:{Name:config Version:v1.0.0}}\r\n$  service: config\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch3 id=\u0022withdecoder\u0022\u003eWithDecoder\u003c\/h3\u003e\n\u003cp\u003eDecoder用于将配置文件内容用特定的反序列化方法解析出来\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNew\u003c\/span\u003e(\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithSource\u003c\/span\u003e(\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efile\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewSource\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eflagconf\u003c\/span\u003e),\n\t\t),\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithDecoder\u003c\/span\u003e(\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eKeyValue\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003etarget\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e]\u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFormat\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e==\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\u0026#34;\u003c\/span\u003e {\n\t\t\t\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ expand key \u0026#34;aaa.bbb\u0026#34; into map[aaa]map[bbb]interface{}\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ekeys\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003estrings\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSplit\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eKey\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;.\u0026#34;\u003c\/span\u003e)\n\t\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ek\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003erange\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ekeys\u003c\/span\u003e {\n\t\t\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e==\u003c\/span\u003e len(\u003cspan style=\u0022color:#a6e22e\u0022\u003ekeys\u003c\/span\u003e)\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e {\n\t\t\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etarget\u003c\/span\u003e[\u003cspan style=\u0022color:#a6e22e\u0022\u003ek\u003c\/span\u003e] = \u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e\n\t\t\t\t\t} \u003cspan style=\u0022color:#66d9ef\u0022\u003eelse\u003c\/span\u003e {\n\t\t\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003esub\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e make(\u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e]\u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{})\n\t\t\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etarget\u003c\/span\u003e[\u003cspan style=\u0022color:#a6e22e\u0022\u003ek\u003c\/span\u003e] = \u003cspan style=\u0022color:#a6e22e\u0022\u003esub\u003c\/span\u003e\n\t\t\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003etarget\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003esub\u003c\/span\u003e\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e\n\t\t\t}\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ecodec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eencoding\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eGetCodec\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFormat\u003c\/span\u003e); \u003cspan style=\u0022color:#a6e22e\u0022\u003ecodec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ecodec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eUnmarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003etarget\u003c\/span\u003e)\n\t\t\t}\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eErrorf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;unsupported key: %s format: %s\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eKey\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFormat\u003c\/span\u003e)\n\t\t}),\n\t)\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eoutput 和上例一致\u003c\/p\u003e\n\u003ch2 id=\u0022原理\u0022\u003e原理\u003c\/h2\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Config is a config interface.\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eConfig\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eLoad\u003c\/span\u003e() \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eScan\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ekey\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eWatch\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ekey\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eo\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eObserver\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eClose\u003c\/span\u003e() \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003col\u003e\n\u003cli\u003e指定数据源的这样会将整个目录中的所有文件进行解析加载，合并到同一个map中\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e    c := config.New(\r\n            config.WithSource(\r\n                file.NewSource(flagconf),\r\n            ),\r\n        )\r\n        if err := c.Load(); err != nil {\r\n            panic(err)\r\n         }\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003col start=\u00222\u0022\u003e\n\u003cli\u003e使用之前创建好的config实例，调用.Scan方法，读取配置文件的内容到结构体中，这种方式适用于完整获取整个配置文件的内容\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e    if err := c.Scan(\u0026amp;v); err != nil {\r\n      panic(err)\r\n    }\r\n    fmt.Printf(\u0026quot;config: %\u002bv\u0026quot;, v)\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003col start=\u00223\u0022\u003e\n\u003cli\u003eNew的时候会有一个默认的 decoder\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNew\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eOption\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eConfig\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eo\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eoptions\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elogger\u003c\/span\u003e:   \u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eDefaultLogger\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003edecoder\u003c\/span\u003e:  \u003cspan style=\u0022color:#a6e22e\u0022\u003edefaultDecoder\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eresolver\u003c\/span\u003e: \u003cspan style=\u0022color:#a6e22e\u0022\u003edefaultResolver\u003c\/span\u003e,\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003e_\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eopt\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003erange\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eopt\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eo\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003econfig\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e:   \u003cspan style=\u0022color:#a6e22e\u0022\u003eo\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ereader\u003c\/span\u003e: \u003cspan style=\u0022color:#a6e22e\u0022\u003enewReader\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eo\u003c\/span\u003e),\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e:    \u003cspan style=\u0022color:#a6e22e\u0022\u003elog\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewHelper\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eo\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003elogger\u003c\/span\u003e),\n\t}\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e通过option可以拓展自定义 decoder\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eWithDecoder\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ed\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eDecoder\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eOption\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eo\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eoptions\u003c\/span\u003e) {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eo\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003edecoder\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ed\u003c\/span\u003e\n\t}\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch2 id=\u0022参考\u0022\u003e参考\u003c\/h2\u003e\n\u003col\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/go-kratos\/kratos\/v2\/config\u0022\u003ehttps:\/\/github.com\/go-kratos\/kratos\/v2\/config\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/go-kratos\/kratos\/tree\/main\/contrib\/config\u0022\u003ehttps:\/\/github.com\/go-kratos\/kratos\/tree\/main\/contrib\/config\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/go-kratos.dev\/docs\/component\/config\u0022\u003ehttps:\/\/go-kratos.dev\/docs\/component\/config\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ol\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/05\/kratos%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE%E7%9A%84%E5%AE%9A%E4%B9%89%E5%92%8C%E8%AF%BB%E5%8F%96\/",
+  "keywords":"[config]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="config">
+<meta name="description" content="本文主要记录kratos项目配置的定义、读取和源码的学习
+at first
+服务在启动的基本都会用到配置文件，那么如果是你来写config工具库，它所能提供的功能是什么？
+
+读取不同场景的配置
+读取不同格式的配置
+支持热更
+支持拓展，提供自定义实现
+
+kratos/config 有那些功能
+
+kratos/config包支持多种配置源，包括
+
+本地文件
+本地环境
+contrib/config支持配置中心
+
+
+kratos/config 支持多种配置格式
+
+json
+proto
+xml
+yaml
+
+
+支持热更
+支持其它格式的配置文件
+
+定义配置
+在项目目录下创建文件: 
+workspace/configs/config.yaml
+service:
+  name: config
+  version: v1.0.0
+http:
+  server:
+    address: 0.0.0.0:8000
+    timeout: 1s
+grpc:
+  server:
+    address: 0.0.0.0:9000
+    timeout: 1s
+加载配置文件
+WithSource
+使用withsoure指定数据源为本地文件
+package main
+
+import (
+	&#34;flag&#34;
+	&#34;log&#34;
+
+	&#34;github.com/go-kratos/kratos/v2/config&#34;
+	&#34;github.com/go-kratos/kratos/v2/config/file&#34;
+)
+
+var flagconf string
+
+func init() {
+	flag.StringVar(&amp;flagconf, &#34;conf&#34;, &#34;config.yaml&#34;, &#34;config path, eg: -conf config.yaml&#34;)
+}
+
+func main() {
+	flag.Parse()
+	c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+	)
+	if err := c.Load(); err != nil {
+		panic(err)
+	}
+
+	//定义配置JSON字段
+	var v struct {
+		Service struct {
+			Name    string `json:&#34;name&#34;`
+			Version string `json:&#34;version&#34;`
+		} `json:&#34;service&#34;`
+	}
+
+	//将配置Unmarshal 到struct  
+	if err := c.Scan(&amp;v); err != nil {
+		panic(err)
+	}
+	log.Printf(&#34;config: %&#43;v&#34;, v)
+
+	//获取与该键关联的值
+	name, err := c.Value(&#34;service.name&#34;).String()
+	if err != nil {
+		panic(err)
+	}
+	log.Printf(&#34;service: %s&#34;, name)
+
+	// 热更执行钩子
+	if err := c.Watch(&#34;service.name&#34;, func(key string, value config.Value) {
+		log.Printf(&#34;config changed: %s = %v\n&#34;, key, value)
+	}); err != nil {
+		panic(err)
+	}
+
+	&lt;-make(chan struct{})
+}
+output：
+$  config: {Service:{Name:config Version:v1.0.0}}
+$  service: config
+WithDecoder
+Decoder用于将配置文件内容用特定的反序列化方法解析出来
+c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+		config.WithDecoder(func(src *config.KeyValue, target map[string]interface{}) error {
+			if src.Format == &#34;&#34; {
+				// expand key &#34;aaa.bbb&#34; into map[aaa]map[bbb]interface{}
+				keys := strings.Split(src.Key, &#34;.&#34;)
+				for i, k := range keys {
+					if i == len(keys)-1 {
+						target[k] = src.Value
+					} else {
+						sub := make(map[string]interface{})
+						target[k] = sub
+						target = sub
+					}
+				}
+				return nil
+			}
+			if codec := encoding.GetCodec(src.Format); codec != nil {
+				return codec.Unmarshal(src.Value, &amp;target)
+			}
+			return fmt.Errorf(&#34;unsupported key: %s format: %s&#34;, src.Key, src.Format)
+		}),
+	)
+output 和上例一致
+原理
+// Config is a config interface.
+type Config interface {
+	Load() error
+	Scan(v interface{}) error
+	Value(key string) Value
+	Watch(key string, o Observer) error
+	Close() error
+}
+
+指定数据源的这样会将整个目录中的所有文件进行解析加载，合并到同一个map中
+
+    c := config.New(
+            config.WithSource(
+                file.NewSource(flagconf),
+            ),
+        )
+        if err := c.Load(); err != nil {
+            panic(err)
+         }
+
+使用之前创建好的config实例，调用.Scan方法，读取配置文件的内容到结构体中，这种方式适用于完整获取整个配置文件的内容
+
+    if err := c.Scan(&amp;v); err != nil {
+      panic(err)
+    }
+    fmt.Printf(&quot;config: %&#43;v&quot;, v)
+
+New的时候会有一个默认的 decoder
+
+func New(opts ...Option) Config {
+	o := options{
+		logger:   log.DefaultLogger,
+		decoder:  defaultDecoder,
+		resolver: defaultResolver,
+	}
+	for _, opt := range opts {
+		opt(&amp;o)
+	}
+	return &amp;config{
+		opts:   o,
+		reader: newReader(o),
+		log:    log.NewHelper(o.logger),
+	}
+}
+通过option可以拓展自定义 decoder
+func WithDecoder(d Decoder) Option {
+	return func(o *options) {
+		o.decoder = d
+	}
+}
+参考
+
+https://github.com/go-kratos/kratos/v2/config
+https://github.com/go-kratos/kratos/tree/main/contrib/config
+https://go-kratos.dev/docs/component/config
+">
+
+
+<meta property="og:description" content="本文主要记录kratos项目配置的定义、读取和源码的学习
+at first
+服务在启动的基本都会用到配置文件，那么如果是你来写config工具库，它所能提供的功能是什么？
+
+读取不同场景的配置
+读取不同格式的配置
+支持热更
+支持拓展，提供自定义实现
+
+kratos/config 有那些功能
+
+kratos/config包支持多种配置源，包括
+
+本地文件
+本地环境
+contrib/config支持配置中心
+
+
+kratos/config 支持多种配置格式
+
+json
+proto
+xml
+yaml
+
+
+支持热更
+支持其它格式的配置文件
+
+定义配置
+在项目目录下创建文件: 
+workspace/configs/config.yaml
+service:
+  name: config
+  version: v1.0.0
+http:
+  server:
+    address: 0.0.0.0:8000
+    timeout: 1s
+grpc:
+  server:
+    address: 0.0.0.0:9000
+    timeout: 1s
+加载配置文件
+WithSource
+使用withsoure指定数据源为本地文件
+package main
+
+import (
+	&#34;flag&#34;
+	&#34;log&#34;
+
+	&#34;github.com/go-kratos/kratos/v2/config&#34;
+	&#34;github.com/go-kratos/kratos/v2/config/file&#34;
+)
+
+var flagconf string
+
+func init() {
+	flag.StringVar(&amp;flagconf, &#34;conf&#34;, &#34;config.yaml&#34;, &#34;config path, eg: -conf config.yaml&#34;)
+}
+
+func main() {
+	flag.Parse()
+	c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+	)
+	if err := c.Load(); err != nil {
+		panic(err)
+	}
+
+	//定义配置JSON字段
+	var v struct {
+		Service struct {
+			Name    string `json:&#34;name&#34;`
+			Version string `json:&#34;version&#34;`
+		} `json:&#34;service&#34;`
+	}
+
+	//将配置Unmarshal 到struct  
+	if err := c.Scan(&amp;v); err != nil {
+		panic(err)
+	}
+	log.Printf(&#34;config: %&#43;v&#34;, v)
+
+	//获取与该键关联的值
+	name, err := c.Value(&#34;service.name&#34;).String()
+	if err != nil {
+		panic(err)
+	}
+	log.Printf(&#34;service: %s&#34;, name)
+
+	// 热更执行钩子
+	if err := c.Watch(&#34;service.name&#34;, func(key string, value config.Value) {
+		log.Printf(&#34;config changed: %s = %v\n&#34;, key, value)
+	}); err != nil {
+		panic(err)
+	}
+
+	&lt;-make(chan struct{})
+}
+output：
+$  config: {Service:{Name:config Version:v1.0.0}}
+$  service: config
+WithDecoder
+Decoder用于将配置文件内容用特定的反序列化方法解析出来
+c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+		config.WithDecoder(func(src *config.KeyValue, target map[string]interface{}) error {
+			if src.Format == &#34;&#34; {
+				// expand key &#34;aaa.bbb&#34; into map[aaa]map[bbb]interface{}
+				keys := strings.Split(src.Key, &#34;.&#34;)
+				for i, k := range keys {
+					if i == len(keys)-1 {
+						target[k] = src.Value
+					} else {
+						sub := make(map[string]interface{})
+						target[k] = sub
+						target = sub
+					}
+				}
+				return nil
+			}
+			if codec := encoding.GetCodec(src.Format); codec != nil {
+				return codec.Unmarshal(src.Value, &amp;target)
+			}
+			return fmt.Errorf(&#34;unsupported key: %s format: %s&#34;, src.Key, src.Format)
+		}),
+	)
+output 和上例一致
+原理
+// Config is a config interface.
+type Config interface {
+	Load() error
+	Scan(v interface{}) error
+	Value(key string) Value
+	Watch(key string, o Observer) error
+	Close() error
+}
+
+指定数据源的这样会将整个目录中的所有文件进行解析加载，合并到同一个map中
+
+    c := config.New(
+            config.WithSource(
+                file.NewSource(flagconf),
+            ),
+        )
+        if err := c.Load(); err != nil {
+            panic(err)
+         }
+
+使用之前创建好的config实例，调用.Scan方法，读取配置文件的内容到结构体中，这种方式适用于完整获取整个配置文件的内容
+
+    if err := c.Scan(&amp;v); err != nil {
+      panic(err)
+    }
+    fmt.Printf(&quot;config: %&#43;v&quot;, v)
+
+New的时候会有一个默认的 decoder
+
+func New(opts ...Option) Config {
+	o := options{
+		logger:   log.DefaultLogger,
+		decoder:  defaultDecoder,
+		resolver: defaultResolver,
+	}
+	for _, opt := range opts {
+		opt(&amp;o)
+	}
+	return &amp;config{
+		opts:   o,
+		reader: newReader(o),
+		log:    log.NewHelper(o.logger),
+	}
+}
+通过option可以拓展自定义 decoder
+func WithDecoder(d Decoder) Option {
+	return func(o *options) {
+		o.decoder = d
+	}
+}
+参考
+
+https://github.com/go-kratos/kratos/v2/config
+https://github.com/go-kratos/kratos/tree/main/contrib/config
+https://go-kratos.dev/docs/component/config
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kratos项目配置的定义和读取">
+<meta name="twitter:title" content="Kratos项目配置的定义和读取">
+<meta property="og:url" content="https://luckytking.github.io/2022/05/kratos%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE%E7%9A%84%E5%AE%9A%E4%B9%89%E5%92%8C%E8%AF%BB%E5%8F%96/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/05/kratos%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE%E7%9A%84%E5%AE%9A%E4%B9%89%E5%92%8C%E8%AF%BB%E5%8F%96/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="本文主要记录kratos项目配置的定义、读取和源码的学习
+at first
+服务在启动的基本都会用到配置文件，那么如果是你来写config工具库，它所能提供的功能是什么？
+
+读取不同场景的配置
+读取不同格式的配置
+支持热更
+支持拓展，提供自定义实现
+
+kratos/config 有那些功能
+
+kratos/config包支持多种配置源，包括
+
+本地文件
+本地环境
+contrib/config支持配置中心
+
+
+kratos/config 支持多种配置格式
+
+json
+proto
+xml
+yaml
+
+
+支持热更
+支持其它格式的配置文件
+
+定义配置
+在项目目录下创建文件: 
+workspace/configs/config.yaml
+service:
+  name: config
+  version: v1.0.0
+http:
+  server:
+    address: 0.0.0.0:8000
+    timeout: 1s
+grpc:
+  server:
+    address: 0.0.0.0:9000
+    timeout: 1s
+加载配置文件
+WithSource
+使用withsoure指定数据源为本地文件
+package main
+
+import (
+	&#34;flag&#34;
+	&#34;log&#34;
+
+	&#34;github.com/go-kratos/kratos/v2/config&#34;
+	&#34;github.com/go-kratos/kratos/v2/config/file&#34;
+)
+
+var flagconf string
+
+func init() {
+	flag.StringVar(&amp;flagconf, &#34;conf&#34;, &#34;config.yaml&#34;, &#34;config path, eg: -conf config.yaml&#34;)
+}
+
+func main() {
+	flag.Parse()
+	c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+	)
+	if err := c.Load(); err != nil {
+		panic(err)
+	}
+
+	//定义配置JSON字段
+	var v struct {
+		Service struct {
+			Name    string `json:&#34;name&#34;`
+			Version string `json:&#34;version&#34;`
+		} `json:&#34;service&#34;`
+	}
+
+	//将配置Unmarshal 到struct  
+	if err := c.Scan(&amp;v); err != nil {
+		panic(err)
+	}
+	log.Printf(&#34;config: %&#43;v&#34;, v)
+
+	//获取与该键关联的值
+	name, err := c.Value(&#34;service.name&#34;).String()
+	if err != nil {
+		panic(err)
+	}
+	log.Printf(&#34;service: %s&#34;, name)
+
+	// 热更执行钩子
+	if err := c.Watch(&#34;service.name&#34;, func(key string, value config.Value) {
+		log.Printf(&#34;config changed: %s = %v\n&#34;, key, value)
+	}); err != nil {
+		panic(err)
+	}
+
+	&lt;-make(chan struct{})
+}
+output：
+$  config: {Service:{Name:config Version:v1.0.0}}
+$  service: config
+WithDecoder
+Decoder用于将配置文件内容用特定的反序列化方法解析出来
+c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+		config.WithDecoder(func(src *config.KeyValue, target map[string]interface{}) error {
+			if src.Format == &#34;&#34; {
+				// expand key &#34;aaa.bbb&#34; into map[aaa]map[bbb]interface{}
+				keys := strings.Split(src.Key, &#34;.&#34;)
+				for i, k := range keys {
+					if i == len(keys)-1 {
+						target[k] = src.Value
+					} else {
+						sub := make(map[string]interface{})
+						target[k] = sub
+						target = sub
+					}
+				}
+				return nil
+			}
+			if codec := encoding.GetCodec(src.Format); codec != nil {
+				return codec.Unmarshal(src.Value, &amp;target)
+			}
+			return fmt.Errorf(&#34;unsupported key: %s format: %s&#34;, src.Key, src.Format)
+		}),
+	)
+output 和上例一致
+原理
+// Config is a config interface.
+type Config interface {
+	Load() error
+	Scan(v interface{}) error
+	Value(key string) Value
+	Watch(key string, o Observer) error
+	Close() error
+}
+
+指定数据源的这样会将整个目录中的所有文件进行解析加载，合并到同一个map中
+
+    c := config.New(
+            config.WithSource(
+                file.NewSource(flagconf),
+            ),
+        )
+        if err := c.Load(); err != nil {
+            panic(err)
+         }
+
+使用之前创建好的config实例，调用.Scan方法，读取配置文件的内容到结构体中，这种方式适用于完整获取整个配置文件的内容
+
+    if err := c.Scan(&amp;v); err != nil {
+      panic(err)
+    }
+    fmt.Printf(&quot;config: %&#43;v&quot;, v)
+
+New的时候会有一个默认的 decoder
+
+func New(opts ...Option) Config {
+	o := options{
+		logger:   log.DefaultLogger,
+		decoder:  defaultDecoder,
+		resolver: defaultResolver,
+	}
+	for _, opt := range opts {
+		opt(&amp;o)
+	}
+	return &amp;config{
+		opts:   o,
+		reader: newReader(o),
+		log:    log.NewHelper(o.logger),
+	}
+}
+通过option可以拓展自定义 decoder
+func WithDecoder(d Decoder) Option {
+	return func(o *options) {
+		o.decoder = d
+	}
+}
+参考
+
+https://github.com/go-kratos/kratos/v2/config
+https://github.com/go-kratos/kratos/tree/main/contrib/config
+https://go-kratos.dev/docs/component/config
+">
+<meta name="twitter:description" content="本文主要记录kratos项目配置的定义、读取和源码的学习
+at first
+服务在启动的基本都会用到配置文件，那么如果是你来写config工具库，它所能提供的功能是什么？
+
+读取不同场景的配置
+读取不同格式的配置
+支持热更
+支持拓展，提供自定义实现
+
+kratos/config 有那些功能
+
+kratos/config包支持多种配置源，包括
+
+本地文件
+本地环境
+contrib/config支持配置中心
+
+
+kratos/config 支持多种配置格式
+
+json
+proto
+xml
+yaml
+
+
+支持热更
+支持其它格式的配置文件
+
+定义配置
+在项目目录下创建文件: 
+workspace/configs/config.yaml
+service:
+  name: config
+  version: v1.0.0
+http:
+  server:
+    address: 0.0.0.0:8000
+    timeout: 1s
+grpc:
+  server:
+    address: 0.0.0.0:9000
+    timeout: 1s
+加载配置文件
+WithSource
+使用withsoure指定数据源为本地文件
+package main
+
+import (
+	&#34;flag&#34;
+	&#34;log&#34;
+
+	&#34;github.com/go-kratos/kratos/v2/config&#34;
+	&#34;github.com/go-kratos/kratos/v2/config/file&#34;
+)
+
+var flagconf string
+
+func init() {
+	flag.StringVar(&amp;flagconf, &#34;conf&#34;, &#34;config.yaml&#34;, &#34;config path, eg: -conf config.yaml&#34;)
+}
+
+func main() {
+	flag.Parse()
+	c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+	)
+	if err := c.Load(); err != nil {
+		panic(err)
+	}
+
+	//定义配置JSON字段
+	var v struct {
+		Service struct {
+			Name    string `json:&#34;name&#34;`
+			Version string `json:&#34;version&#34;`
+		} `json:&#34;service&#34;`
+	}
+
+	//将配置Unmarshal 到struct  
+	if err := c.Scan(&amp;v); err != nil {
+		panic(err)
+	}
+	log.Printf(&#34;config: %&#43;v&#34;, v)
+
+	//获取与该键关联的值
+	name, err := c.Value(&#34;service.name&#34;).String()
+	if err != nil {
+		panic(err)
+	}
+	log.Printf(&#34;service: %s&#34;, name)
+
+	// 热更执行钩子
+	if err := c.Watch(&#34;service.name&#34;, func(key string, value config.Value) {
+		log.Printf(&#34;config changed: %s = %v\n&#34;, key, value)
+	}); err != nil {
+		panic(err)
+	}
+
+	&lt;-make(chan struct{})
+}
+output：
+$  config: {Service:{Name:config Version:v1.0.0}}
+$  service: config
+WithDecoder
+Decoder用于将配置文件内容用特定的反序列化方法解析出来
+c := config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+		),
+		config.WithDecoder(func(src *config.KeyValue, target map[string]interface{}) error {
+			if src.Format == &#34;&#34; {
+				// expand key &#34;aaa.bbb&#34; into map[aaa]map[bbb]interface{}
+				keys := strings.Split(src.Key, &#34;.&#34;)
+				for i, k := range keys {
+					if i == len(keys)-1 {
+						target[k] = src.Value
+					} else {
+						sub := make(map[string]interface{})
+						target[k] = sub
+						target = sub
+					}
+				}
+				return nil
+			}
+			if codec := encoding.GetCodec(src.Format); codec != nil {
+				return codec.Unmarshal(src.Value, &amp;target)
+			}
+			return fmt.Errorf(&#34;unsupported key: %s format: %s&#34;, src.Key, src.Format)
+		}),
+	)
+output 和上例一致
+原理
+// Config is a config interface.
+type Config interface {
+	Load() error
+	Scan(v interface{}) error
+	Value(key string) Value
+	Watch(key string, o Observer) error
+	Close() error
+}
+
+指定数据源的这样会将整个目录中的所有文件进行解析加载，合并到同一个map中
+
+    c := config.New(
+            config.WithSource(
+                file.NewSource(flagconf),
+            ),
+        )
+        if err := c.Load(); err != nil {
+            panic(err)
+         }
+
+使用之前创建好的config实例，调用.Scan方法，读取配置文件的内容到结构体中，这种方式适用于完整获取整个配置文件的内容
+
+    if err := c.Scan(&amp;v); err != nil {
+      panic(err)
+    }
+    fmt.Printf(&quot;config: %&#43;v&quot;, v)
+
+New的时候会有一个默认的 decoder
+
+func New(opts ...Option) Config {
+	o := options{
+		logger:   log.DefaultLogger,
+		decoder:  defaultDecoder,
+		resolver: defaultResolver,
+	}
+	for _, opt := range opts {
+		opt(&amp;o)
+	}
+	return &amp;config{
+		opts:   o,
+		reader: newReader(o),
+		log:    log.NewHelper(o.logger),
+	}
+}
+通过option可以拓展自定义 decoder
+func WithDecoder(d Decoder) Option {
+	return func(o *options) {
+		o.decoder = d
+	}
+}
+参考
+
+https://github.com/go-kratos/kratos/v2/config
+https://github.com/go-kratos/kratos/tree/main/contrib/config
+https://go-kratos.dev/docs/component/config
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-05-14T22:18:53">
+  
+  
+    <meta property="article:modified_time" content="2022-05-14T22:18:53">
+  
+  
+  
+    
+      <meta property="article:section" content="micro service">
+    
+      <meta property="article:section" content="kratos">
+    
+  
+  
+    
+      <meta property="article:tag" content="micro service">
+    
+      <meta property="article:tag" content="kratos">
+    
+      <meta property="article:tag" content="config">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Kratos项目配置的定义和读取</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/05/kratos%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE%E7%9A%84%E5%AE%9A%E4%B9%89%E5%92%8C%E8%AF%BB%E5%8F%96/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Kratos项目配置的定义和读取
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-05-14T22:18:53&#43;08:00">
+        
+   14, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/micro-service">micro service</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/kratos">kratos</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>本文主要记录kratos项目配置的定义、读取和源码的学习</p>
+<h2 id="at-first">at first</h2>
+<p>服务在启动的基本都会用到配置文件，那么如果是你来写config工具库，它所能提供的功能是什么？</p>
+<ol>
+<li>读取不同场景的配置</li>
+<li>读取不同格式的配置</li>
+<li>支持热更</li>
+<li>支持拓展，提供自定义实现</li>
+</ol>
+<h2 id="kratosconfig-有那些功能">kratos/config 有那些功能</h2>
+<ol>
+<li>kratos/config包支持多种配置源，包括
+<ul>
+<li>本地文件</li>
+<li>本地环境</li>
+<li>contrib/config支持配置中心</li>
+</ul>
+</li>
+<li>kratos/config 支持多种配置格式
+<ul>
+<li>json</li>
+<li>proto</li>
+<li>xml</li>
+<li>yaml</li>
+</ul>
+</li>
+<li>支持热更</li>
+<li>支持其它格式的配置文件</li>
+</ol>
+<h2 id="定义配置">定义配置</h2>
+<p>在项目目录下创建文件: 
+workspace/configs/config.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">service</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">config</span>
+  <span style="color:#f92672">version</span>: <span style="color:#ae81ff">v1.0.0</span>
+<span style="color:#f92672">http</span>:
+  <span style="color:#f92672">server</span>:
+    <span style="color:#f92672">address</span>: <span style="color:#ae81ff">0.0.0.0</span>:<span style="color:#ae81ff">8000</span>
+    <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">1s</span>
+<span style="color:#f92672">grpc</span>:
+  <span style="color:#f92672">server</span>:
+    <span style="color:#f92672">address</span>: <span style="color:#ae81ff">0.0.0.0</span>:<span style="color:#ae81ff">9000</span>
+    <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">1s</span>
+</code></pre></div><h2 id="加载配置文件">加载配置文件</h2>
+<h3 id="withsource">WithSource</h3>
+<p>使用withsoure指定数据源为本地文件</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;flag&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+
+	<span style="color:#e6db74">&#34;github.com/go-kratos/kratos/v2/config&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-kratos/kratos/v2/config/file&#34;</span>
+)
+
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">flagconf</span> <span style="color:#66d9ef">string</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">init</span>() {
+	<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">StringVar</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">flagconf</span>, <span style="color:#e6db74">&#34;conf&#34;</span>, <span style="color:#e6db74">&#34;config.yaml&#34;</span>, <span style="color:#e6db74">&#34;config path, eg: -conf config.yaml&#34;</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">Parse</span>()
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">New</span>(
+		<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">WithSource</span>(
+			<span style="color:#a6e22e">file</span>.<span style="color:#a6e22e">NewSource</span>(<span style="color:#a6e22e">flagconf</span>),
+		),
+	)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Load</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">//定义配置JSON字段
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">v</span> <span style="color:#66d9ef">struct</span> {
+		<span style="color:#a6e22e">Service</span> <span style="color:#66d9ef">struct</span> {
+			<span style="color:#a6e22e">Name</span>    <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;name&#34;`</span>
+			<span style="color:#a6e22e">Version</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;version&#34;`</span>
+		} <span style="color:#e6db74">`json:&#34;service&#34;`</span>
+	}
+
+	<span style="color:#75715e">//将配置Unmarshal 到struct  
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Scan</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;config: %+v&#34;</span>, <span style="color:#a6e22e">v</span>)
+
+	<span style="color:#75715e">//获取与该键关联的值
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Value</span>(<span style="color:#e6db74">&#34;service.name&#34;</span>).<span style="color:#a6e22e">String</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;service: %s&#34;</span>, <span style="color:#a6e22e">name</span>)
+
+	<span style="color:#75715e">// 热更执行钩子
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#e6db74">&#34;service.name&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">value</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Value</span>) {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;config changed: %s = %v\n&#34;</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">value</span>)
+	}); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#f92672">&lt;-</span>make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{})
+}
+</code></pre></div><p>output：</p>
+<pre tabindex="0"><code>$  config: {Service:{Name:config Version:v1.0.0}}
+$  service: config
+</code></pre><h3 id="withdecoder">WithDecoder</h3>
+<p>Decoder用于将配置文件内容用特定的反序列化方法解析出来</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">New</span>(
+		<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">WithSource</span>(
+			<span style="color:#a6e22e">file</span>.<span style="color:#a6e22e">NewSource</span>(<span style="color:#a6e22e">flagconf</span>),
+		),
+		<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">WithDecoder</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">src</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">KeyValue</span>, <span style="color:#a6e22e">target</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span> {
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">src</span>.<span style="color:#a6e22e">Format</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+				<span style="color:#75715e">// expand key &#34;aaa.bbb&#34; into map[aaa]map[bbb]interface{}
+</span><span style="color:#75715e"></span>				<span style="color:#a6e22e">keys</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">src</span>.<span style="color:#a6e22e">Key</span>, <span style="color:#e6db74">&#34;.&#34;</span>)
+				<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">k</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">keys</span> {
+					<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">==</span> len(<span style="color:#a6e22e">keys</span>)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> {
+						<span style="color:#a6e22e">target</span>[<span style="color:#a6e22e">k</span>] = <span style="color:#a6e22e">src</span>.<span style="color:#a6e22e">Value</span>
+					} <span style="color:#66d9ef">else</span> {
+						<span style="color:#a6e22e">sub</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{})
+						<span style="color:#a6e22e">target</span>[<span style="color:#a6e22e">k</span>] = <span style="color:#a6e22e">sub</span>
+						<span style="color:#a6e22e">target</span> = <span style="color:#a6e22e">sub</span>
+					}
+				}
+				<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+			}
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">codec</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">encoding</span>.<span style="color:#a6e22e">GetCodec</span>(<span style="color:#a6e22e">src</span>.<span style="color:#a6e22e">Format</span>); <span style="color:#a6e22e">codec</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">src</span>.<span style="color:#a6e22e">Value</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">target</span>)
+			}
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;unsupported key: %s format: %s&#34;</span>, <span style="color:#a6e22e">src</span>.<span style="color:#a6e22e">Key</span>, <span style="color:#a6e22e">src</span>.<span style="color:#a6e22e">Format</span>)
+		}),
+	)
+</code></pre></div><p>output 和上例一致</p>
+<h2 id="原理">原理</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Config is a config interface.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Config</span> <span style="color:#66d9ef">interface</span> {
+	<span style="color:#a6e22e">Load</span>() <span style="color:#66d9ef">error</span>
+	<span style="color:#a6e22e">Scan</span>(<span style="color:#a6e22e">v</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span>
+	<span style="color:#a6e22e">Value</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) <span style="color:#a6e22e">Value</span>
+	<span style="color:#a6e22e">Watch</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">o</span> <span style="color:#a6e22e">Observer</span>) <span style="color:#66d9ef">error</span>
+	<span style="color:#a6e22e">Close</span>() <span style="color:#66d9ef">error</span>
+}
+</code></pre></div><ol>
+<li>指定数据源的这样会将整个目录中的所有文件进行解析加载，合并到同一个map中</li>
+</ol>
+<pre tabindex="0"><code>    c := config.New(
+            config.WithSource(
+                file.NewSource(flagconf),
+            ),
+        )
+        if err := c.Load(); err != nil {
+            panic(err)
+         }
+</code></pre><ol start="2">
+<li>使用之前创建好的config实例，调用.Scan方法，读取配置文件的内容到结构体中，这种方式适用于完整获取整个配置文件的内容</li>
+</ol>
+<pre tabindex="0"><code>    if err := c.Scan(&amp;v); err != nil {
+      panic(err)
+    }
+    fmt.Printf(&quot;config: %+v&quot;, v)
+</code></pre><ol start="3">
+<li>New的时候会有一个默认的 decoder</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">Option</span>) <span style="color:#a6e22e">Config</span> {
+	<span style="color:#a6e22e">o</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">options</span>{
+		<span style="color:#a6e22e">logger</span>:   <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">DefaultLogger</span>,
+		<span style="color:#a6e22e">decoder</span>:  <span style="color:#a6e22e">defaultDecoder</span>,
+		<span style="color:#a6e22e">resolver</span>: <span style="color:#a6e22e">defaultResolver</span>,
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">opt</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">opts</span> {
+		<span style="color:#a6e22e">opt</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">o</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">config</span>{
+		<span style="color:#a6e22e">opts</span>:   <span style="color:#a6e22e">o</span>,
+		<span style="color:#a6e22e">reader</span>: <span style="color:#a6e22e">newReader</span>(<span style="color:#a6e22e">o</span>),
+		<span style="color:#a6e22e">log</span>:    <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">NewHelper</span>(<span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">logger</span>),
+	}
+}
+</code></pre></div><p>通过option可以拓展自定义 decoder</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">WithDecoder</span>(<span style="color:#a6e22e">d</span> <span style="color:#a6e22e">Decoder</span>) <span style="color:#a6e22e">Option</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">o</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">options</span>) {
+		<span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">decoder</span> = <span style="color:#a6e22e">d</span>
+	}
+}
+</code></pre></div><h2 id="参考">参考</h2>
+<ol>
+<li><a href="https://github.com/go-kratos/kratos/v2/config">https://github.com/go-kratos/kratos/v2/config</a></li>
+<li><a href="https://github.com/go-kratos/kratos/tree/main/contrib/config">https://github.com/go-kratos/kratos/tree/main/contrib/config</a></li>
+<li><a href="https://go-kratos.dev/docs/component/config">https://go-kratos.dev/docs/component/config</a></li>
+</ol>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/micro-service/">micro service</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/kratos/">kratos</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/config/">config</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Berrors/" data-tooltip="Go开发常用第三方库之errors" aria-label=": Go开发常用第三方库之errors">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/" data-tooltip="Go Copier简介" aria-label=": Go Copier简介">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Berrors/" data-tooltip="Go开发常用第三方库之errors" aria-label=": Go开发常用第三方库之errors">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/" data-tooltip="Go Copier简介" aria-label=": Go Copier简介">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+
