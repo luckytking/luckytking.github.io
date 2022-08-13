@@ -6,7 +6,56 @@
     <description>Recent content in rancher on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 03 Aug 2022 22:02:43 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/rancher/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 13 Aug 2022 17:34:12 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/rancher/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Rancher2.6.6更新SSl为公认CA证书</title>
+      <link>https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/</link>
+      <pubDate>Sat, 13 Aug 2022 17:34:12 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/</guid>
+      <description>&lt;p&gt;访问Rancher后台提示“证书无效”。&lt;/p&gt;
+&lt;p&gt;排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算
+更新为公认的 CA 签名证书，其中&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Rancher版本 v2.6.6&lt;/li&gt;
+&lt;li&gt;Racher为Docker单节点安装&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;解决步骤&#34;&gt;解决步骤&lt;/h3&gt;
+&lt;p&gt;考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;从你的 Rancher 服务器容器创建数据的副本&lt;/li&gt;
+&lt;li&gt;创建一个备份压缩包&lt;/li&gt;
+&lt;li&gt;使用新的证书 启动新的Rancher服务器容器&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4 id=&#34;1-从你的-rancher-服务器容器创建数据的副本&#34;&gt;1. 从你的 Rancher 服务器容器创建数据的副本&lt;/h4&gt;
+&lt;h5 id=&#34;11-停止当前运行-rancher-服务器的容器替换rancher_container_name为您的-rancher-容器的名称&#34;&gt;1.1 停止当前运行 Rancher 服务器的容器。替换&amp;lt;RANCHER_CONTAINER_NAME&amp;gt;为您的 Rancher 容器的名称&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/rancher-ssl.png&#34; alt=&#34;&#34;&gt;
+运行停止RancherDocker&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;docker stop &amp;lt;RANCHER_CONTAINER_NAME&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id=&#34;12-使用以下命令替换每个占位符从您刚刚停止的-rancher-容器创建一个数据容器&#34;&gt;1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。&lt;/h5&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;docker create --volumes-from &amp;lt;RANCHER_CONTAINER_NAME&amp;gt; --name rancher-data rancher/rancher&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;&amp;lt;RANCHER_CONTAINER_TAG&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;2-创建一个备份压缩包&#34;&gt;2. 创建一个备份压缩包&lt;/h4&gt;
+&lt;p&gt;从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-&amp;lt;RANCHER_VERSION&amp;gt;-&lt;!-- raw HTML omitted --&gt;.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;docker run --volumes-from rancher-data -v &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;$PWD:/backup&amp;#34;&lt;/span&gt; --rm busybox tar zcvf /backup/rancher-data-backup-&amp;lt;RANCHER_VERSION&amp;gt;-&amp;lt;DATE&amp;gt;.tar.gz /var/lib/rancher
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;3-启动新的rancher服务器容器&#34;&gt;3. 启动新的Rancher服务器容器&lt;/h4&gt;
+&lt;p&gt;如果您选择使用由公认的 CA 签名的证书，您将添加&amp;ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将&amp;ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;docker run -d --volumes-from rancher-data \
+  --restart=unless-stopped \
+  -p 80:80 -p 443:443 \
+  -v /[your-workspace]/certs:/etc/rancher/ssl \ 
+  --privileged \
+  rancher/rancher:v2.6.6 \
+  --no-cacerts
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这里的 [your-workspace]替换为你的证书存放路径。其中包括 
+cert.pem 和 key.pem&lt;/p&gt;
+&lt;p&gt;再访问rancher dashboard，提示“有效证书”。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;使用 Docker 在单节点上安装 Rancher &lt;a href=&#34;https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/&#34;&gt;https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;升级安装了Docker的Rancher &lt;a href=&#34;https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/&#34;&gt;https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
     <item>
       <title>Rancher导入k8s集群后状态长时间处于Pending状态</title>
       <link>https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/</link>

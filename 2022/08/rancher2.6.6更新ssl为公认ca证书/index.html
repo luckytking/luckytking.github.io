@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e访问Rancher后台提示“证书无效”。\u003c\/p\u003e\n\u003cp\u003e排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算\n更新为公认的 CA 签名证书，其中\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003eRancher版本 v2.6.6\u003c\/li\u003e\n\u003cli\u003eRacher为Docker单节点安装\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003ch3 id=\u0022解决步骤\u0022\u003e解决步骤\u003c\/h3\u003e\n\u003cp\u003e考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e从你的 Rancher 服务器容器创建数据的副本\u003c\/li\u003e\n\u003cli\u003e创建一个备份压缩包\u003c\/li\u003e\n\u003cli\u003e使用新的证书 启动新的Rancher服务器容器\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003ch4 id=\u00221-从你的-rancher-服务器容器创建数据的副本\u0022\u003e1. 从你的 Rancher 服务器容器创建数据的副本\u003c\/h4\u003e\n\u003ch5 id=\u002211-停止当前运行-rancher-服务器的容器替换rancher_container_name为您的-rancher-容器的名称\u0022\u003e1.1 停止当前运行 Rancher 服务器的容器。替换\u0026lt;RANCHER_CONTAINER_NAME\u0026gt;为您的 Rancher 容器的名称\u003c\/h5\u003e\n\u003cp\u003e\u003cimg src=\u0022\/images\/rancher-ssl.png\u0022 alt=\u0022\u0022\u003e\n运行停止RancherDocker\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-powershell\u0022 data-lang=\u0022powershell\u0022\u003edocker stop \u0026lt;RANCHER_CONTAINER_NAME\u0026gt;\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch5 id=\u002212-使用以下命令替换每个占位符从您刚刚停止的-rancher-容器创建一个数据容器\u0022\u003e1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。\u003c\/h5\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-powershell\u0022 data-lang=\u0022powershell\u0022\u003edocker create --volumes-from \u0026lt;RANCHER_CONTAINER_NAME\u0026gt; --name rancher-data rancher\/rancher\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e:\u003c\/span\u003e\u0026lt;RANCHER_CONTAINER_TAG\u0026gt;\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch4 id=\u00222-创建一个备份压缩包\u0022\u003e2. 创建一个备份压缩包\u003c\/h4\u003e\n\u003cp\u003e从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-\u0026lt;RANCHER_VERSION\u0026gt;-\u003c!-- raw HTML omitted --\u003e.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-powershell\u0022 data-lang=\u0022powershell\u0022\u003edocker run --volumes-from rancher-data -v \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;$PWD:\/backup\u0026#34;\u003c\/span\u003e --rm busybox tar zcvf \/backup\/rancher-data-backup-\u0026lt;RANCHER_VERSION\u0026gt;-\u0026lt;DATE\u0026gt;.tar.gz \/var\/lib\/rancher\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch4 id=\u00223-启动新的rancher服务器容器\u0022\u003e3. 启动新的Rancher服务器容器\u003c\/h4\u003e\n\u003cp\u003e如果您选择使用由公认的 CA 签名的证书，您将添加\u0026ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将\u0026ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003edocker run -d --volumes-from rancher-data \\\r\n  --restart=unless-stopped \\\r\n  -p 80:80 -p 443:443 \\\r\n  -v \/[your-workspace]\/certs:\/etc\/rancher\/ssl \\ \r\n  --privileged \\\r\n  rancher\/rancher:v2.6.6 \\\r\n  --no-cacerts\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e这里的 [your-workspace]替换为你的证书存放路径。其中包括 \ncert.pem 和 key.pem\u003c\/p\u003e\n\u003cp\u003e再访问rancher dashboard，提示“有效证书”。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e使用 Docker 在单节点上安装 Rancher \u003ca href=\u0022https:\/\/rancher.com\/docs\/rancher\/v2.6\/en\/installation\/other-installation-methods\/single-node-docker\/\u0022\u003ehttps:\/\/rancher.com\/docs\/rancher\/v2.6\/en\/installation\/other-installation-methods\/single-node-docker\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e升级安装了Docker的Rancher \u003ca href=\u0022https:\/\/rancher.com\/docs\/rancher\/v2.6\/en\/installation\/other-installation-methods\/single-node-docker\/single-node-upgrades\/\u0022\u003ehttps:\/\/rancher.com\/docs\/rancher\/v2.6\/en\/installation\/other-installation-methods\/single-node-docker\/single-node-upgrades\/\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/08\/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6\/",
+  "keywords":"[rancher, rancher ssl]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="rancher, rancher ssl">
+<meta name="description" content="访问Rancher后台提示“证书无效”。
+排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算
+更新为公认的 CA 签名证书，其中
+
+Rancher版本 v2.6.6
+Racher为Docker单节点安装
+
+解决步骤
+考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤
+
+从你的 Rancher 服务器容器创建数据的副本
+创建一个备份压缩包
+使用新的证书 启动新的Rancher服务器容器
+
+1. 从你的 Rancher 服务器容器创建数据的副本
+1.1 停止当前运行 Rancher 服务器的容器。替换&lt;RANCHER_CONTAINER_NAME&gt;为您的 Rancher 容器的名称
+
+运行停止RancherDocker
+docker stop &lt;RANCHER_CONTAINER_NAME&gt;
+1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。
+docker create --volumes-from &lt;RANCHER_CONTAINER_NAME&gt; --name rancher-data rancher/rancher:&lt;RANCHER_CONTAINER_TAG&gt;
+2. 创建一个备份压缩包
+从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-&lt;RANCHER_VERSION&gt;-.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。
+docker run --volumes-from rancher-data -v &#34;$PWD:/backup&#34; --rm busybox tar zcvf /backup/rancher-data-backup-&lt;RANCHER_VERSION&gt;-&lt;DATE&gt;.tar.gz /var/lib/rancher
+3. 启动新的Rancher服务器容器
+如果您选择使用由公认的 CA 签名的证书，您将添加&ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将&ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。
+docker run -d --volumes-from rancher-data \
+  --restart=unless-stopped \
+  -p 80:80 -p 443:443 \
+  -v /[your-workspace]/certs:/etc/rancher/ssl \ 
+  --privileged \
+  rancher/rancher:v2.6.6 \
+  --no-cacerts
+这里的 [your-workspace]替换为你的证书存放路径。其中包括 
+cert.pem 和 key.pem
+再访问rancher dashboard，提示“有效证书”。
+参考
+
+使用 Docker 在单节点上安装 Rancher https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/
+升级安装了Docker的Rancher https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/
+">
+
+
+<meta property="og:description" content="访问Rancher后台提示“证书无效”。
+排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算
+更新为公认的 CA 签名证书，其中
+
+Rancher版本 v2.6.6
+Racher为Docker单节点安装
+
+解决步骤
+考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤
+
+从你的 Rancher 服务器容器创建数据的副本
+创建一个备份压缩包
+使用新的证书 启动新的Rancher服务器容器
+
+1. 从你的 Rancher 服务器容器创建数据的副本
+1.1 停止当前运行 Rancher 服务器的容器。替换&lt;RANCHER_CONTAINER_NAME&gt;为您的 Rancher 容器的名称
+
+运行停止RancherDocker
+docker stop &lt;RANCHER_CONTAINER_NAME&gt;
+1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。
+docker create --volumes-from &lt;RANCHER_CONTAINER_NAME&gt; --name rancher-data rancher/rancher:&lt;RANCHER_CONTAINER_TAG&gt;
+2. 创建一个备份压缩包
+从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-&lt;RANCHER_VERSION&gt;-.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。
+docker run --volumes-from rancher-data -v &#34;$PWD:/backup&#34; --rm busybox tar zcvf /backup/rancher-data-backup-&lt;RANCHER_VERSION&gt;-&lt;DATE&gt;.tar.gz /var/lib/rancher
+3. 启动新的Rancher服务器容器
+如果您选择使用由公认的 CA 签名的证书，您将添加&ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将&ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。
+docker run -d --volumes-from rancher-data \
+  --restart=unless-stopped \
+  -p 80:80 -p 443:443 \
+  -v /[your-workspace]/certs:/etc/rancher/ssl \ 
+  --privileged \
+  rancher/rancher:v2.6.6 \
+  --no-cacerts
+这里的 [your-workspace]替换为你的证书存放路径。其中包括 
+cert.pem 和 key.pem
+再访问rancher dashboard，提示“有效证书”。
+参考
+
+使用 Docker 在单节点上安装 Rancher https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/
+升级安装了Docker的Rancher https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rancher2.6.6更新SSl为公认CA证书">
+<meta name="twitter:title" content="Rancher2.6.6更新SSl为公认CA证书">
+<meta property="og:url" content="https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="访问Rancher后台提示“证书无效”。
+排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算
+更新为公认的 CA 签名证书，其中
+
+Rancher版本 v2.6.6
+Racher为Docker单节点安装
+
+解决步骤
+考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤
+
+从你的 Rancher 服务器容器创建数据的副本
+创建一个备份压缩包
+使用新的证书 启动新的Rancher服务器容器
+
+1. 从你的 Rancher 服务器容器创建数据的副本
+1.1 停止当前运行 Rancher 服务器的容器。替换&lt;RANCHER_CONTAINER_NAME&gt;为您的 Rancher 容器的名称
+
+运行停止RancherDocker
+docker stop &lt;RANCHER_CONTAINER_NAME&gt;
+1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。
+docker create --volumes-from &lt;RANCHER_CONTAINER_NAME&gt; --name rancher-data rancher/rancher:&lt;RANCHER_CONTAINER_TAG&gt;
+2. 创建一个备份压缩包
+从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-&lt;RANCHER_VERSION&gt;-.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。
+docker run --volumes-from rancher-data -v &#34;$PWD:/backup&#34; --rm busybox tar zcvf /backup/rancher-data-backup-&lt;RANCHER_VERSION&gt;-&lt;DATE&gt;.tar.gz /var/lib/rancher
+3. 启动新的Rancher服务器容器
+如果您选择使用由公认的 CA 签名的证书，您将添加&ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将&ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。
+docker run -d --volumes-from rancher-data \
+  --restart=unless-stopped \
+  -p 80:80 -p 443:443 \
+  -v /[your-workspace]/certs:/etc/rancher/ssl \ 
+  --privileged \
+  rancher/rancher:v2.6.6 \
+  --no-cacerts
+这里的 [your-workspace]替换为你的证书存放路径。其中包括 
+cert.pem 和 key.pem
+再访问rancher dashboard，提示“有效证书”。
+参考
+
+使用 Docker 在单节点上安装 Rancher https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/
+升级安装了Docker的Rancher https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/
+">
+<meta name="twitter:description" content="访问Rancher后台提示“证书无效”。
+排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算
+更新为公认的 CA 签名证书，其中
+
+Rancher版本 v2.6.6
+Racher为Docker单节点安装
+
+解决步骤
+考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤
+
+从你的 Rancher 服务器容器创建数据的副本
+创建一个备份压缩包
+使用新的证书 启动新的Rancher服务器容器
+
+1. 从你的 Rancher 服务器容器创建数据的副本
+1.1 停止当前运行 Rancher 服务器的容器。替换&lt;RANCHER_CONTAINER_NAME&gt;为您的 Rancher 容器的名称
+
+运行停止RancherDocker
+docker stop &lt;RANCHER_CONTAINER_NAME&gt;
+1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。
+docker create --volumes-from &lt;RANCHER_CONTAINER_NAME&gt; --name rancher-data rancher/rancher:&lt;RANCHER_CONTAINER_TAG&gt;
+2. 创建一个备份压缩包
+从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-&lt;RANCHER_VERSION&gt;-.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。
+docker run --volumes-from rancher-data -v &#34;$PWD:/backup&#34; --rm busybox tar zcvf /backup/rancher-data-backup-&lt;RANCHER_VERSION&gt;-&lt;DATE&gt;.tar.gz /var/lib/rancher
+3. 启动新的Rancher服务器容器
+如果您选择使用由公认的 CA 签名的证书，您将添加&ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将&ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。
+docker run -d --volumes-from rancher-data \
+  --restart=unless-stopped \
+  -p 80:80 -p 443:443 \
+  -v /[your-workspace]/certs:/etc/rancher/ssl \ 
+  --privileged \
+  rancher/rancher:v2.6.6 \
+  --no-cacerts
+这里的 [your-workspace]替换为你的证书存放路径。其中包括 
+cert.pem 和 key.pem
+再访问rancher dashboard，提示“有效证书”。
+参考
+
+使用 Docker 在单节点上安装 Rancher https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/
+升级安装了Docker的Rancher https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-08-13T17:34:12">
+  
+  
+    <meta property="article:modified_time" content="2022-08-13T17:34:12">
+  
+  
+  
+    
+      <meta property="article:section" content="k8s">
+    
+      <meta property="article:section" content="rancher">
+    
+  
+  
+    
+      <meta property="article:tag" content="k8s">
+    
+      <meta property="article:tag" content="rancher">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Rancher2.6.6更新SSl为公认CA证书</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Rancher2.6.6更新SSl为公认CA证书
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-08-13T17:34:12&#43;08:00">
+        
+   13, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/rancher">rancher</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>访问Rancher后台提示“证书无效”。</p>
+<p>排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算
+更新为公认的 CA 签名证书，其中</p>
+<ol>
+<li>Rancher版本 v2.6.6</li>
+<li>Racher为Docker单节点安装</li>
+</ol>
+<h3 id="解决步骤">解决步骤</h3>
+<p>考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤</p>
+<ol>
+<li>从你的 Rancher 服务器容器创建数据的副本</li>
+<li>创建一个备份压缩包</li>
+<li>使用新的证书 启动新的Rancher服务器容器</li>
+</ol>
+<h4 id="1-从你的-rancher-服务器容器创建数据的副本">1. 从你的 Rancher 服务器容器创建数据的副本</h4>
+<h5 id="11-停止当前运行-rancher-服务器的容器替换rancher_container_name为您的-rancher-容器的名称">1.1 停止当前运行 Rancher 服务器的容器。替换&lt;RANCHER_CONTAINER_NAME&gt;为您的 Rancher 容器的名称</h5>
+<p><img src="https://luckytking.github.io/images/rancher-ssl.png" alt="">
+运行停止RancherDocker</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">docker stop &lt;RANCHER_CONTAINER_NAME&gt;
+</code></pre></div><h5 id="12-使用以下命令替换每个占位符从您刚刚停止的-rancher-容器创建一个数据容器">1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">docker create --volumes-from &lt;RANCHER_CONTAINER_NAME&gt; --name rancher-data rancher/rancher<span style="color:#960050;background-color:#1e0010">:</span>&lt;RANCHER_CONTAINER_TAG&gt;
+</code></pre></div><h4 id="2-创建一个备份压缩包">2. 创建一个备份压缩包</h4>
+<p>从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-&lt;RANCHER_VERSION&gt;-<!-- raw HTML omitted -->.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">docker run --volumes-from rancher-data -v <span style="color:#e6db74">&#34;$PWD:/backup&#34;</span> --rm busybox tar zcvf /backup/rancher-data-backup-&lt;RANCHER_VERSION&gt;-&lt;DATE&gt;.tar.gz /var/lib/rancher
+</code></pre></div><h4 id="3-启动新的rancher服务器容器">3. 启动新的Rancher服务器容器</h4>
+<p>如果您选择使用由公认的 CA 签名的证书，您将添加&ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将&ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。</p>
+<pre tabindex="0"><code>docker run -d --volumes-from rancher-data \
+  --restart=unless-stopped \
+  -p 80:80 -p 443:443 \
+  -v /[your-workspace]/certs:/etc/rancher/ssl \ 
+  --privileged \
+  rancher/rancher:v2.6.6 \
+  --no-cacerts
+</code></pre><p>这里的 [your-workspace]替换为你的证书存放路径。其中包括 
+cert.pem 和 key.pem</p>
+<p>再访问rancher dashboard，提示“有效证书”。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>使用 Docker 在单节点上安装 Rancher <a href="https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/">https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/</a></li>
+<li>升级安装了Docker的Rancher <a href="https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/">https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/k8s/">k8s</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/rancher/">rancher</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" data-tooltip="Rancher导入k8s集群后状态长时间处于Pending状态" aria-label=": Rancher导入k8s集群后状态长时间处于Pending状态">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" data-tooltip="Rancher导入k8s集群后状态长时间处于Pending状态" aria-label=": Rancher导入k8s集群后状态长时间处于Pending状态">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+
