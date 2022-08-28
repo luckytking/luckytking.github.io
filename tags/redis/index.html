@@ -240,6 +240,260 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/08/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis/" aria-label="">
+      
+          利用k8s储存卷来部署redis
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-08-28T16:29:07&#43;08:00">
+        
+   28, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/category">category</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/subcategory">subcategory</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>本文主要通过利用k8s如何部署Redis,来学习使用k8s的存储卷Volume。</p>
+<p>Pod本⾝具有⽣命周期，故其内部运⾏的容器及其相关数据⾃⾝均⽆法持久存在。Kubernetes也⽀持类似Docker的存储卷功能，不过，其存储卷Volume是与Pod资源绑定⽽⾮容器。</p>
+<h3 id="pod-volume">Pod Volume</h3>
+<p><strong>如何要在一个Pod里声明 Volume</strong>：</p>
+<ol>
+<li>⼀是通过.spec.volumes字段定义在Pod之上的存储卷列表，其⽀持使⽤多种不同类型的存储卷且配置参数差别很⼤；</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">spec</span>:
+<span style="color:#ae81ff">…</span>
+<span style="color:#f92672">volumes</span>:
+<span style="color:#f92672">* name</span>: <span style="color:#ae81ff">logdata</span>
+<span style="color:#f92672">emptyDir</span>: {}
+<span style="color:#f92672">* name</span>: <span style="color:#ae81ff">example</span>
+<span style="color:#f92672">gitRepo</span>:
+<span style="color:#f92672">repository</span>: <span style="color:#ae81ff">https://github.com/iKubernetes/k8s_book.git</span>
+<span style="color:#f92672">revision</span>: <span style="color:#ae81ff">master</span>
+<span style="color:#f92672">directory</span>: <span style="color:#ae81ff">.</span>
+</code></pre></div><ol start="2">
+<li>另⼀个是通过.spec.containers.volumeMounts字段在容器上定义的存储卷挂载列表，它只能挂载当前Pod资源中定义的具体存储卷，当然，也可以不挂载任何存储卷</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">spec</span>:
+<span style="color:#ae81ff">…</span>
+<span style="color:#f92672">containers</span>:
+<span style="color:#f92672">* name</span>: <span style="color:#ae81ff">&lt;String&gt;</span>
+<span style="color:#ae81ff">…</span>
+<span style="color:#f92672">volumeMounts</span>:
+* <span style="color:#ae81ff">name &lt;string&gt; -required-</span>
+<span style="color:#ae81ff">mountPath &lt;string&gt; -required-</span>
+</code></pre></div><p>在之前（<a href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/">声明式对象配置</a>）有介绍过nginx的部署，接着来部署Redis，和Nginx有所不同的是，这里多了一个 ConfigMap 和Volume ,用来配置管理redis和储存。</p>
+<h3 id="环境">环境</h3>
+<ul>
+<li>一个k8s 集群（mater* 1，node* 1）</li>
+<li>一个正常连接k8smater的主机的终端</li>
+</ul>
+<h3 id="创建-config-map">创建 Config-Map</h3>
+<p>使用 ConfigMap 来配置 Redis ，包含了Redis配置文件里需要的配置项，在创建Pod时会作为配置文件挂载到应用所在的容器中。 my-config-map.yaml 具体如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ConfigMap</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+<span style="color:#f92672">data</span>:
+  <span style="color:#f92672">redis.conf</span>: |<span style="color:#e6db74">
+</span><span style="color:#e6db74">    requirepass 123456
+</span><span style="color:#e6db74">    protected-mode no
+</span><span style="color:#e6db74">    port 6379
+</span><span style="color:#e6db74">    tcp-backlog 511
+</span><span style="color:#e6db74">    timeout 0
+</span><span style="color:#e6db74">    tcp-keepalive 300
+</span><span style="color:#e6db74">    daemonize no
+</span><span style="color:#e6db74">    supervised no
+</span><span style="color:#e6db74">    pidfile /var/run/redis_6379.pid
+</span><span style="color:#e6db74">    loglevel notice
+</span><span style="color:#e6db74">    logfile &#34;&#34;
+</span><span style="color:#e6db74">    databases 16
+</span><span style="color:#e6db74">    always-show-logo yes
+</span><span style="color:#e6db74">    save 900 1
+</span><span style="color:#e6db74">    save 300 10
+</span><span style="color:#e6db74">    save 60 10000
+</span><span style="color:#e6db74">    stop-writes-on-bgsave-error yes
+</span><span style="color:#e6db74">    rdbcompression yes
+</span><span style="color:#e6db74">    rdbchecksum yes
+</span><span style="color:#e6db74">    dbfilename dump.rdb
+</span><span style="color:#e6db74">    dir /data
+</span><span style="color:#e6db74">    slave-serve-stale-data yes
+</span><span style="color:#e6db74">    slave-read-only yes
+</span><span style="color:#e6db74">    repl-diskless-sync no
+</span><span style="color:#e6db74">    repl-diskless-sync-delay 5
+</span><span style="color:#e6db74">    repl-disable-tcp-nodelay no
+</span><span style="color:#e6db74">    slave-priority 100
+</span><span style="color:#e6db74">    lazyfree-lazy-eviction no
+</span><span style="color:#e6db74">    lazyfree-lazy-expire no
+</span><span style="color:#e6db74">    lazyfree-lazy-server-del no
+</span><span style="color:#e6db74">    slave-lazy-flush no
+</span><span style="color:#e6db74">    appendonly no
+</span><span style="color:#e6db74">    appendfilename &#34;appendonly.aof&#34;
+</span><span style="color:#e6db74">    appendfsync everysec
+</span><span style="color:#e6db74">    no-appendfsync-on-rewrite no
+</span><span style="color:#e6db74">    auto-aof-rewrite-percentage 100
+</span><span style="color:#e6db74">    auto-aof-rewrite-min-size 64mb
+</span><span style="color:#e6db74">    aof-load-truncated yes
+</span><span style="color:#e6db74">    aof-use-rdb-preamble no
+</span><span style="color:#e6db74">    lua-time-limit 5000
+</span><span style="color:#e6db74">    slowlog-log-slower-than 10000
+</span><span style="color:#e6db74">    slowlog-max-len 128
+</span><span style="color:#e6db74">    latency-monitor-threshold 0
+</span><span style="color:#e6db74">    notify-keyspace-events Ex
+</span><span style="color:#e6db74">    hash-max-ziplist-entries 512
+</span><span style="color:#e6db74">    hash-max-ziplist-value 64
+</span><span style="color:#e6db74">    list-max-ziplist-size -2
+</span><span style="color:#e6db74">    list-compress-depth 0
+</span><span style="color:#e6db74">    set-max-intset-entries 512
+</span><span style="color:#e6db74">    zset-max-ziplist-entries 128
+</span><span style="color:#e6db74">    zset-max-ziplist-value 64
+</span><span style="color:#e6db74">    hll-sparse-max-bytes 3000
+</span><span style="color:#e6db74">    activerehashing yes
+</span><span style="color:#e6db74">    client-output-buffer-limit normal 0 0 0
+</span><span style="color:#e6db74">    client-output-buffer-limit slave 256mb 64mb 60
+</span><span style="color:#e6db74">    client-output-buffer-limit pubsub 32mb 8mb 60
+</span><span style="color:#e6db74">    hz 10
+</span><span style="color:#e6db74">    aof-rewrite-incremental-fsync yes</span>    
+</code></pre></div><p>执行命令</p>
+<pre tabindex="0"><code># kubectl apply -f my-redis-config.yaml
+</code></pre><h3 id="创建-deployment">创建 Deployment</h3>
+<p>创建Deployment 作为调度Pod运行 Redis 的载体。my-redis-deployment.yaml具体如下</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis</span> <span style="color:#75715e"># Unique name for the deployment</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis      </span> <span style="color:#75715e"># Labels to be applied to this deployment</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:     <span style="color:#75715e"># This deployment applies to the Pods matching these labels</span>
+      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
+      <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
+      <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">backend</span>
+  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>        <span style="color:#75715e"># Run a single pod in the deployment</span>
+  <span style="color:#f92672">template</span>:          <span style="color:#75715e"># Template for the pods that will be created by this deployment</span>
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:        <span style="color:#75715e"># Labels to be applied to the Pods in this deployment</span>
+        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
+        <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
+        <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">backend</span>
+    <span style="color:#f92672">spec</span>:            <span style="color:#75715e"># Spec for the container which will be run inside the Pod.</span>
+      <span style="color:#f92672">containers</span>:
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis</span>
+          <span style="color:#f92672">image</span>: <span style="color:#ae81ff">redis</span>
+          <span style="color:#f92672">resources</span>:
+            <span style="color:#f92672">requests</span>:
+              <span style="color:#f92672">cpu</span>: <span style="color:#ae81ff">100m</span>
+              <span style="color:#f92672">memory</span>: <span style="color:#ae81ff">100Mi</span>
+<span style="color:#75715e">#          command: [&#34;redis-server&#34;,&#34;/etc/redis/redis.conf&#34;]</span>
+          <span style="color:#f92672">command</span>:
+            - <span style="color:#ae81ff">redis-server</span>
+            - <span style="color:#ae81ff">/etc/redis/redis.conf</span>
+          <span style="color:#f92672">ports</span>:
+            - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">6379</span>
+          <span style="color:#f92672">volumeMounts</span>:
+            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+              <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/etc/redis/redis.conf</span>
+              <span style="color:#f92672">subPath</span>: <span style="color:#ae81ff">redis.conf</span>
+            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-storage</span>
+              <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/data</span>
+      <span style="color:#f92672">volumes</span>:
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-storage</span>
+          <span style="color:#f92672">emptyDir</span>: {}
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+          <span style="color:#f92672">configMap</span>:
+            <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+            <span style="color:#f92672">items</span>:
+              - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">redis.conf</span>
+                <span style="color:#f92672">path</span>: <span style="color:#ae81ff">redis.conf</span>
+</code></pre></div><p>执行</p>
+<pre tabindex="0"><code># kubectl apply -f my-redis-deployment.yaml
+</code></pre><h3 id="创建-service">创建 service</h3>
+<p>NodePort 方式向外暴露服务。my-redis-service.yaml 具体如下</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Service       </span> <span style="color:#75715e"># Type of Kubernetes resource</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-svc</span> <span style="color:#75715e"># Name of the Kubernetes resource</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+  <span style="color:#f92672">labels</span>:            <span style="color:#75715e"># Labels that will be applied to this resource</span>
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
+    <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
+    <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">backend</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">type</span>: <span style="color:#ae81ff">NodePort</span>
+  <span style="color:#f92672">ports</span>:
+    - <span style="color:#f92672">port</span>: <span style="color:#ae81ff">6379</span>       <span style="color:#75715e"># Map incoming connections on port 6379 to the target port 6379 of the Pod</span>
+      <span style="color:#f92672">targetPort</span>: <span style="color:#ae81ff">6379</span>
+      <span style="color:#f92672">nodePort</span>: <span style="color:#ae81ff">30379</span>
+  <span style="color:#f92672">selector</span>:          <span style="color:#75715e"># Map any Pod with the specified labels to this service</span>
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
+    <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
+    <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">backend</span>
+</code></pre></div><p>执行</p>
+<pre tabindex="0"><code># kubectl apply -f my-redis-service.yaml
+</code></pre><h3 id="测试">测试</h3>
+<p>redis-client 测试NodeId:NodePort</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">redis-cli -h YourNodeIp -p 30379 -a 123456
+YourNodeIp:30379&gt; info
+# Server
+redis_version:7.0.4
+...
+</code></pre></div><p>连接成功。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://kubernetes.io/zh-cn/docs/tutorials/configuration/configure-redis-using-configmap/">https://kubernetes.io/zh-cn/docs/tutorials/configuration/configure-redis-using-configmap/</a></li>
+<li><a href="https://github.com/kevinyan815/LearningKubernetes/tree/master/redis-singleton">https://github.com/kevinyan815/LearningKubernetes/tree/master/redis-singleton</a></li>
+<li>《Kubernetes进阶实战-第2版》  <a href="https://item.jd.com/13140598.html">https://item.jd.com/13140598.html</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/08/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" aria-label="">
       
           Redis实现对象存储和列表分页
