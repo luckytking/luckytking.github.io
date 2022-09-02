@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>k8s on jefffff&#39;s Blog</title>
-    <link>https://luckytking.github.io/tags/k8s/</link>
-    <description>Recent content in k8s on jefffff&#39;s Blog</description>
+    <title>学习笔记 on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
+    <description>Recent content in 学习笔记 on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 02 Sep 2022 23:28:57 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/k8s/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 02 Sep 2022 23:28:57 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>利用k8s储存卷来部署redis之二PV与PVC</title>
       <link>https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/</link>
@@ -340,125 +340,6 @@ redis_version:7.0.4
 &lt;li&gt;&lt;a href=&#34;https://kubernetes.io/zh-cn/docs/tutorials/configuration/configure-redis-using-configmap/&#34;&gt;https://kubernetes.io/zh-cn/docs/tutorials/configuration/configure-redis-using-configmap/&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://github.com/kevinyan815/LearningKubernetes/tree/master/redis-singleton&#34;&gt;https://github.com/kevinyan815/LearningKubernetes/tree/master/redis-singleton&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;《Kubernetes进阶实战-第2版》  &lt;a href=&#34;https://item.jd.com/13140598.html&#34;&gt;https://item.jd.com/13140598.html&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
-    </item>
-    
-    <item>
-      <title>Rancher2.6.6更新ssl为公认CA证书</title>
-      <link>https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/</link>
-      <pubDate>Sat, 13 Aug 2022 17:34:12 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/</guid>
-      <description>&lt;p&gt;访问Rancher后台提示“证书无效”。&lt;/p&gt;
-&lt;p&gt;排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算
-更新为公认的 CA 签名证书，其中&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;Rancher版本 v2.6.6&lt;/li&gt;
-&lt;li&gt;Racher为Docker单节点安装&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3 id=&#34;解决步骤&#34;&gt;解决步骤&lt;/h3&gt;
-&lt;p&gt;考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;从你的 Rancher 服务器容器创建数据的副本&lt;/li&gt;
-&lt;li&gt;创建一个备份压缩包&lt;/li&gt;
-&lt;li&gt;使用新的证书 启动新的Rancher服务器容器&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h4 id=&#34;1-从你的-rancher-服务器容器创建数据的副本&#34;&gt;1. 从你的 Rancher 服务器容器创建数据的副本&lt;/h4&gt;
-&lt;h5 id=&#34;11-停止当前运行-rancher-服务器的容器替换rancher_container_name为您的-rancher-容器的名称&#34;&gt;1.1 停止当前运行 Rancher 服务器的容器。替换&amp;lt;RANCHER_CONTAINER_NAME&amp;gt;为您的 Rancher 容器的名称&lt;/h5&gt;
-&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/rancher-ssl.png&#34; alt=&#34;&#34;&gt;
-运行停止RancherDocker&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;docker stop &amp;lt;RANCHER_CONTAINER_NAME&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id=&#34;12-使用以下命令替换每个占位符从您刚刚停止的-rancher-容器创建一个数据容器&#34;&gt;1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;docker create --volumes-from &amp;lt;RANCHER_CONTAINER_NAME&amp;gt; --name rancher-data rancher/rancher&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;&amp;lt;RANCHER_CONTAINER_TAG&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;2-创建一个备份压缩包&#34;&gt;2. 创建一个备份压缩包&lt;/h4&gt;
-&lt;p&gt;从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-&amp;lt;RANCHER_VERSION&amp;gt;-&lt;!-- raw HTML omitted --&gt;.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;docker run --volumes-from rancher-data -v &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;$PWD:/backup&amp;#34;&lt;/span&gt; --rm busybox tar zcvf /backup/rancher-data-backup-&amp;lt;RANCHER_VERSION&amp;gt;-&amp;lt;DATE&amp;gt;.tar.gz /var/lib/rancher
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;3-启动新的rancher服务器容器&#34;&gt;3. 启动新的Rancher服务器容器&lt;/h4&gt;
-&lt;p&gt;如果您选择使用由公认的 CA 签名的证书，您将添加&amp;ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将&amp;ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;docker run -d --volumes-from rancher-data \
-  --restart=unless-stopped \
-  -p 80:80 -p 443:443 \
-  -v /[your-workspace]/certs:/etc/rancher/ssl \ 
-  --privileged \
-  rancher/rancher:v2.6.6 \
-  --no-cacerts
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这里的 [your-workspace]替换为你的证书存放路径。其中包括 
-cert.pem 和 key.pem&lt;/p&gt;
-&lt;p&gt;再访问rancher dashboard，提示“有效证书”。&lt;/p&gt;
-&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;使用 Docker 在单节点上安装 Rancher &lt;a href=&#34;https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/&#34;&gt;https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;升级安装了Docker的Rancher &lt;a href=&#34;https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/&#34;&gt;https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
-    </item>
-    
-    <item>
-      <title>Rancher导入k8s集群后状态长时间处于Pending状态</title>
-      <link>https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/</link>
-      <pubDate>Wed, 03 Aug 2022 22:02:43 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/</guid>
-      <description>&lt;h4 id=&#34;问题描述&#34;&gt;问题描述:&lt;/h4&gt;
-&lt;p&gt;在Rancher导入外部k8s集群 ,导入的集群一直处于“pending”状态。&lt;/p&gt;
-&lt;p&gt;这里简要记录一下排查过程和临时解决办法。&lt;/p&gt;
-&lt;h4 id=&#34;问题环境&#34;&gt;问题环境&lt;/h4&gt;
-&lt;ul&gt;
-&lt;li&gt;rancher v2.6.6&lt;/li&gt;
-&lt;li&gt;kubernetes v1.24&lt;/li&gt;
-&lt;li&gt;vm1 ubuntu （rancer）&lt;/li&gt;
-&lt;li&gt;vm2-3-4 k8s集群&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;导入步骤:“集群”&amp;ndash;“添加”&amp;ndash;“集群名称”&amp;ndash;创建&amp;ndash;&lt;/p&gt;
-&lt;h4 id=&#34;排查解决&#34;&gt;排查&amp;amp;解决&lt;/h4&gt;
-&lt;p&gt;Rancher 通过 CusterAgent 与集群进行通信（通过cattle-cluster-agent调用 Kubernetes API 与集群通讯），并通过cattle-node-agent与节点进行通信。如果 cattle-cluster-agent 无法连接到已有的 Rancher Server 也就是server-url，集群将保留在 Pending 状态。&lt;/p&gt;
-&lt;h5 id=&#34;1--在k8smaster节点上面查看clusteragent的pod状态是否正常默认的namespace为cattle-system&#34;&gt;1 . 在k8smaster节点上面，查看ClusterAgent的pod状态是否正常，默认的namespace为“cattle-system”&lt;/h5&gt;
-&lt;blockquote&gt;
-&lt;p&gt;kubectl get pods -n cattle-system&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;root@k8s-master:~# kubectl get pods -n cattle-system
-NAME                             READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
-cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;看到pod未正常启动&lt;/p&gt;
-&lt;h5 id=&#34;2-进一步查看pod错误日志&#34;&gt;2. 进一步查看pod错误日志&lt;/h5&gt;
-&lt;blockquote&gt;
-&lt;p&gt;kubectl logs -f [contariner-id] -n cattle-system&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;root@k8s-master:~# kubectl logs -f cattle-cluster-agent-79749... -n cattle-system
-...
-no secret assigned to service account cattle-system/rancher
-...
-&lt;/code&gt;&lt;/pre&gt;&lt;h5 id=&#34;3-查找error处理办法&#34;&gt;3. 查找error处理办法&lt;/h5&gt;
-&lt;p&gt;通过查阅官方issures有提到&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;2.6.6版本说明建议:&lt;/p&gt;
-&lt;p&gt;Rancher v2.6.6是v2.6.5的镜像版本，只做了一个修改，以解决以下问题:&lt;/p&gt;
-&lt;p&gt;-当Rancher试图控制来自下游集群的大量流量时，出现了一个主要的性能问题。这种机制没有正确地处理断开，并将导致无限锁定。看到# 37250。&lt;/p&gt;
-&lt;p&gt;所以我猜他们没有在这个版本中添加K8S 1.24兼容性，因为v2.6.6中的兼容版本是:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;v1.18.20-rancher1-3&lt;/li&gt;
-&lt;li&gt;v1.19.16-rancher1-5&lt;/li&gt;
-&lt;li&gt;v1.20.15-rancher1-3&lt;/li&gt;
-&lt;li&gt;v1.21.12-rancher1-1&lt;/li&gt;
-&lt;li&gt;v1.22.9-rancher1-1&lt;/li&gt;
-&lt;li&gt;v1.23.6-rancher1-1&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;Rancher 2.6.6 不支持 1.24。根据在此问题上设置的里程碑，计划为 2.6.7 提供支持。&lt;/p&gt;
-&lt;h5 id=&#34;4尝试回滚版本&#34;&gt;4.尝试回滚版本&lt;/h5&gt;
-&lt;p&gt;回滚k8s版本v1.23，rancher重新导入集群，再查看pods状态&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl get pods -n cattle-system
-NAME                                    READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/1     Running   0          8m52s
-cattle-cluster-agent-79749...   1/1     Running   0          5m21s
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;回到rancher查看导入的k8s状态为 “Active”&lt;/p&gt;
-&lt;p&gt;至此，问题已暂时解决。持续关注Rancher2.6.7版本。&lt;/p&gt;
-&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index&#34;&gt;https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/rancher/rancher/issues/37027&#34;&gt;https://github.com/rancher/rancher/issues/37027&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/rancher/rancher/issues/37711&#34;&gt;https://github.com/rancher/rancher/issues/37711&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html&#34;&gt;https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</description>
     </item>
     

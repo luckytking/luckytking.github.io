@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>pvc on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/pvc/</link>
+    <description>Recent content in pvc on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 02 Sep 2022 23:28:57 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/pvc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>利用k8s储存卷来部署redis之二PV与PVC</title>
+      <link>https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/</link>
+      <pubDate>Fri, 02 Sep 2022 23:28:57 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/</guid>
+      <description>&lt;p&gt;之前学习实践使用熟悉卷（Volume）来存储&lt;a href=&#34;https://luckytking.github.io/2022/08/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis/&#34;&gt;利用k8s储存卷来部署redis&lt;/a&gt;，本文接着学习实践k8s的存储，主要通过redis存储例子学习实战PV和PVC。&lt;/p&gt;
+&lt;h3 id=&#34;pv--pvc&#34;&gt;PV &amp;amp; PVC&lt;/h3&gt;
+&lt;p&gt;Kubernetes为例⽤户和开发隐藏底层架构的⽬标，在用户和存储服务之间添加了一个中间层，也就是PersistentVolume和PersistentVolumeClaim。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;PersistentVolume 持久卷 (是集群中的一块存储，可以由管理员事先制备， 或者使用存储类（Storage Class）来动态制备。）&lt;/li&gt;
+&lt;li&gt;PersistentVolumeClaim 持久卷申领 （
+表达的是用户对存储的请求。概念上与 Pod 类似。）
+更多详细参见参考 &lt;a href=&#34;https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes&#34;&gt;https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;redisvolume修改为pvpvc&#34;&gt;RedisVolume修改为PV&amp;amp;PVC&lt;/h3&gt;
+&lt;p&gt;接着，这里把之前的redis存储修改为pv-pvc的方式，修改后的步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;创建 ConfigMap （参考第一篇）&lt;/li&gt;
+&lt;li&gt;增加声明PV和PVC （新增）&lt;/li&gt;
+&lt;li&gt;增加 Deployment （把Volume修改为 步骤2 的PVC）&lt;/li&gt;
+&lt;li&gt;暴露 Service （参考第一篇）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4 id=&#34;步骤2增加声明pv和pvc&#34;&gt;步骤2，增加声明PV和PVC&lt;/h4&gt;
+&lt;p&gt;mkdir my-redis-pv-pvc.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;PersistentVolume&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis-pv&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+     &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;capacity&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;storage&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1Gi&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;accessModes&lt;/span&gt;:
+  - &lt;span style=&#34;color:#ae81ff&#34;&gt;ReadWriteOnce&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;hostPath&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;path&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/mnt/data/my-redis&amp;#34;&lt;/span&gt;
+---
+&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;PersistentVolumeClaim&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;redis-pvc&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-ns&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;accessModes&lt;/span&gt;:
+  - &lt;span style=&#34;color:#ae81ff&#34;&gt;ReadWriteOnce&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;resources&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;requests&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;storage&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1Gi&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行创建&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;master# kubectl apply -f my-redis-pv-pvc.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看pv状态&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;master# kubectl get pv 
+NAME    CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM     STORAGECLASS    REASON   AGE
+my-redis-pv     1Gi        RWO            Retain           Bound    my-ns/redis-pvc                                                 50m
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看pvc状态&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;master# kubectl get pvc -n my-ns
+NAME               STATUS   VOLUME         CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+redis-pvc          Bound    my-redis-pv    1Gi             RWO                                          54m
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;pv和pvc已经Bound成功。&lt;/p&gt;
+&lt;h4 id=&#34;步骤3增加-deployment-把volume修改为-步骤2-的pvc&#34;&gt;步骤3，增加 Deployment （把Volume修改为 步骤2 的PVC）&lt;/h4&gt;
+&lt;p&gt;mkdir my-redis-deployment-pvc.yaml&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;apps/v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Deployment&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# Unique name for the deployment&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;myns&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis      &lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# Labels to be applied to this deployment&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;selector&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;matchLabels&lt;/span&gt;:     &lt;span style=&#34;color:#75715e&#34;&gt;# This deployment applies to the Pods matching these labels&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;role&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;master&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;tier&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;backend&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;replicas&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;# Run a single pod in the deployment&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;:          &lt;span style=&#34;color:#75715e&#34;&gt;# Template for the pods that will be created by this deployment&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:        &lt;span style=&#34;color:#75715e&#34;&gt;# Labels to be applied to the Pods in this deployment&lt;/span&gt;
+        &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis&lt;/span&gt;
+        &lt;span style=&#34;color:#f92672&#34;&gt;role&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;master&lt;/span&gt;
+        &lt;span style=&#34;color:#f92672&#34;&gt;tier&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;backend&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:            &lt;span style=&#34;color:#75715e&#34;&gt;# Spec for the container which will be run inside the Pod.&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;containers&lt;/span&gt;:
+        - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;redis&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;resources&lt;/span&gt;:
+            &lt;span style=&#34;color:#f92672&#34;&gt;requests&lt;/span&gt;:
+              &lt;span style=&#34;color:#f92672&#34;&gt;cpu&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;100m&lt;/span&gt;
+              &lt;span style=&#34;color:#f92672&#34;&gt;memory&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;100Mi&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#          command: [&amp;#34;redis-server&amp;#34;,&amp;#34;/etc/redis/redis.conf&amp;#34;]&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;command&lt;/span&gt;:
+            - &lt;span style=&#34;color:#ae81ff&#34;&gt;redis-server&lt;/span&gt;
+            - &lt;span style=&#34;color:#ae81ff&#34;&gt;/etc/redis/redis.conf&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+            - &lt;span style=&#34;color:#f92672&#34;&gt;containerPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;6379&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;volumeMounts&lt;/span&gt;:
+            - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis-config&lt;/span&gt;
+              &lt;span style=&#34;color:#f92672&#34;&gt;mountPath&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;/etc/redis/redis.conf&lt;/span&gt;
+              &lt;span style=&#34;color:#f92672&#34;&gt;subPath&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;redis.conf&lt;/span&gt;
+            - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis-storage&lt;/span&gt;
+              &lt;span style=&#34;color:#f92672&#34;&gt;mountPath&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;/data&lt;/span&gt;
+      &lt;span style=&#34;color:#f92672&#34;&gt;volumes&lt;/span&gt;:
+        - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis-persistent-storage &lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;persistentVolumeClaim&lt;/span&gt;:
+          &lt;span style=&#34;color:#f92672&#34;&gt;claimName&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;redis-pvc&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# 这里修改为步骤2声明的pvc&lt;/span&gt;
+        - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis-config&lt;/span&gt;
+          &lt;span style=&#34;color:#f92672&#34;&gt;configMap&lt;/span&gt;:
+            &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-redis-config&lt;/span&gt;
+            &lt;span style=&#34;color:#f92672&#34;&gt;items&lt;/span&gt;:
+              - &lt;span style=&#34;color:#f92672&#34;&gt;key&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;redis.conf&lt;/span&gt;
+                &lt;span style=&#34;color:#f92672&#34;&gt;path&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;redis.conf&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行创建deployment&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;master# kubectl apply -f my-redis-deployment-pvc.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;检查状态&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;master# kubectl get pod -n my-ns
+NAME                                   READY   STATUS    RESTARTS   AGE 
+my-redis-6565459689-mbptf              1/1     Running   0          53m
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;测试&#34;&gt;测试&lt;/h4&gt;
+&lt;p&gt;redis-client 连接 NodeId:NodePort&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# redis-cli -h YourNodeIp-p 30379 -a 123456
+YourNodeIp:30379&amp;gt; info
+# Server
+redis_version:7.0.4
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;连接成功。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes&#34;&gt;https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume&#34;&gt;https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

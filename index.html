@@ -237,6 +237,194 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/" aria-label="">
+      
+          利用k8s储存卷来部署redis之二PV与PVC
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-09-02T23:28:57&#43;08:00">
+        
+   2, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%ad%a6%e4%b9%a0%e7%ac%94%e8%ae%b0">学习笔记</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>之前学习实践使用熟悉卷（Volume）来存储<a href="https://luckytking.github.io/2022/08/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis/">利用k8s储存卷来部署redis</a>，本文接着学习实践k8s的存储，主要通过redis存储例子学习实战PV和PVC。</p>
+<h3 id="pv--pvc">PV &amp; PVC</h3>
+<p>Kubernetes为例⽤户和开发隐藏底层架构的⽬标，在用户和存储服务之间添加了一个中间层，也就是PersistentVolume和PersistentVolumeClaim。</p>
+<ul>
+<li>PersistentVolume 持久卷 (是集群中的一块存储，可以由管理员事先制备， 或者使用存储类（Storage Class）来动态制备。）</li>
+<li>PersistentVolumeClaim 持久卷申领 （
+表达的是用户对存储的请求。概念上与 Pod 类似。）
+更多详细参见参考 <a href="https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes">https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes</a></li>
+</ul>
+<h3 id="redisvolume修改为pvpvc">RedisVolume修改为PV&amp;PVC</h3>
+<p>接着，这里把之前的redis存储修改为pv-pvc的方式，修改后的步骤：</p>
+<ol>
+<li>创建 ConfigMap （参考第一篇）</li>
+<li>增加声明PV和PVC （新增）</li>
+<li>增加 Deployment （把Volume修改为 步骤2 的PVC）</li>
+<li>暴露 Service （参考第一篇）</li>
+</ol>
+<h4 id="步骤2增加声明pv和pvc">步骤2，增加声明PV和PVC</h4>
+<p>mkdir my-redis-pv-pvc.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">PersistentVolume</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-pv</span>
+  <span style="color:#f92672">labels</span>:
+     <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">capacity</span>:
+    <span style="color:#f92672">storage</span>: <span style="color:#ae81ff">1Gi</span>
+  <span style="color:#f92672">accessModes</span>:
+  - <span style="color:#ae81ff">ReadWriteOnce</span>
+  <span style="color:#f92672">hostPath</span>:
+    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#34;/mnt/data/my-redis&#34;</span>
+---
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">PersistentVolumeClaim</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis-pvc</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">accessModes</span>:
+  - <span style="color:#ae81ff">ReadWriteOnce</span>
+  <span style="color:#f92672">resources</span>:
+    <span style="color:#f92672">requests</span>:
+      <span style="color:#f92672">storage</span>: <span style="color:#ae81ff">1Gi</span>
+</code></pre></div><p>执行创建</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">master# kubectl apply -f my-redis-pv-pvc.yaml
+</code></pre></div><p>查看pv状态</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">master# kubectl get pv 
+NAME    CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM     STORAGECLASS    REASON   AGE
+my-redis-pv     1Gi        RWO            Retain           Bound    my-ns/redis-pvc                                                 50m
+
+</code></pre></div><p>查看pvc状态</p>
+<pre tabindex="0"><code>master# kubectl get pvc -n my-ns
+NAME               STATUS   VOLUME         CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+redis-pvc          Bound    my-redis-pv    1Gi             RWO                                          54m
+</code></pre><p>pv和pvc已经Bound成功。</p>
+<h4 id="步骤3增加-deployment-把volume修改为-步骤2-的pvc">步骤3，增加 Deployment （把Volume修改为 步骤2 的PVC）</h4>
+<p>mkdir my-redis-deployment-pvc.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis</span> <span style="color:#75715e"># Unique name for the deployment</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">myns</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis      </span> <span style="color:#75715e"># Labels to be applied to this deployment</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:     <span style="color:#75715e"># This deployment applies to the Pods matching these labels</span>
+      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
+      <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
+      <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">backend</span>
+  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>        <span style="color:#75715e"># Run a single pod in the deployment</span>
+  <span style="color:#f92672">template</span>:          <span style="color:#75715e"># Template for the pods that will be created by this deployment</span>
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:        <span style="color:#75715e"># Labels to be applied to the Pods in this deployment</span>
+        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
+        <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
+        <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">backend</span>
+    <span style="color:#f92672">spec</span>:            <span style="color:#75715e"># Spec for the container which will be run inside the Pod.</span>
+      <span style="color:#f92672">containers</span>:
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis</span>
+          <span style="color:#f92672">image</span>: <span style="color:#ae81ff">redis</span>
+          <span style="color:#f92672">resources</span>:
+            <span style="color:#f92672">requests</span>:
+              <span style="color:#f92672">cpu</span>: <span style="color:#ae81ff">100m</span>
+              <span style="color:#f92672">memory</span>: <span style="color:#ae81ff">100Mi</span>
+<span style="color:#75715e">#          command: [&#34;redis-server&#34;,&#34;/etc/redis/redis.conf&#34;]</span>
+          <span style="color:#f92672">command</span>:
+            - <span style="color:#ae81ff">redis-server</span>
+            - <span style="color:#ae81ff">/etc/redis/redis.conf</span>
+          <span style="color:#f92672">ports</span>:
+            - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">6379</span>
+          <span style="color:#f92672">volumeMounts</span>:
+            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+              <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/etc/redis/redis.conf</span>
+              <span style="color:#f92672">subPath</span>: <span style="color:#ae81ff">redis.conf</span>
+            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-storage</span>
+              <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/data</span>
+      <span style="color:#f92672">volumes</span>:
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-persistent-storage </span>
+          <span style="color:#f92672">persistentVolumeClaim</span>:
+          <span style="color:#f92672">claimName</span>: <span style="color:#ae81ff">redis-pvc</span> <span style="color:#75715e"># 这里修改为步骤2声明的pvc</span>
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+          <span style="color:#f92672">configMap</span>:
+            <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+            <span style="color:#f92672">items</span>:
+              - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">redis.conf</span>
+                <span style="color:#f92672">path</span>: <span style="color:#ae81ff">redis.conf</span>
+
+</code></pre></div><p>执行创建deployment</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">master# kubectl apply -f my-redis-deployment-pvc.yaml
+</code></pre></div><p>检查状态</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">master# kubectl get pod -n my-ns
+NAME                                   READY   STATUS    RESTARTS   AGE 
+my-redis-6565459689-mbptf              1/1     Running   0          53m
+</code></pre></div><h4 id="测试">测试</h4>
+<p>redis-client 连接 NodeId:NodePort</p>
+<pre tabindex="0"><code># redis-cli -h YourNodeIp-p 30379 -a 123456
+YourNodeIp:30379&gt; info
+# Server
+redis_version:7.0.4
+</code></pre><p>连接成功。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes">https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes</a></li>
+<li><a href="https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume">https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/08/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis/" aria-label="">
       
           利用k8s储存卷来部署redis
@@ -256,9 +444,9 @@
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/category">category</a>, 
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>, 
     
-      <a class="category-link" href="https://luckytking.github.io/categories/subcategory">subcategory</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%ad%a6%e4%b9%a0%e7%ac%94%e8%ae%b0">学习笔记</a>
     
   
 
@@ -936,9 +1124,9 @@ cattle-cluster-agent-79749...   1/1     Running   0          5m21s
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/category">category</a>, 
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>, 
     
-      <a class="category-link" href="https://luckytking.github.io/categories/subcategory">subcategory</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%ad%a6%e4%b9%a0%e7%ac%94%e8%ae%b0">学习笔记</a>
     
   
 
@@ -1701,206 +1889,6 @@ xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
       <p>
         
           <a href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/" aria-label="">
-      
-          性能测试平台（locust&#43;boomer）之二
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-06-23T21:53:01&#43;08:00">
-        
-   23, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e5%8e%8b%e5%8a%9b%e6%b5%8b%e8%af%95">压力测试</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>上一篇（<a href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/">传送门</a>）介绍了测试平台 locust + boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。</p>
-<h4 id="setup">setup</h4>
-<h5 id="install-the-master-branch">Install the master branch</h5>
-<blockquote>
-<p>$ go get github.com/myzhan/boomer</p>
-</blockquote>
-<h5 id="install-a-tagged-version-that-works-with-locust-160">Install a tagged version that works with locust 1.6.0</h5>
-<blockquote>
-<p>$ go get <a href="mailto:github.com/myzhan/boomer@v1.6.0">github.com/myzhan/boomer@v1.6.0</a></p>
-</blockquote>
-<h5 id="install-gomq">install gomq</h5>
-<blockquote>
-<p>$ go get -u github.com/zeromq/gomq</p>
-</blockquote>
-<h4 id="quick-start">quick start</h4>
-<h5 id="run-master">run master</h5>
-<p>创建python文件 workspace/dummy.py</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> locust <span style="color:#f92672">import</span> Locust, TaskSet, task
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyTaskSet</span>(TaskSet):
-    <span style="color:#a6e22e">@task</span>(<span style="color:#ae81ff">20</span>)
-    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">hello</span>(self):
-        <span style="color:#66d9ef">pass</span>
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Dummy</span>(Locust):
-    task_set <span style="color:#f92672">=</span> MyTaskSet
-</code></pre></div><p>运行：</p>
-<blockquote>
-<p>$ locust &ndash;master -f dummy.py
-output：</p>
-</blockquote>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$locust.main: Starting web interface at http://0.0.0.0:8089 <span style="color:#f92672">(</span>accepting connections from all network interfaces<span style="color:#f92672">)</span>
-$locust.main: Starting Locust 2.9.1.dev23
-</code></pre></div><h5 id="run-slave">run slave</h5>
-<p>创建go文件 workspace/main.go</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span>(
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;io/ioutil&#34;</span>
-	<span style="color:#e6db74">&#34;net/http&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/myzhan/boomer&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">helloTask</span>() {
-	<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
-	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#e6db74">&#34;hello&#34;</span>)
-	<span style="color:#a6e22e">elapsed</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">start</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordFailure</span>(<span style="color:#e6db74">&#34;http&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
-		<span style="color:#66d9ef">return</span>
-	}
-    
-<span style="color:#75715e">/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=&#34;http&#34;, name=&#34;world&#34;, response_time=100, response_length=10)    */</span>
-	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordSuccess</span>(<span style="color:#e6db74">&#34;http&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), int64(<span style="color:#ae81ff">10</span>))
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">worldTask</span>() {
-	<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
-	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#e6db74">&#34;world&#34;</span>)
-	<span style="color:#a6e22e">elapsed</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">start</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordFailure</span>(<span style="color:#e6db74">&#34;udp&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
-		<span style="color:#66d9ef">return</span>
-	} 
-<span style="color:#75715e">/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=&#34;udp&#34;, name=&#34;hello&#34;, response_time=100, exception=Exception(&#34;udp error&#34;))    */</span>
-	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordSuccess</span>(<span style="color:#e6db74">&#34;udp&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), int64(<span style="color:#ae81ff">10</span>))
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#a6e22e">task1</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Task</span>{
-		<span style="color:#75715e">// 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines
-</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">Weight</span>: <span style="color:#ae81ff">10</span>,
-		<span style="color:#a6e22e">Fn</span>:     <span style="color:#a6e22e">helloTask</span>,
-	}
-
-	<span style="color:#a6e22e">task2</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Task</span>{
-		<span style="color:#a6e22e">Weight</span>: <span style="color:#ae81ff">10</span>,
-		<span style="color:#a6e22e">Fn</span>:     <span style="color:#a6e22e">worldTask</span>,
-	}
-
-	<span style="color:#75715e">// 连接到 master，等待页面上下发指令，支持多个 Task
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">task1</span>, <span style="color:#a6e22e">task2</span>)
-}
-
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#a6e22e">path</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span> {
-	<span style="color:#a6e22e">url</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;http://localhost:8090/%s&#34;</span>, <span style="color:#a6e22e">path</span>)
-	<span style="color:#a6e22e">method</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;GET&#34;</span>
-
-	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Client</span>{}
-	<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#a6e22e">method</span>, <span style="color:#a6e22e">url</span>, <span style="color:#66d9ef">nil</span>)
-
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	}
-	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">req</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	}
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">Close</span>()
-
-	<span style="color:#a6e22e">body</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Body</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(string(<span style="color:#a6e22e">body</span>))
-	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
-}
-
-
-</code></pre></div><blockquote>
-<p>go run main.go</p>
-</blockquote>
-<p>output</p>
-<pre tabindex="0"><code>$ Boomer is built with gomq support.
-$ Boomer is connected to master(tcp://127.0.0.1:5557) press Ctrl+c to quit.
-
-</code></pre><p>说明启动slave成功，查看是否连接上master</p>
-<pre tabindex="0"><code>$ locust.runners: Client 'crazyMac.local_axxbyy123456' reported as ready. Currently 1 clients ready to swarm.
-
-</code></pre><p>说明已经连接上master
-。</p>
-<h4 id="testing">testing</h4>
-<p>启动测试，output
-<img src="https://luckytking.github.io/images/locust-boomer.png" alt=""></p>
-<p>succeed</p>
-<h4 id="小结">小结</h4>
-<p>本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。</p>
-<h4 id="reference">reference</h4>
-<ul>
-<li>Locust Website: <a href="locust.io">locust.io</a></li>
-<li>Locust Documentation: <a href="docs.locust.io">docs.locust.io</a></li>
-<li>Boomer Documentation: <a href="boomer.readthedocs.io">boomer.readthedocs.io</a></li>
-<li>Examples :<a href="https://github.com/myzhan/boomer/blob/master/_examples/default/main.go"> https://github.com/myzhan/boomer/blob/master/_examples/default/main.go</a></li>
-<li>Dummy.py : <a href="https://www.cnblogs.com/Detector/p/11469233.html">https://www.cnblogs.com/Detector/p/11469233.html</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

@@ -237,6 +237,206 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/" aria-label="">
+      
+          性能测试平台（locust&#43;boomer）之二
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-06-23T21:53:01&#43;08:00">
+        
+   23, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%8e%8b%e5%8a%9b%e6%b5%8b%e8%af%95">压力测试</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>上一篇（<a href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/">传送门</a>）介绍了测试平台 locust + boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。</p>
+<h4 id="setup">setup</h4>
+<h5 id="install-the-master-branch">Install the master branch</h5>
+<blockquote>
+<p>$ go get github.com/myzhan/boomer</p>
+</blockquote>
+<h5 id="install-a-tagged-version-that-works-with-locust-160">Install a tagged version that works with locust 1.6.0</h5>
+<blockquote>
+<p>$ go get <a href="mailto:github.com/myzhan/boomer@v1.6.0">github.com/myzhan/boomer@v1.6.0</a></p>
+</blockquote>
+<h5 id="install-gomq">install gomq</h5>
+<blockquote>
+<p>$ go get -u github.com/zeromq/gomq</p>
+</blockquote>
+<h4 id="quick-start">quick start</h4>
+<h5 id="run-master">run master</h5>
+<p>创建python文件 workspace/dummy.py</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> locust <span style="color:#f92672">import</span> Locust, TaskSet, task
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyTaskSet</span>(TaskSet):
+    <span style="color:#a6e22e">@task</span>(<span style="color:#ae81ff">20</span>)
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">hello</span>(self):
+        <span style="color:#66d9ef">pass</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Dummy</span>(Locust):
+    task_set <span style="color:#f92672">=</span> MyTaskSet
+</code></pre></div><p>运行：</p>
+<blockquote>
+<p>$ locust &ndash;master -f dummy.py
+output：</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$locust.main: Starting web interface at http://0.0.0.0:8089 <span style="color:#f92672">(</span>accepting connections from all network interfaces<span style="color:#f92672">)</span>
+$locust.main: Starting Locust 2.9.1.dev23
+</code></pre></div><h5 id="run-slave">run slave</h5>
+<p>创建go文件 workspace/main.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span>(
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;io/ioutil&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/myzhan/boomer&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">helloTask</span>() {
+	<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#e6db74">&#34;hello&#34;</span>)
+	<span style="color:#a6e22e">elapsed</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">start</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordFailure</span>(<span style="color:#e6db74">&#34;http&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+		<span style="color:#66d9ef">return</span>
+	}
+    
+<span style="color:#75715e">/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=&#34;http&#34;, name=&#34;world&#34;, response_time=100, response_length=10)    */</span>
+	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordSuccess</span>(<span style="color:#e6db74">&#34;http&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), int64(<span style="color:#ae81ff">10</span>))
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">worldTask</span>() {
+	<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#e6db74">&#34;world&#34;</span>)
+	<span style="color:#a6e22e">elapsed</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">start</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordFailure</span>(<span style="color:#e6db74">&#34;udp&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+		<span style="color:#66d9ef">return</span>
+	} 
+<span style="color:#75715e">/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=&#34;udp&#34;, name=&#34;hello&#34;, response_time=100, exception=Exception(&#34;udp error&#34;))    */</span>
+	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">RecordSuccess</span>(<span style="color:#e6db74">&#34;udp&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span>, <span style="color:#a6e22e">elapsed</span>.<span style="color:#a6e22e">Nanoseconds</span>()<span style="color:#f92672">/</span>int64(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>), int64(<span style="color:#ae81ff">10</span>))
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">task1</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Task</span>{
+		<span style="color:#75715e">// 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">Weight</span>: <span style="color:#ae81ff">10</span>,
+		<span style="color:#a6e22e">Fn</span>:     <span style="color:#a6e22e">helloTask</span>,
+	}
+
+	<span style="color:#a6e22e">task2</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Task</span>{
+		<span style="color:#a6e22e">Weight</span>: <span style="color:#ae81ff">10</span>,
+		<span style="color:#a6e22e">Fn</span>:     <span style="color:#a6e22e">worldTask</span>,
+	}
+
+	<span style="color:#75715e">// 连接到 master，等待页面上下发指令，支持多个 Task
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">boomer</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#a6e22e">task1</span>, <span style="color:#a6e22e">task2</span>)
+}
+
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">HttpGet</span>(<span style="color:#a6e22e">path</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#a6e22e">url</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;http://localhost:8090/%s&#34;</span>, <span style="color:#a6e22e">path</span>)
+	<span style="color:#a6e22e">method</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;GET&#34;</span>
+
+	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Client</span>{}
+	<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#a6e22e">method</span>, <span style="color:#a6e22e">url</span>, <span style="color:#66d9ef">nil</span>)
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">req</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">Close</span>()
+
+	<span style="color:#a6e22e">body</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Body</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(string(<span style="color:#a6e22e">body</span>))
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+}
+
+
+</code></pre></div><blockquote>
+<p>go run main.go</p>
+</blockquote>
+<p>output</p>
+<pre tabindex="0"><code>$ Boomer is built with gomq support.
+$ Boomer is connected to master(tcp://127.0.0.1:5557) press Ctrl+c to quit.
+
+</code></pre><p>说明启动slave成功，查看是否连接上master</p>
+<pre tabindex="0"><code>$ locust.runners: Client 'crazyMac.local_axxbyy123456' reported as ready. Currently 1 clients ready to swarm.
+
+</code></pre><p>说明已经连接上master
+。</p>
+<h4 id="testing">testing</h4>
+<p>启动测试，output
+<img src="https://luckytking.github.io/images/locust-boomer.png" alt=""></p>
+<p>succeed</p>
+<h4 id="小结">小结</h4>
+<p>本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。</p>
+<h4 id="reference">reference</h4>
+<ul>
+<li>Locust Website: <a href="locust.io">locust.io</a></li>
+<li>Locust Documentation: <a href="docs.locust.io">docs.locust.io</a></li>
+<li>Boomer Documentation: <a href="boomer.readthedocs.io">boomer.readthedocs.io</a></li>
+<li>Examples :<a href="https://github.com/myzhan/boomer/blob/master/_examples/default/main.go"> https://github.com/myzhan/boomer/blob/master/_examples/default/main.go</a></li>
+<li>Dummy.py : <a href="https://www.cnblogs.com/Detector/p/11469233.html">https://www.cnblogs.com/Detector/p/11469233.html</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/" aria-label="">
       
           性能测试平台（locust&#43;boomer）之一

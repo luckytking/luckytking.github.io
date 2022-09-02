@@ -17,7 +17,7 @@
   },
   "name":"jefffff\u0027s Blog",
   "description":"",
-  "url":"https:\/\/luckytking.github.io\/tags\/redis\/",
+  "url":"https:\/\/luckytking.github.io\/categories\/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0\/",
   "keywords":"[]"
 }
 
@@ -33,10 +33,10 @@
 
 <meta property="og:description" content="">
 <meta property="og:type" content="website">
-<meta property="og:title" content="redis">
-<meta name="twitter:title" content="redis">
-<meta property="og:url" content="https://luckytking.github.io/tags/redis/">
-<meta property="twitter:url" content="https://luckytking.github.io/tags/redis/">
+<meta property="og:title" content="学习笔记">
+<meta name="twitter:title" content="学习笔记">
+<meta property="og:url" content="https://luckytking.github.io/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+<meta property="twitter:url" content="https://luckytking.github.io/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
 <meta property="og:site_name" content="jefffff&#39;s Blog">
 <meta property="og:description" content="">
 <meta name="twitter:description" content="">
@@ -63,18 +63,18 @@
 
 
 
-    <title>redis</title>
+    <title>学习笔记</title>
 
     <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
     
-      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/tags/redis/index.xml">
+      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.xml">
     
 
     
       <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
     
 
-    <link rel="canonical" href="https://luckytking.github.io/tags/redis/">
+    <link rel="canonical" href="https://luckytking.github.io/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -682,17 +682,17 @@ redis_version:7.0.4
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" aria-label="">
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/" aria-label="">
       
-          Redis实现对象存储和列表分页
+          K8s学习笔记  资源配置和声明式对象配置
         </a>
       </h1>
       
   <div class="postShorten-meta post-meta">
     
-      <time datetime="2022-06-05T16:23:04&#43;08:00">
+      <time datetime="2022-07-31T18:04:12&#43;08:00">
         
-   5, 2022
+   31, 2022
 
       </time>
     
@@ -701,9 +701,9 @@ redis_version:7.0.4
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>, 
     
-      <a class="category-link" href="https://luckytking.github.io/categories/redis">redis</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%ad%a6%e4%b9%a0%e7%ac%94%e8%ae%b0">学习笔记</a>
     
   
 
@@ -712,97 +712,153 @@ redis_version:7.0.4
     </div>
     <div class="postShorten-excerpt">
       
-        <h2 id="场景">场景</h2>
-<p>在项目开发中，需要用到缓存和对一个列表数据分页查询，但由于redis是key-value的存储方式，我们期望的使用类似postgresql的offset和limit，不至于需要一个个key遍历过去。</p>
-<h2 id="设计">设计</h2>
-<p>分析一下我们需求，那么需求需要实现的接口大概是：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">FindByPage</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">page</span>, <span style="color:#a6e22e">size</span> <span style="color:#66d9ef">int</span>) ([]<span style="color:#a6e22e">Object</span>, <span style="color:#66d9ef">error</span>)
-</code></pre></div><p>大致我们需要解决两个问题:</p>
-<ul>
-<li>存储对象</li>
-<li>列表分页快速查找</li>
-</ul>
-<h3 id="对象存储">对象存储</h3>
+        <p>本文主要记录Kubernetes的资源管理，包括资源配置，声明式管理。</p>
 <blockquote>
-<p>Redis hash 是一个 string 类型的 field（字段） 和 value（值） 的映射表，hash 特别适合用于存储对象。</p>
-<ul>
-<li>HDEL key field1 [field2]删除一个或多个哈希表字段</li>
-<li>HEXISTS key field查看哈希表 key 中，指定的字段是否存在。</li>
-<li>HGET key field获取存储在哈希表中指定字段的值。</li>
-<li>HGETALL key获取在哈希表中指定 key 的所有字段和值</li>
-</ul>
+<p>Kubernetes提供了RESTful风格的API，它将各类组件均抽象为“资源”，并通过属性赋值完成实例化 。API主要由资源类型和控制器两部分组成，资源通常以json、yaml格式并写入集群的对象，控制器则在集群资源存储完成后自动创建并启动。</p>
 </blockquote>
-<p>如此，我们可以 redis hash 和 json.Encoding 来存储。
-获得一个Object</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//【ObjectID】= &#34;{&#34;foo&#34;: &#34;123&#34;, &#34;bar&#34;:&#34;456&#34;}&#34;
-</span><span style="color:#75715e"></span>
-<span style="color:#f92672">import</span>  <span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
-
-<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HGet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">String</span>()).<span style="color:#a6e22e">Result</span>()
-<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-     <span style="color:#66d9ef">return</span>
-}
-<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">obj</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">YourObject</span>{}
-<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>([]byte(<span style="color:#a6e22e">result</span>), <span style="color:#a6e22e">obj</span>)
-<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-     <span style="color:#66d9ef">return</span>
-}
-</code></pre></div><p>增加一个Object：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">ob</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">Object</span>{}<span style="color:#960050;background-color:#1e0010">）</span>) 
-	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">repo</span>.<span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HSet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">ob</span>.<span style="color:#a6e22e">ID</span>, <span style="color:#a6e22e">ob</span>).<span style="color:#a6e22e">Err</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	}
-</code></pre></div><h3 id="分页">分页</h3>
-<p>我们的需求中，ObjectID是一个唯一的int，那么可以使用 zset</p>
-<blockquote>
-<p>ZXyy redis 有序集合的基本命令。</p>
+<p>常用的K8s资源有</p>
 <ul>
-<li>ZADD key score1 member1 [score2 member2]向有序集合添加一个或多个成员，或者更新已存在成员的分数</li>
-<li>ZCARD key获取有序集合的成员数</li>
-<li>ZRANGE key start stop [WITHSCORES]通过索引区间返回有序集合指定区间内的成员</li>
+<li>Pod</li>
+<li>Deployment</li>
+<li>Service</li>
+<li>Ingress</li>
 </ul>
-</blockquote>
-<p>那么可以把 zset 的key 和 value 都设置为 ObjectID
-增加一个Object的代码：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Z</span>{
-     <span style="color:#a6e22e">Score</span>:  float64(<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">ID</span>),
-     <span style="color:#a6e22e">Member</span>: <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">ID</span>)),
-}).<span style="color:#a6e22e">Err</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-     <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-}
-</code></pre></div><p>获取X分页的代码：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> (
-     <span style="color:#a6e22e">start</span> = int64((<span style="color:#a6e22e">page</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">size</span>)
-     <span style="color:#a6e22e">end</span>   = <span style="color:#a6e22e">start</span> <span style="color:#f92672">+</span> int64(<span style="color:#a6e22e">size</span>)
-)
-<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
-<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-     <span style="color:#66d9ef">return</span>
-}
-</code></pre></div><h3 id="测试">测试</h3>
-<p>我们增加N个Object：</p>
-<pre tabindex="0"><code>[1 a]
-[2 b]
-[3 c]
-[11 aa]
-[12 bb]
-[13 cc]
-[21 aaaa]
-</code></pre><p>每页的长度为4，获取第一页</p>
-<pre tabindex="0"><code>[1 2 3 11]
-</code></pre><p>第二页：</p>
-<pre tabindex="0"><code>[12 13 21]
-</code></pre><p>第三页：</p>
-<pre tabindex="0"><code>[ ]
-</code></pre><h4 id="参考">参考</h4>
+<h3 id="资源分类">资源分类</h3>
+<p>依据资源的主要功能作为分类标准，Kubernetes的API对象⼤体可分为</p>
 <ul>
-<li><a href="https://cloud.tencent.com/developer/article/1802288">https://cloud.tencent.com/developer/article/1802288</a></li>
+<li>
+<p>⼯作负载 （Workload）</p>
+<ul>
+<li>ReplicationController</li>
+<li>ReplicaSet</li>
+<li>Deploymen</li>
+<li>StatefulSet</li>
+<li>DaemonSet</li>
+<li>Job</li>
+</ul>
+</li>
+<li>
+<p>发现和负载均衡 （Discovery&amp;LB）</p>
+</li>
+<li>
+<p>配置和存储 （Config&amp;Storage</p>
+</li>
+<li>
+<p>集群 （Cluster）</p>
+<ul>
+<li>Namespace</li>
+<li>Node</li>
+<li>Role</li>
+<li>ClusterRole</li>
+</ul>
+</li>
+<li>
+<p>元数据 （Metadata）</p>
+</li>
+</ul>
+<p>它们基本上都是围绕⼀个核⼼⽬的⽽设计：如何更好地运⾏和丰富Pod资源，从⽽为容器化应⽤提供更灵活、更完善的操作与管理组件。</p>
+<h3 id="资源配置">资源配置</h3>
+<p>标准格式一般包括一级字段</p>
+<ul>
+<li>kind</li>
+<li>apiVersion</li>
+<li>metadata （对象元数据)</li>
+<li>spec（描述所期望的对象应该具有的状态）</li>
+<li>status（字段在对象创建后由系统⾃⾏维护）</li>
+</ul>
+<p>以一个nginx的pod.yaml为例</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-pod</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">containers</span>:
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+      <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx:1.7.9</span>
+      <span style="color:#f92672">ports</span>:
+          - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">80</span>
+</code></pre></div><ul>
+<li>metadata:
+<ul>
+<li>name 当前的对象名称</li>
+<li>labels： 当前对象的标签（键值对）</li>
+</ul>
+</li>
+<li>spec
+<ul>
+<li>containers，它的值是⼀个容器对象列表，⽀持嵌套创建⼀到
+多个容器。</li>
+</ul>
+</li>
+</ul>
+<h3 id="声明式对象配置">声明式对象配置</h3>
+<p>提供配置清单文件给k8s系统，并委托系统来跟踪活动对象的状态变动。管理操作的命令通过apply</p>
+<ul>
+<li>创建</li>
+</ul>
+<pre tabindex="0"><code>$kubectl apply -f &lt;directory&gt;/
+</code></pre><ul>
+<li>更新</li>
+</ul>
+<pre tabindex="0"><code>kubectl apply -f &lt;directory&gt;/
+</code></pre><ul>
+<li>删除</li>
+</ul>
+<pre tabindex="0"><code>kubectl apply -f &lt;directory&gt;/ --prune -l your-label 
+</code></pre><p>建议使用命令式的方法</p>
+<pre tabindex="0"><code>kubectl delete -f  &lt;filename&gt;
+</code></pre><h3 id="实战声明式部署nginx">实战声明式部署nginx</h3>
+<p>定义的deployment文件: nginx_dp.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-deployment</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-dp</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">3</span>
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:
+      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
+  <span style="color:#f92672">template</span>:
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:
+        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
+    <span style="color:#f92672">spec</span>:
+      <span style="color:#f92672">containers</span>:
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
+          <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx:1.7.9</span>
+          <span style="color:#f92672">ports</span>:
+            - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>暴露服务，定义service文件nginx_svc.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Service</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-svc</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">type</span>: <span style="color:#ae81ff">NodePort</span>
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
+  <span style="color:#f92672">ports</span>:
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">default</span>
+      <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">TCP</span>
+      <span style="color:#f92672">port</span>: <span style="color:#ae81ff">80</span>
+      <span style="color:#f92672">targetPort</span>: <span style="color:#ae81ff">80</span>
+</code></pre></div><p>访问nginx，output
+<img src="https://luckytking.github.io/images/k8s-nginx.png" alt=""></p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>Kubernetes进阶实战-第2版》  <a href="https://item.jd.com/13140598.html">https://item.jd.com/13140598.html</a></li>
+<li>k8s 部署nginx  <a href="https://github.com/kevinyan815/LearningKubernetes">https://github.com/kevinyan815/LearningKubernetes</a></li>
 </ul>
       
       <p>
         
-          <a href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" class="postShorten-excerpt_link link" aria-label=""></a>
+          <a href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
