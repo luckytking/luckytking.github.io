@@ -237,6 +237,166 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%B8%89statefulset/" aria-label="">
+      
+          利用k8s储存卷来部署redis之三StatefulSet
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-09-11T18:20:54&#43;08:00">
+        
+   11, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%ad%a6%e4%b9%a0%e7%ac%94%e8%ae%b0">学习笔记</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>前两篇(1.<a href="https://luckytking.github.io/2022/08/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis/">volume</a>2.<a href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/">pv&amp;pvc</a>)通过部署redis学习实战了k8s的来Volume、PV和PVC。但是，应⽤程序存在“有状态”和“⽆状态”两种类别，显然redis属于读写磁盘需求的有状态应⽤程序，如⽀持事务功能的各种RDBMS存储系统，所以，本文学习实战k8s有状态应用的部署。</p>
+<h3 id="stateful基础">Stateful基础</h3>
+<p>StatefulSet是Pod资源控制器的⼀种实现，⽤于部署和扩展有状态应⽤的Pod资源，确保它们的运⾏顺序及每个Pod资源的唯⼀性。适用以下需求的应用：</p>
+<ul>
+<li>稳定且唯⼀的⽹络标识符。</li>
+<li>稳定且持久的存储。</li>
+<li>有序、优雅地部署和扩展。</li>
+<li>有序、优雅地删除和终⽌。</li>
+<li>有序⽽⾃动地滚动更新。</li>
+</ul>
+<h3 id="部署">部署</h3>
+<p>接着，这里把之前的redis存储修改为stateful的方式，修改后的步骤：</p>
+<ol>
+<li>创建 ConfigMap （参考第一篇）</li>
+<li>修改 Deployment 为StatefulSets</li>
+</ol>
+<h4 id="修改部署statefulsets">修改部署StatefulSets</h4>
+<p>mkdir my-redis-statefulsets.yaml</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">StatefulSet</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+  <span style="color:#f92672">serviceName</span>: <span style="color:#ae81ff">redis</span>
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:
+      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis</span>
+  <span style="color:#f92672">template</span>:
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:
+        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis</span>
+    <span style="color:#f92672">spec</span>:
+      <span style="color:#f92672">containers</span>:
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis</span>
+          <span style="color:#f92672">image</span>: <span style="color:#ae81ff">redis</span>
+          <span style="color:#f92672">resources</span>:
+            <span style="color:#f92672">requests</span>:
+              <span style="color:#f92672">cpu</span>: <span style="color:#ae81ff">100m</span>
+              <span style="color:#f92672">memory</span>: <span style="color:#ae81ff">100Mi</span>
+<span style="color:#75715e">#          command: [&#34;redis-server&#34;,&#34;/etc/redis/redis.conf&#34;]</span>
+          <span style="color:#f92672">command</span>:
+            - <span style="color:#ae81ff">redis-server</span>
+            - <span style="color:#ae81ff">/etc/redis/redis.conf</span>
+          <span style="color:#f92672">ports</span>:
+            - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">6379</span>
+          <span style="color:#f92672">volumeMounts</span>:
+            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+              <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/etc/redis/redis.conf</span>
+              <span style="color:#f92672">subPath</span>: <span style="color:#ae81ff">redis.conf</span>
+            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-storage</span>
+              <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/data</span>
+      <span style="color:#f92672">volumes</span>:
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-storage</span>
+          <span style="color:#f92672">emptyDir</span>: {}
+        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+          <span style="color:#f92672">configMap</span>:
+            <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
+            <span style="color:#f92672">items</span>:
+              - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">redis.conf</span>
+                <span style="color:#f92672">path</span>: <span style="color:#ae81ff">redis.conf</span>
+ 
+---
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Service</span>
+<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis</span>
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">type</span>: <span style="color:#ae81ff">NodePort</span>
+  <span style="color:#f92672">ports</span>:
+  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis</span>
+    <span style="color:#f92672">port</span>: <span style="color:#ae81ff">6379</span>
+    <span style="color:#f92672">targetPort</span>: <span style="color:#ae81ff">6379</span>
+    <span style="color:#f92672">nodePort</span>: <span style="color:#ae81ff">30379</span>
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis          </span>
+
+</code></pre></div><p>其中：</p>
+<ol>
+<li>Headless Service：⽤于为Pod资源标识符⽣成可解析的DNS资源记录</li>
+<li>StatefulSet ⽤于管控Pod资源</li>
+<li>volumeClaimTemplate则基于静态或动态的PV供给⽅式为Pod资源提供
+专有且固定的存储</li>
+</ol>
+<h3 id="测试">测试</h3>
+<p>redis-client 连接 NodeId:NodePort</p>
+<pre tabindex="0"><code># redis-cli -h YourNodeIp-p 30379 -a 123456
+YourNodeIp:30379&gt; info
+# Serverredis_version:7.0.4
+</code></pre><p>连接成功!</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>官方stateful介绍 <a href="https://kubernetes.io/zh-cn/docs/tutorials/stateful-application/basic-stateful-set/#writing-to-stable-storage">https://kubernetes.io/zh-cn/docs/tutorials/stateful-application/basic-stateful-set/#writing-to-stable-storage</a></li>
+<li>《Kubernetes进阶实战-第2版》  https://item.jd.com/13140598.html</li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%B8%89statefulset/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/" aria-label="">
       
           利用k8s储存卷来部署redis之二PV与PVC
@@ -1745,150 +1905,6 @@ Logging Driver: loki
       <p>
         
           <a href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%BA%8C%E6%94%B6%E9%9B%86%E6%9C%AC%E5%9C%B0docker%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" aria-label="">
-      
-          日志聚合系统GrafanaLoki  一、初试
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-07-02T17:34:59&#43;08:00">
-        
-   2, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/infrastructure">infrastructure</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/log">log</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>为了快速定位、排查问题的，那么需要一个日志聚合、搜索的工具或者系统。</p>
-<h3 id="简介">简介</h3>
-<blockquote>
-<p>Loki是一个受普罗米修斯启发的水平可伸缩、高可用性、多租户日志聚合系统。它的设计是非常有效的成本和易于操作。它不索引日志的内容，而是为每个日志流设置一组标签。</p>
-</blockquote>
-<h3 id="相关组件">相关组件</h3>
-<ul>
-<li>Loki是主服务器，负责存储日志和处理查询。</li>
-<li>Promtail是代理，负责收集日志并将其发送给 loki 。</li>
-<li>Grafana用于 UI 展示。</li>
-</ul>
-<h3 id="部署">部署</h3>
-<p>这里在Linux环境下，使用docker-compose的方式部署, 采集os的日志，主要分以下几个步骤：</p>
-<ol>
-<li>启动 loki 、promtail、grafana</li>
-<li>配置日志收集方式</li>
-<li>观测日志是否采集、聚合</li>
-</ol>
-<h4 id="启动-loki-promtailgrafana">启动 loki 、promtail、grafana</h4>
-<p>在工作目录底下创建 docker-compose.yaml</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#34;3&#34;</span>
-
-<span style="color:#f92672">networks</span>:
-  <span style="color:#f92672">loki</span>:
-
-<span style="color:#f92672">services</span>:
-  <span style="color:#f92672">loki</span>:
-    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/loki:latest</span>
-    <span style="color:#f92672">ports</span>:
-      - <span style="color:#e6db74">&#34;3100:3100&#34;</span>
-    <span style="color:#f92672">command</span>: -<span style="color:#ae81ff">config.file=/etc/loki/local-config.yaml</span>
-    <span style="color:#f92672">networks</span>:
-      - <span style="color:#ae81ff">loki</span>
-
-  <span style="color:#f92672">promtail</span>:
-    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/promtail:latest</span>
-    <span style="color:#f92672">volumes</span>:
-      - <span style="color:#ae81ff">/var/log:/var/log</span>
-    <span style="color:#f92672">command</span>: -<span style="color:#ae81ff">config.file=/etc/promtail/config.yml</span>
-    <span style="color:#f92672">networks</span>:
-      - <span style="color:#ae81ff">loki</span>
-
-  <span style="color:#f92672">grafana</span>:
-    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">grafana/grafana:latest</span>
-    <span style="color:#f92672">ports</span>:
-      - <span style="color:#e6db74">&#34;3000:3000&#34;</span>
-    <span style="color:#f92672">networks</span>:
-      - <span style="color:#ae81ff">loki</span>
-</code></pre></div><p>查看是否启动：</p>
-<blockquote>
-<p>docker-compose ls</p>
-</blockquote>
-<p>输出：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">smartgo$ docker-compose ls
-NAME                STATUS              CONFIG FILES
-xloki               running(3)          /home/smartgo/xloki/docker-compose.yaml
-</code></pre></div><h4 id="配置数据源">配置数据源</h4>
-<p>访问Grafana： yournode:3000
-,选择数据源：<strong>Explore&ndash;DataSource</strong>
-<img src="https://luckytking.github.io/images/loki_data_source1.png" alt="">
-可以看到Grafana支持的数据源,点击选择  <strong>Loki</strong>
-<img src="https://luckytking.github.io/images/loki_data_source2.png" alt="">
-设置地址为：</p>
-<blockquote>
-<p>http://loki:3100</p>
-</blockquote>
-<p>保存即可,点击 <strong>SaveAndTest</strong> 
-<img src="https://luckytking.github.io/images/loki_data_source3.png" alt=""></p>
-<h4 id="观测日志是否采集聚合">观测日志是否采集、聚合</h4>
-<p>搜索日志，选择数据源Loki，选择文件类型和文件路径，具体如下
-<img src="https://luckytking.github.io/images/loki_output.png" alt=""></p>
-<h3 id="小结">小结</h3>
-<p>本文主要初步介绍日志聚合、搜索系统Loki，以及如何docker部署，Grafana配置，搜索日志。</p>
-<h3 id="todo">ToDo</h3>
-<ul>
-<li>收集Dockers的日志</li>
-<li>LogQL <a href="https://grafana.com/docs/loki/latest/logql/">https://grafana.com/docs/loki/latest/logql/</a></li>
-</ul>
-<h3 id="reference">reference</h3>
-<ul>
-<li>Loki Github： <a href="https://github.com/grafana/loki/">https://github.com/grafana/loki/</a></li>
-<li>Loki DockerCompose 安装 <a href="https://grafana.com/docs/loki/latest/installation/docker/">https://grafana.com/docs/loki/latest/installation/docker/</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/07/%E6%97%A5%E5%BF%97%E8%81%9A%E5%90%88%E7%B3%BB%E7%BB%9Fgrafanaloki-%E4%B8%80%E5%88%9D%E8%AF%95/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
