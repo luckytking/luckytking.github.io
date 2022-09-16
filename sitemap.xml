@@ -5,16 +5,19 @@
     <loc>https://luckytking.github.io/categories/</loc>
     <lastmod>2022-09-16T21:32:33+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/tags/docker/</loc>
+    <loc>https://luckytking.github.io/tags/deployment/</loc>
     <lastmod>2022-09-16T21:32:33+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/categories/docker/</loc>
+    <loc>https://luckytking.github.io/categories/deployment/</loc>
+    <lastmod>2022-09-16T21:32:33+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/docker/</loc>
     <lastmod>2022-09-16T21:32:33+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/2022/09/docker-gitlab%E8%BF%81%E7%A7%BB%E4%B8%8E%E5%8D%87%E7%BA%A7/</loc>
     <lastmod>2022-09-16T21:32:33+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/categories/gitlab/</loc>
+    <loc>https://luckytking.github.io/categories/dockers/</loc>
     <lastmod>2022-09-16T21:32:33+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/gitlab-backup/</loc>
@@ -170,13 +173,7 @@
     <loc>https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/</loc>
     <lastmod>2022-06-19T16:11:18+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/categories/deployment/</loc>
-    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
-  </url><url>
     <loc>https://luckytking.github.io/tags/docker-buildx/</loc>
-    <lastmod>2022-06-09T21:52:17+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/categories/dockers/</loc>
     <lastmod>2022-06-09T21:52:17+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/mac-m1/</loc>

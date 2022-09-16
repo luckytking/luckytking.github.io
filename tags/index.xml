@@ -8,7 +8,16 @@
     <language>zh-cn</language>
     <lastBuildDate>Fri, 16 Sep 2022 21:32:33 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Docker</title>
+      <title>deployment</title>
+      <link>https://luckytking.github.io/tags/deployment/</link>
+      <pubDate>Fri, 16 Sep 2022 21:32:33 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/deployment/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>docker</title>
       <link>https://luckytking.github.io/tags/docker/</link>
       <pubDate>Fri, 16 Sep 2022 21:32:33 +0800</pubDate>
       
