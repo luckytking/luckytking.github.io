@@ -6,7 +6,43 @@
     <description>Recent content in Tags on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 11 Sep 2022 18:20:54 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 16 Sep 2022 21:32:33 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Docker</title>
+      <link>https://luckytking.github.io/tags/docker/</link>
+      <pubDate>Fri, 16 Sep 2022 21:32:33 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/docker/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>GitLab Backup</title>
+      <link>https://luckytking.github.io/tags/gitlab-backup/</link>
+      <pubDate>Fri, 16 Sep 2022 21:32:33 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/gitlab-backup/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>GitLab Restore</title>
+      <link>https://luckytking.github.io/tags/gitlab-restore/</link>
+      <pubDate>Fri, 16 Sep 2022 21:32:33 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/gitlab-restore/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>GitLab Update</title>
+      <link>https://luckytking.github.io/tags/gitlab-update/</link>
+      <pubDate>Fri, 16 Sep 2022 21:32:33 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/gitlab-update/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>k8s</title>
       <link>https://luckytking.github.io/tags/k8s/</link>

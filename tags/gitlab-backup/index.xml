@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>GitLab Backup on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/gitlab-backup/</link>
+    <description>Recent content in GitLab Backup on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 16 Sep 2022 21:32:33 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/gitlab-backup/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Docker GitLab迁移与升级</title>
+      <link>https://luckytking.github.io/2022/09/docker-gitlab%E8%BF%81%E7%A7%BB%E4%B8%8E%E5%8D%87%E7%BA%A7/</link>
+      <pubDate>Fri, 16 Sep 2022 21:32:33 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/09/docker-gitlab%E8%BF%81%E7%A7%BB%E4%B8%8E%E5%8D%87%E7%BA%A7/</guid>
+      <description>&lt;p&gt;最近在日常运维过程，发现挖矿病毒利用GitLab的CVE-2021-22205漏洞，消耗服务器的资源。为了彻底解决问题，决定对GitLab进行迁移和版本升级。&lt;/p&gt;
+&lt;h3 id=&#34;前提&#34;&gt;前提&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;服务器&lt;/th&gt;
+&lt;th&gt;OS&lt;/th&gt;
+&lt;th&gt;GitLabVersion&lt;/th&gt;
+&lt;th&gt;备注&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;原始服务器A&lt;/td&gt;
+&lt;td&gt;Ubuntu&lt;/td&gt;
+&lt;td&gt;13.7.4&lt;/td&gt;
+&lt;td&gt;下文简称ServerA&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;迁移目标服务器B&lt;/td&gt;
+&lt;td&gt;Ubuntu&lt;/td&gt;
+&lt;td&gt;15.3.3&lt;/td&gt;
+&lt;td&gt;下文简称原ServerB&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;大致步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;ServerA:备份GitLab&lt;/li&gt;
+&lt;li&gt;ServerB:恢复GitLab&lt;/li&gt;
+&lt;li&gt;ServerB:更新GitLab版本&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;备份&#34;&gt;备份&lt;/h3&gt;
+&lt;h4 id=&#34;数据&#34;&gt;数据&lt;/h4&gt;
+&lt;p&gt;这里我们是用DockerCompose运行的GitLab-13.7.4，从主机运行备份：
+GitLab 12.2 或更高版本：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;$docker exec -t &amp;lt;container name&amp;gt; gitlab-backup create
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;GitLab 12.1 及更早版本：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$docker exec -t &amp;lt;container name&amp;gt; gitlab-rake gitlab:backup:create
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;开始备份:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker exec -t 985506cf361c gitlab-rake gitlab:backup:create
+2022-09-16 02:56:34 +0000 -- Dumping database ...
+Dumping PostgreSQL database gitlabhq_production ... [DONE]
+...
+Backup task is done.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;查看备份文件：
+默认的备份路径为 /var/opt/gitlab/backups，如果不知道保存路径，可以从容器的 /etc/gitlab/gitlab.rb 文件，查找 gitlab_rails[&amp;lsquo;backup_path&amp;rsquo;] = &amp;ldquo;/var/opt/gitlab/backups&amp;rdquo; 此为备份目录。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker exec -it 985506cf361c bash
+root@985506cf361c:/# cd /var/opt/gitlab/backups
+root@985506cf361c:/var/opt/gitlab/backups# ls
+123456_2022_09_16_13.7.4—_gitlab_backup.tar
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;将容器数据备份拷贝到主机的当前目录&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;docker cp gitlab:/var/opt/gitlab/backups/123456_2022_09_16_13.7.4_gitlab_backup.tar  ~/
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;配置&#34;&gt;配置&lt;/h4&gt;
+&lt;p&gt;GitLab 提供的备份 Rake 任务不存储您的配置文件,故而这里需要收到备份&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;/etc/gitlab/gitlab-secrets.json
+/etc/gitlab/gitlab.rb
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;再将配置备份拷贝到主机的当前目录&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;docker cp gitlab:/etc/gitlab  ~/
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;迁移&#34;&gt;迁移&lt;/h3&gt;
+&lt;h4 id=&#34;相同版本启动&#34;&gt;相同版本启动&lt;/h4&gt;
+&lt;p&gt;docker-compose.yaml 示例如下&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;3.3&amp;#39;&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;web&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;gitlab/gitlab-ce:13.7.4-ce.0&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;restart&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;always&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;hostname&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;gitlab.example.com&amp;#39;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;environment&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;GITLAB_OMNIBUS_CONFIG&lt;/span&gt;: |&lt;span style=&#34;color:#e6db74&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        external_url &amp;#39;https://gitlab.example.com&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        # Add any other gitlab.rb configuration here, each on its own line&lt;/span&gt;        
+    &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;80:80&amp;#39;&lt;/span&gt;
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;443:443&amp;#39;&lt;/span&gt;
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;22:22&amp;#39;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;volumes&lt;/span&gt;:
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./volumes/gitlab/config:/etc/gitlab&amp;#39;&lt;/span&gt;
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./volumes/gitlab/logs:/var/log/gitlab&amp;#39;&lt;/span&gt;
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./volumes/gitlab/data:/var/opt/gitlab&amp;#39;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;shm_size&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;256m&amp;#39;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;配置-1&#34;&gt;配置&lt;/h4&gt;
+&lt;h4 id=&#34;数据-1&#34;&gt;数据&lt;/h4&gt;
+&lt;p&gt;将ServerA的备份拷贝到ServerB&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;docker cp 1123456_2022_09_16_13.7.4_gitlab_backup.tar gitlab:/var/opt/gitlab/backups/
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;进入容器&lt;/strong&gt;，&lt;/p&gt;
+&lt;p&gt;停止连接到数据库的进程。让 GitLab 的其余部分继续运行&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;root@23b5e49fc9ea:/var/opt/gitlab/backups# gitlab-ctl stop unicorn
+root@23b5e49fc9ea:/var/opt/gitlab/backups# gitlab-ctl stop sidekiq
+ok: down: sidekiq: 0s, normally up
+root@23b5e49fc9ea:/var/opt/gitlab/backups# gitlab-ctl status
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;备份文件必须是git用户所有者（root下导入才需要）&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# chown -R git:git /var/opt/gitlab/backups/备份.tar
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;开始还原备份&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;root@23b5e49fc9ea:/var/opt/gitlab/backups# gitlab-rake gitlab:backup:restore BACKUP=123456_2022_09_16_13.7.4
+Unpacking backup ... done
+
+Do you want to continue (yes/no)? yes
+...
+Do you want to continue (yes/no)? yes
+
+Warning: Your gitlab.rb and gitlab-secrets.json files contain sensitive data
+and are not included in this backup. You will need to restore these files manually.
+Restore task is done.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;启动GitLab&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;root@23b5e49fc9ea:/var/opt/gitlab/backups# gitlab-ctl start
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;登入http://ServerB，检查GitLab正常运行。&lt;/p&gt;
+&lt;h3 id=&#34;更新gitlab版本&#34;&gt;更新GitLab版本&lt;/h3&gt;
+&lt;p&gt;接着开始更新版本，这里采用的停机升级方案，耗时较久（大概3～4小时），所以需要选择适当时机更新。更新路线：
+13.7.4-&amp;gt; 13.8.8-&amp;gt;13.12.15-&amp;gt; 14.0.12-&amp;gt; 14.3.6=&amp;gt;14.6.2-&amp;gt; 14.9.5-&amp;gt; 14.10.5-&amp;gt; 15.0.2-&amp;gt;15.1.0&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+   &lt;span style=&#34;color:#f92672&#34;&gt;gitlab&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;gitlab/gitlab-ce:15.3.3-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:15.1.0-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:15.0.2-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:14.10.5-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:14.9.5-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:14.6.2-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:14.3.6-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:14.0.12-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:13.12.15-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:13.8.8-ce.0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#    image: gitlab/gitlab-ce:13.7.4-ce.0&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;遇到的问题&#34;&gt;遇到的问题&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;在使用备份恢复GitLab时卡住&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ docker exec -it 7ddbcc0a6eb2 gitlab-rake gitlab:backup:restore BACKUP=1123456_2022_09_16_13.7.4
+Unpacking backup ... done
+Do you want to continue (yes/no)? yes
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;处理方式：&lt;strong&gt;进入容器&lt;/strong&gt;,授权,执行恢复&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# chown -R git:git /var/opt/gitlab/backups/备份.tar
+root@23b5e49fc9ea:/var/opt/gitlab/backups# gitlab-rake gitlab:backup:restore 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;备注：增加 gitlab-rake gitlab:backup:restore &amp;ndash;trace 查看详细信息.&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;备份GitLab &lt;a href=&#34;https://docs.gitlab.com/ee/raketasks/backup_gitlab.html#storing-configuration-files&#34;&gt;https://docs.gitlab.com/ee/raketasks/backup_gitlab.html#storing-configuration-files&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;恢复GitLab &lt;a href=&#34;https://docs.gitlab.com/ee/raketasks/restore_gitlab.html#restore-prerequisites&#34;&gt;https://docs.gitlab.com/ee/raketasks/restore_gitlab.html#restore-prerequisites&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;GitLab升级路径 &lt;a href=&#34;https://docs.gitlab.com/ee/update/#upgrade-paths&#34;&gt;https://docs.gitlab.com/ee/update/#upgrade-paths&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Docker Hub-Gitlab.Ce &lt;a href=&#34;https://hub.docker.com/r/gitlab/gitlab-ce/tags&#34;&gt;https://hub.docker.com/r/gitlab/gitlab-ce/tags&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Docker gitlab备份与还原 &lt;a href=&#34;https://www.xtcoder.com/archives/docker-gitlab-backup-restore&#34;&gt;https://www.xtcoder.com/archives/docker-gitlab-backup-restore&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Gitlab 应急解决方案 &lt;a href=&#34;https://overstarry.vip/posts/gitlab_cve-2021-22205/&#34;&gt;https://overstarry.vip/posts/gitlab_cve-2021-22205/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
