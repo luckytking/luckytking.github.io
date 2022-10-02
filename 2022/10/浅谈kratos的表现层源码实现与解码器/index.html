@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e前后端数据常用传输格式有：json、xml 和 proto等，不管是mvc还是ddd，都会在表现层的对不同的格式进行转化下层依赖所需的类、Object、 aggregate等。\u003c\/p\u003e\n\u003ch2 id=\u0022kratos-表现层\u0022\u003eKratos 表现层\u003c\/h2\u003e\n\u003cp\u003e在实际开发场景中，前后端传输采用json。 但kratos使用proto定义Api， 那么我们以一个Http请求为例，来看看kratos的表现层是如何处理的。\u003c\/p\u003e\n\u003cp\u003e以下是一个Kratos-Example，由编写好的proto文件，proto-go 等自动生成表现层的代码。 大概步骤：\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e编写proto，包括Service，Req，Reply\u003c\/li\u003e\n\u003cli\u003e生成表现层代码\u003c\/li\u003e\n\u003cli\u003e实现下层逻辑等\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cp\u003eExample完整代码如下\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003e_Greeter_SayHello0_HTTP_Handler\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eGreeterHTTPServer\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContext\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContext\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ein\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eHelloRequest\u003c\/span\u003e\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBindQuery\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ein\u003c\/span\u003e); \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t\t}\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBindVars\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ein\u003c\/span\u003e); \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t\t}\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetOperation\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/helloworld.v1.Greeter\/SayHello\u0026#34;\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eh\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMiddleware\u003c\/span\u003e(\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContext\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ereq\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}) (\u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}, \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e) {\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSayHello\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ereq\u003c\/span\u003e.(\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eHelloRequest\u003c\/span\u003e))\n\t\t})\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eout\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eh\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ein\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t\t}\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eout\u003c\/span\u003e.(\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eHelloReply\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e200\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e)\n\t}\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e可以看到：\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e这里对具体的格式无感，输入In还是输出Out都是一个proto生成的类。\u003c\/li\u003e\n\u003cli\u003e具体的实现交给了ctx 上下文去实现\n查看 ctx.Result的源码:\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ewrapper\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ecode\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWriteHeader\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ecode\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003erouter\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003esrv\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eenc\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ereq\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e)\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e这里的enc，没有特殊设置，使用默认的DefaultResponseEncoder，部分源码如下\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eDefaultResponseEncoder\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResponseWriter\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRequest\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ecodec\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003e_\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eCodecForRequest\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Accept\u0026#34;\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003edata\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ecodec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHeader\u003c\/span\u003e().\u003cspan style=\u0022color:#a6e22e\u0022\u003eSet\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Content-Type\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttputil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eContentType\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ecodec\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e()))\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003e_\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWrite\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003edata\u003c\/span\u003e)\n    \u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e通过codc接口隔离具体实现，调用接口的 codec.Marshal序列化。\u003c\/p\u003e\n\u003ch2 id=\u0022codec包\u0022\u003ecodec包\u003c\/h2\u003e\n\u003cp\u003eCodec定义Transport用于编码和解码消息的接口。它的实现包括 json，xml，proto，yaml等\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eCodec\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Marshal returns the wire format of v.\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}) ([]\u003cspan style=\u0022color:#66d9ef\u0022\u003ebyte\u003c\/span\u003e, \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Unmarshal parses the wire format into v.\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eUnmarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003edata\u003c\/span\u003e []\u003cspan style=\u0022color:#66d9ef\u0022\u003ebyte\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Name returns the name of the Codec implementation. The returned string\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ will be used as part of content type in transmission.  The result must be\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ static; the result cannot change between calls.\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e() \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e这里我们聚焦正在使用的Json\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ecodec\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e{}\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ecodec\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e{}) ([]\u003cspan style=\u0022color:#66d9ef\u0022\u003ebyte\u003c\/span\u003e, \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e) {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eswitch\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003em\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ev\u003c\/span\u003e.(\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e) {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ecase\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ejson\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshaler\u003c\/span\u003e:\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003em\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshalJSON\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ecase\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eproto\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMessage\u003c\/span\u003e:\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshalOptions\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003em\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003edefault\u003c\/span\u003e:\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ejson\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003em\u003c\/span\u003e)\n\t}\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e这里Marshal()使用第三方库“\u0026ldquo;google.golang.org\/protobuf\/encoding\/protojson\u0026rdquo;\u003c\/p\u003e\n\u003cp\u003e”实现proto转json。\u003c\/p\u003e\n\u003ch2 id=\u0022protojson第三方包\u0022\u003eprotojson第三方包\u003c\/h2\u003e\n\u003cp\u003eprotojson是Google提供的proto和json的转化\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eapi_test\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;google.golang.org\/protobuf\/encoding\/protojson\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;testing\u0026#34;\u003c\/span\u003e\n\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ev1\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;helloworld\/api\/helloworld\/v1\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eTestToJson\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003etesting\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eT\u003c\/span\u003e) {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ev1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHelloReply\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eMessage\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Jobs\u0026#34;\u003c\/span\u003e,\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ereplyJson\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshalOptions\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ereply\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eProtoReflect\u003c\/span\u003e().\u003cspan style=\u0022color:#a6e22e\u0022\u003eInterface\u003c\/span\u003e())\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eErrorf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Marshal Error: %v\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLogf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;replyJson:  %v\u0026#34;\u003c\/span\u003e, string(\u003cspan style=\u0022color:#a6e22e\u0022\u003ereplyJson\u003c\/span\u003e))\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e更多的接口请参考“https:\/\/google.golang.org\/protobuf\/encoding\/protojson”\u003c\/p\u003e\n\u003ch2 id=\u0022小结\u0022\u003e小结\u003c\/h2\u003e\n\u003cp\u003e本文主要以kratos的表现层的组织方式，来介绍常用的框架表现层处理方式。\n其中：\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003ekratos通过proto来生成表现层代码的类，包括http和grapc，内部对具体实现无感。\u003c\/li\u003e\n\u003cli\u003ekratos通过解码器codec实现不同传输格式的解耦。\u003c\/li\u003e\n\u003cli\u003e第三方包protojson实现proto和json转换。\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e框架的主要功能之一就是标准化处理一下公共的问题场景,从源码中可以学习：通过接口隔离具体的实现，而使框架与具体实现解耦,且具备更好的拓展性。\u003c\/p\u003e\n\u003ch2 id=\u0022参考\u0022\u003e参考\u003c\/h2\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/go-kratos.dev\/docs\/getting-started\/usage\u0022\u003ehttps:\/\/go-kratos.dev\/docs\/getting-started\/usage\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/google.golang.org\/protobuf\/encoding\/protojson\u0022\u003ehttps:\/\/google.golang.org\/protobuf\/encoding\/protojson\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/10\/%E6%B5%85%E8%B0%88kratos%E7%9A%84%E8%A1%A8%E7%8E%B0%E5%B1%82%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E7%A0%81%E5%99%A8\/",
+  "keywords":"[codec, kratos]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="codec, kratos">
+<meta name="description" content="前后端数据常用传输格式有：json、xml 和 proto等，不管是mvc还是ddd，都会在表现层的对不同的格式进行转化下层依赖所需的类、Object、 aggregate等。
+Kratos 表现层
+在实际开发场景中，前后端传输采用json。 但kratos使用proto定义Api， 那么我们以一个Http请求为例，来看看kratos的表现层是如何处理的。
+以下是一个Kratos-Example，由编写好的proto文件，proto-go 等自动生成表现层的代码。 大概步骤：
+
+编写proto，包括Service，Req，Reply
+生成表现层代码
+实现下层逻辑等
+
+Example完整代码如下
+func _Greeter_SayHello0_HTTP_Handler(srv GreeterHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in HelloRequest
+		if err := ctx.BindQuery(&amp;in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&amp;in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, &#34;/helloworld.v1.Greeter/SayHello&#34;)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SayHello(ctx, req.(*HelloRequest))
+		})
+		out, err := h(ctx, &amp;in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*HelloReply)
+		return ctx.Result(200, reply)
+	}
+}
+可以看到：
+
+这里对具体的格式无感，输入In还是输出Out都是一个proto生成的类。
+具体的实现交给了ctx 上下文去实现
+查看 ctx.Result的源码:
+
+func (c *wrapper) Result(code int, v interface{}) error {
+	c.w.WriteHeader(code)
+	return c.router.srv.enc(&amp;c.w, c.req, v)
+}
+这里的enc，没有特殊设置，使用默认的DefaultResponseEncoder，部分源码如下
+func DefaultResponseEncoder(w http.ResponseWriter, r *http.Request, v interface{}) error {
+	...
+	codec, _ := CodecForRequest(r, &#34;Accept&#34;)
+	data, err := codec.Marshal(v)
+	if err != nil {
+		return err
+	}
+	w.Header().Set(&#34;Content-Type&#34;, httputil.ContentType(codec.Name()))
+	_, err = w.Write(data)
+    ...
+}
+通过codc接口隔离具体实现，调用接口的 codec.Marshal序列化。
+codec包
+Codec定义Transport用于编码和解码消息的接口。它的实现包括 json，xml，proto，yaml等
+type Codec interface {
+	// Marshal returns the wire format of v.
+	Marshal(v interface{}) ([]byte, error)
+	// Unmarshal parses the wire format into v.
+	Unmarshal(data []byte, v interface{}) error
+	// Name returns the name of the Codec implementation. The returned string
+	// will be used as part of content type in transmission.  The result must be
+	// static; the result cannot change between calls.
+	Name() string
+}
+这里我们聚焦正在使用的Json
+type codec struct{}
+func (codec) Marshal(v interface{}) ([]byte, error) {
+	switch m := v.(type) {
+	case json.Marshaler:
+		return m.MarshalJSON()
+	case proto.Message:
+		return MarshalOptions.Marshal(m)
+	default:
+		return json.Marshal(m)
+	}
+}
+这里Marshal()使用第三方库“&ldquo;google.golang.org/protobuf/encoding/protojson&rdquo;
+”实现proto转json。
+protojson第三方包
+protojson是Google提供的proto和json的转化
+package api_test
+
+import (
+	&#34;google.golang.org/protobuf/encoding/protojson&#34;
+	&#34;testing&#34;
+
+	v1 &#34;helloworld/api/helloworld/v1&#34;
+)
+
+func TestToJson(t *testing.T) {
+	reply := &amp;v1.HelloReply{
+		Message: &#34;Jobs&#34;,
+	}
+	replyJson, err := MarshalOptions.Marshal(reply.ProtoReflect().Interface())
+	if err != nil {
+		t.Errorf(&#34;Marshal Error: %v&#34;, err)
+	}
+	t.Logf(&#34;replyJson:  %v&#34;, string(replyJson))
+}
+更多的接口请参考“https://google.golang.org/protobuf/encoding/protojson”
+小结
+本文主要以kratos的表现层的组织方式，来介绍常用的框架表现层处理方式。
+其中：
+
+kratos通过proto来生成表现层代码的类，包括http和grapc，内部对具体实现无感。
+kratos通过解码器codec实现不同传输格式的解耦。
+第三方包protojson实现proto和json转换。
+
+框架的主要功能之一就是标准化处理一下公共的问题场景,从源码中可以学习：通过接口隔离具体的实现，而使框架与具体实现解耦,且具备更好的拓展性。
+参考
+
+https://go-kratos.dev/docs/getting-started/usage
+https://google.golang.org/protobuf/encoding/protojson
+">
+
+
+<meta property="og:description" content="前后端数据常用传输格式有：json、xml 和 proto等，不管是mvc还是ddd，都会在表现层的对不同的格式进行转化下层依赖所需的类、Object、 aggregate等。
+Kratos 表现层
+在实际开发场景中，前后端传输采用json。 但kratos使用proto定义Api， 那么我们以一个Http请求为例，来看看kratos的表现层是如何处理的。
+以下是一个Kratos-Example，由编写好的proto文件，proto-go 等自动生成表现层的代码。 大概步骤：
+
+编写proto，包括Service，Req，Reply
+生成表现层代码
+实现下层逻辑等
+
+Example完整代码如下
+func _Greeter_SayHello0_HTTP_Handler(srv GreeterHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in HelloRequest
+		if err := ctx.BindQuery(&amp;in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&amp;in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, &#34;/helloworld.v1.Greeter/SayHello&#34;)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SayHello(ctx, req.(*HelloRequest))
+		})
+		out, err := h(ctx, &amp;in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*HelloReply)
+		return ctx.Result(200, reply)
+	}
+}
+可以看到：
+
+这里对具体的格式无感，输入In还是输出Out都是一个proto生成的类。
+具体的实现交给了ctx 上下文去实现
+查看 ctx.Result的源码:
+
+func (c *wrapper) Result(code int, v interface{}) error {
+	c.w.WriteHeader(code)
+	return c.router.srv.enc(&amp;c.w, c.req, v)
+}
+这里的enc，没有特殊设置，使用默认的DefaultResponseEncoder，部分源码如下
+func DefaultResponseEncoder(w http.ResponseWriter, r *http.Request, v interface{}) error {
+	...
+	codec, _ := CodecForRequest(r, &#34;Accept&#34;)
+	data, err := codec.Marshal(v)
+	if err != nil {
+		return err
+	}
+	w.Header().Set(&#34;Content-Type&#34;, httputil.ContentType(codec.Name()))
+	_, err = w.Write(data)
+    ...
+}
+通过codc接口隔离具体实现，调用接口的 codec.Marshal序列化。
+codec包
+Codec定义Transport用于编码和解码消息的接口。它的实现包括 json，xml，proto，yaml等
+type Codec interface {
+	// Marshal returns the wire format of v.
+	Marshal(v interface{}) ([]byte, error)
+	// Unmarshal parses the wire format into v.
+	Unmarshal(data []byte, v interface{}) error
+	// Name returns the name of the Codec implementation. The returned string
+	// will be used as part of content type in transmission.  The result must be
+	// static; the result cannot change between calls.
+	Name() string
+}
+这里我们聚焦正在使用的Json
+type codec struct{}
+func (codec) Marshal(v interface{}) ([]byte, error) {
+	switch m := v.(type) {
+	case json.Marshaler:
+		return m.MarshalJSON()
+	case proto.Message:
+		return MarshalOptions.Marshal(m)
+	default:
+		return json.Marshal(m)
+	}
+}
+这里Marshal()使用第三方库“&ldquo;google.golang.org/protobuf/encoding/protojson&rdquo;
+”实现proto转json。
+protojson第三方包
+protojson是Google提供的proto和json的转化
+package api_test
+
+import (
+	&#34;google.golang.org/protobuf/encoding/protojson&#34;
+	&#34;testing&#34;
+
+	v1 &#34;helloworld/api/helloworld/v1&#34;
+)
+
+func TestToJson(t *testing.T) {
+	reply := &amp;v1.HelloReply{
+		Message: &#34;Jobs&#34;,
+	}
+	replyJson, err := MarshalOptions.Marshal(reply.ProtoReflect().Interface())
+	if err != nil {
+		t.Errorf(&#34;Marshal Error: %v&#34;, err)
+	}
+	t.Logf(&#34;replyJson:  %v&#34;, string(replyJson))
+}
+更多的接口请参考“https://google.golang.org/protobuf/encoding/protojson”
+小结
+本文主要以kratos的表现层的组织方式，来介绍常用的框架表现层处理方式。
+其中：
+
+kratos通过proto来生成表现层代码的类，包括http和grapc，内部对具体实现无感。
+kratos通过解码器codec实现不同传输格式的解耦。
+第三方包protojson实现proto和json转换。
+
+框架的主要功能之一就是标准化处理一下公共的问题场景,从源码中可以学习：通过接口隔离具体的实现，而使框架与具体实现解耦,且具备更好的拓展性。
+参考
+
+https://go-kratos.dev/docs/getting-started/usage
+https://google.golang.org/protobuf/encoding/protojson
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈kratos的表现层源码实现与解码器">
+<meta name="twitter:title" content="浅谈kratos的表现层源码实现与解码器">
+<meta property="og:url" content="https://luckytking.github.io/2022/10/%E6%B5%85%E8%B0%88kratos%E7%9A%84%E8%A1%A8%E7%8E%B0%E5%B1%82%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E7%A0%81%E5%99%A8/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/10/%E6%B5%85%E8%B0%88kratos%E7%9A%84%E8%A1%A8%E7%8E%B0%E5%B1%82%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E7%A0%81%E5%99%A8/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="前后端数据常用传输格式有：json、xml 和 proto等，不管是mvc还是ddd，都会在表现层的对不同的格式进行转化下层依赖所需的类、Object、 aggregate等。
+Kratos 表现层
+在实际开发场景中，前后端传输采用json。 但kratos使用proto定义Api， 那么我们以一个Http请求为例，来看看kratos的表现层是如何处理的。
+以下是一个Kratos-Example，由编写好的proto文件，proto-go 等自动生成表现层的代码。 大概步骤：
+
+编写proto，包括Service，Req，Reply
+生成表现层代码
+实现下层逻辑等
+
+Example完整代码如下
+func _Greeter_SayHello0_HTTP_Handler(srv GreeterHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in HelloRequest
+		if err := ctx.BindQuery(&amp;in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&amp;in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, &#34;/helloworld.v1.Greeter/SayHello&#34;)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SayHello(ctx, req.(*HelloRequest))
+		})
+		out, err := h(ctx, &amp;in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*HelloReply)
+		return ctx.Result(200, reply)
+	}
+}
+可以看到：
+
+这里对具体的格式无感，输入In还是输出Out都是一个proto生成的类。
+具体的实现交给了ctx 上下文去实现
+查看 ctx.Result的源码:
+
+func (c *wrapper) Result(code int, v interface{}) error {
+	c.w.WriteHeader(code)
+	return c.router.srv.enc(&amp;c.w, c.req, v)
+}
+这里的enc，没有特殊设置，使用默认的DefaultResponseEncoder，部分源码如下
+func DefaultResponseEncoder(w http.ResponseWriter, r *http.Request, v interface{}) error {
+	...
+	codec, _ := CodecForRequest(r, &#34;Accept&#34;)
+	data, err := codec.Marshal(v)
+	if err != nil {
+		return err
+	}
+	w.Header().Set(&#34;Content-Type&#34;, httputil.ContentType(codec.Name()))
+	_, err = w.Write(data)
+    ...
+}
+通过codc接口隔离具体实现，调用接口的 codec.Marshal序列化。
+codec包
+Codec定义Transport用于编码和解码消息的接口。它的实现包括 json，xml，proto，yaml等
+type Codec interface {
+	// Marshal returns the wire format of v.
+	Marshal(v interface{}) ([]byte, error)
+	// Unmarshal parses the wire format into v.
+	Unmarshal(data []byte, v interface{}) error
+	// Name returns the name of the Codec implementation. The returned string
+	// will be used as part of content type in transmission.  The result must be
+	// static; the result cannot change between calls.
+	Name() string
+}
+这里我们聚焦正在使用的Json
+type codec struct{}
+func (codec) Marshal(v interface{}) ([]byte, error) {
+	switch m := v.(type) {
+	case json.Marshaler:
+		return m.MarshalJSON()
+	case proto.Message:
+		return MarshalOptions.Marshal(m)
+	default:
+		return json.Marshal(m)
+	}
+}
+这里Marshal()使用第三方库“&ldquo;google.golang.org/protobuf/encoding/protojson&rdquo;
+”实现proto转json。
+protojson第三方包
+protojson是Google提供的proto和json的转化
+package api_test
+
+import (
+	&#34;google.golang.org/protobuf/encoding/protojson&#34;
+	&#34;testing&#34;
+
+	v1 &#34;helloworld/api/helloworld/v1&#34;
+)
+
+func TestToJson(t *testing.T) {
+	reply := &amp;v1.HelloReply{
+		Message: &#34;Jobs&#34;,
+	}
+	replyJson, err := MarshalOptions.Marshal(reply.ProtoReflect().Interface())
+	if err != nil {
+		t.Errorf(&#34;Marshal Error: %v&#34;, err)
+	}
+	t.Logf(&#34;replyJson:  %v&#34;, string(replyJson))
+}
+更多的接口请参考“https://google.golang.org/protobuf/encoding/protojson”
+小结
+本文主要以kratos的表现层的组织方式，来介绍常用的框架表现层处理方式。
+其中：
+
+kratos通过proto来生成表现层代码的类，包括http和grapc，内部对具体实现无感。
+kratos通过解码器codec实现不同传输格式的解耦。
+第三方包protojson实现proto和json转换。
+
+框架的主要功能之一就是标准化处理一下公共的问题场景,从源码中可以学习：通过接口隔离具体的实现，而使框架与具体实现解耦,且具备更好的拓展性。
+参考
+
+https://go-kratos.dev/docs/getting-started/usage
+https://google.golang.org/protobuf/encoding/protojson
+">
+<meta name="twitter:description" content="前后端数据常用传输格式有：json、xml 和 proto等，不管是mvc还是ddd，都会在表现层的对不同的格式进行转化下层依赖所需的类、Object、 aggregate等。
+Kratos 表现层
+在实际开发场景中，前后端传输采用json。 但kratos使用proto定义Api， 那么我们以一个Http请求为例，来看看kratos的表现层是如何处理的。
+以下是一个Kratos-Example，由编写好的proto文件，proto-go 等自动生成表现层的代码。 大概步骤：
+
+编写proto，包括Service，Req，Reply
+生成表现层代码
+实现下层逻辑等
+
+Example完整代码如下
+func _Greeter_SayHello0_HTTP_Handler(srv GreeterHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in HelloRequest
+		if err := ctx.BindQuery(&amp;in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&amp;in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, &#34;/helloworld.v1.Greeter/SayHello&#34;)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SayHello(ctx, req.(*HelloRequest))
+		})
+		out, err := h(ctx, &amp;in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*HelloReply)
+		return ctx.Result(200, reply)
+	}
+}
+可以看到：
+
+这里对具体的格式无感，输入In还是输出Out都是一个proto生成的类。
+具体的实现交给了ctx 上下文去实现
+查看 ctx.Result的源码:
+
+func (c *wrapper) Result(code int, v interface{}) error {
+	c.w.WriteHeader(code)
+	return c.router.srv.enc(&amp;c.w, c.req, v)
+}
+这里的enc，没有特殊设置，使用默认的DefaultResponseEncoder，部分源码如下
+func DefaultResponseEncoder(w http.ResponseWriter, r *http.Request, v interface{}) error {
+	...
+	codec, _ := CodecForRequest(r, &#34;Accept&#34;)
+	data, err := codec.Marshal(v)
+	if err != nil {
+		return err
+	}
+	w.Header().Set(&#34;Content-Type&#34;, httputil.ContentType(codec.Name()))
+	_, err = w.Write(data)
+    ...
+}
+通过codc接口隔离具体实现，调用接口的 codec.Marshal序列化。
+codec包
+Codec定义Transport用于编码和解码消息的接口。它的实现包括 json，xml，proto，yaml等
+type Codec interface {
+	// Marshal returns the wire format of v.
+	Marshal(v interface{}) ([]byte, error)
+	// Unmarshal parses the wire format into v.
+	Unmarshal(data []byte, v interface{}) error
+	// Name returns the name of the Codec implementation. The returned string
+	// will be used as part of content type in transmission.  The result must be
+	// static; the result cannot change between calls.
+	Name() string
+}
+这里我们聚焦正在使用的Json
+type codec struct{}
+func (codec) Marshal(v interface{}) ([]byte, error) {
+	switch m := v.(type) {
+	case json.Marshaler:
+		return m.MarshalJSON()
+	case proto.Message:
+		return MarshalOptions.Marshal(m)
+	default:
+		return json.Marshal(m)
+	}
+}
+这里Marshal()使用第三方库“&ldquo;google.golang.org/protobuf/encoding/protojson&rdquo;
+”实现proto转json。
+protojson第三方包
+protojson是Google提供的proto和json的转化
+package api_test
+
+import (
+	&#34;google.golang.org/protobuf/encoding/protojson&#34;
+	&#34;testing&#34;
+
+	v1 &#34;helloworld/api/helloworld/v1&#34;
+)
+
+func TestToJson(t *testing.T) {
+	reply := &amp;v1.HelloReply{
+		Message: &#34;Jobs&#34;,
+	}
+	replyJson, err := MarshalOptions.Marshal(reply.ProtoReflect().Interface())
+	if err != nil {
+		t.Errorf(&#34;Marshal Error: %v&#34;, err)
+	}
+	t.Logf(&#34;replyJson:  %v&#34;, string(replyJson))
+}
+更多的接口请参考“https://google.golang.org/protobuf/encoding/protojson”
+小结
+本文主要以kratos的表现层的组织方式，来介绍常用的框架表现层处理方式。
+其中：
+
+kratos通过proto来生成表现层代码的类，包括http和grapc，内部对具体实现无感。
+kratos通过解码器codec实现不同传输格式的解耦。
+第三方包protojson实现proto和json转换。
+
+框架的主要功能之一就是标准化处理一下公共的问题场景,从源码中可以学习：通过接口隔离具体的实现，而使框架与具体实现解耦,且具备更好的拓展性。
+参考
+
+https://go-kratos.dev/docs/getting-started/usage
+https://google.golang.org/protobuf/encoding/protojson
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-10-02T17:25:55">
+  
+  
+    <meta property="article:modified_time" content="2022-10-02T17:25:55">
+  
+  
+  
+    
+      <meta property="article:section" content="go开发">
+    
+      <meta property="article:section" content="kratos">
+    
+  
+  
+    
+      <meta property="article:tag" content="go开发">
+    
+      <meta property="article:tag" content="kratos">
+    
+      <meta property="article:tag" content="codec">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>浅谈kratos的表现层源码实现与解码器</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/10/%E6%B5%85%E8%B0%88kratos%E7%9A%84%E8%A1%A8%E7%8E%B0%E5%B1%82%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E7%A0%81%E5%99%A8/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      浅谈kratos的表现层源码实现与解码器
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-10-02T17:25:55&#43;08:00">
+        
+   2, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/kratos">kratos</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>前后端数据常用传输格式有：json、xml 和 proto等，不管是mvc还是ddd，都会在表现层的对不同的格式进行转化下层依赖所需的类、Object、 aggregate等。</p>
+<h2 id="kratos-表现层">Kratos 表现层</h2>
+<p>在实际开发场景中，前后端传输采用json。 但kratos使用proto定义Api， 那么我们以一个Http请求为例，来看看kratos的表现层是如何处理的。</p>
+<p>以下是一个Kratos-Example，由编写好的proto文件，proto-go 等自动生成表现层的代码。 大概步骤：</p>
+<ol>
+<li>编写proto，包括Service，Req，Reply</li>
+<li>生成表现层代码</li>
+<li>实现下层逻辑等</li>
+</ol>
+<p>Example完整代码如下</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">_Greeter_SayHello0_HTTP_Handler</span>(<span style="color:#a6e22e">srv</span> <span style="color:#a6e22e">GreeterHTTPServer</span>) <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span> {
+		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">in</span> <span style="color:#a6e22e">HelloRequest</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">BindQuery</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">in</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+		}
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">BindVars</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">in</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+		}
+		<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">SetOperation</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;/helloworld.v1.Greeter/SayHello&#34;</span>)
+		<span style="color:#a6e22e">h</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Middleware</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">SayHello</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">req</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">HelloRequest</span>))
+		})
+		<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">h</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">in</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+		}
+		<span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">out</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">HelloReply</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Result</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">reply</span>)
+	}
+}
+</code></pre></div><p>可以看到：</p>
+<ol>
+<li>这里对具体的格式无感，输入In还是输出Out都是一个proto生成的类。</li>
+<li>具体的实现交给了ctx 上下文去实现
+查看 ctx.Result的源码:</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">wrapper</span>) <span style="color:#a6e22e">Result</span>(<span style="color:#a6e22e">code</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">v</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span> {
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">code</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">enc</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">v</span>)
+}
+</code></pre></div><p>这里的enc，没有特殊设置，使用默认的DefaultResponseEncoder，部分源码如下</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">DefaultResponseEncoder</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>, <span style="color:#a6e22e">v</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span> {
+	<span style="color:#f92672">...</span>
+	<span style="color:#a6e22e">codec</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">CodecForRequest</span>(<span style="color:#a6e22e">r</span>, <span style="color:#e6db74">&#34;Accept&#34;</span>)
+	<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">v</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Header</span>().<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Content-Type&#34;</span>, <span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">ContentType</span>(<span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">Name</span>()))
+	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">data</span>)
+    <span style="color:#f92672">...</span>
+}
+</code></pre></div><p>通过codc接口隔离具体实现，调用接口的 codec.Marshal序列化。</p>
+<h2 id="codec包">codec包</h2>
+<p>Codec定义Transport用于编码和解码消息的接口。它的实现包括 json，xml，proto，yaml等</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Codec</span> <span style="color:#66d9ef">interface</span> {
+	<span style="color:#75715e">// Marshal returns the wire format of v.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">v</span> <span style="color:#66d9ef">interface</span>{}) ([]<span style="color:#66d9ef">byte</span>, <span style="color:#66d9ef">error</span>)
+	<span style="color:#75715e">// Unmarshal parses the wire format into v.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>, <span style="color:#a6e22e">v</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">error</span>
+	<span style="color:#75715e">// Name returns the name of the Codec implementation. The returned string
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// will be used as part of content type in transmission.  The result must be
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// static; the result cannot change between calls.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Name</span>() <span style="color:#66d9ef">string</span>
+}
+</code></pre></div><p>这里我们聚焦正在使用的Json</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">codec</span> <span style="color:#66d9ef">struct</span>{}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">codec</span>) <span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">v</span> <span style="color:#66d9ef">interface</span>{}) ([]<span style="color:#66d9ef">byte</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.(<span style="color:#66d9ef">type</span>) {
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshaler</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">MarshalJSON</span>()
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">proto</span>.<span style="color:#a6e22e">Message</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">MarshalOptions</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">m</span>)
+	<span style="color:#66d9ef">default</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">m</span>)
+	}
+}
+</code></pre></div><p>这里Marshal()使用第三方库“&ldquo;google.golang.org/protobuf/encoding/protojson&rdquo;</p>
+<p>”实现proto转json。</p>
+<h2 id="protojson第三方包">protojson第三方包</h2>
+<p>protojson是Google提供的proto和json的转化</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">api_test</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;google.golang.org/protobuf/encoding/protojson&#34;</span>
+	<span style="color:#e6db74">&#34;testing&#34;</span>
+
+	<span style="color:#a6e22e">v1</span> <span style="color:#e6db74">&#34;helloworld/api/helloworld/v1&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestToJson</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+	<span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">HelloReply</span>{
+		<span style="color:#a6e22e">Message</span>: <span style="color:#e6db74">&#34;Jobs&#34;</span>,
+	}
+	<span style="color:#a6e22e">replyJson</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">MarshalOptions</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">reply</span>.<span style="color:#a6e22e">ProtoReflect</span>().<span style="color:#a6e22e">Interface</span>())
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Marshal Error: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Logf</span>(<span style="color:#e6db74">&#34;replyJson:  %v&#34;</span>, string(<span style="color:#a6e22e">replyJson</span>))
+}
+</code></pre></div><p>更多的接口请参考“https://google.golang.org/protobuf/encoding/protojson”</p>
+<h2 id="小结">小结</h2>
+<p>本文主要以kratos的表现层的组织方式，来介绍常用的框架表现层处理方式。
+其中：</p>
+<ul>
+<li>kratos通过proto来生成表现层代码的类，包括http和grapc，内部对具体实现无感。</li>
+<li>kratos通过解码器codec实现不同传输格式的解耦。</li>
+<li>第三方包protojson实现proto和json转换。</li>
+</ul>
+<p>框架的主要功能之一就是标准化处理一下公共的问题场景,从源码中可以学习：通过接口隔离具体的实现，而使框架与具体实现解耦,且具备更好的拓展性。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://go-kratos.dev/docs/getting-started/usage">https://go-kratos.dev/docs/getting-started/usage</a></li>
+<li><a href="https://google.golang.org/protobuf/encoding/protojson">https://google.golang.org/protobuf/encoding/protojson</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/go%E5%BC%80%E5%8F%91/">go开发</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/kratos/">kratos</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/codec/">codec</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/09/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/" data-tooltip="设计模式  观察者模式" aria-label=": 设计模式  观察者模式">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/09/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/" data-tooltip="设计模式  观察者模式" aria-label=": 设计模式  观察者模式">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+
