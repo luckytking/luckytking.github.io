@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003ch3 id=\u0022定义\u0022\u003e定义\u003c\/h3\u003e\n\u003cblockquote\u003e\n\u003cp\u003e将一个复杂对象的构建与它的表示分离，使得同样的构建 过程可以创建不同的表示。\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch3 id=\u0022复杂的构造函数\u0022\u003e复杂的构造函数\u003c\/h3\u003e\n\u003cp\u003e创建一个对象最常用的方式是，使用 new 关键字调用类的构造函数来完成。举个常用资源连接池的例子\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e     \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxIdle\u003c\/span\u003e  \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e  \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n}\n\u003cspan style=\u0022color:#a6e22e\u0022\u003eresourcePool\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewResourcePool\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;dbconnectionpool\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e16\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e8\u003c\/span\u003e, \n\u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e)\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e在可配置项不多的时候没什么问题，但是，如果可配置项逐渐增多，以gorm的配置文件为例\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Config GORM config\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eConfig\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ GORM perform single create, update, delete operations in transactions by default to ensure database data integrity\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ You can disable it by setting `SkipDefaultTransaction` to true\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eSkipDefaultTransaction\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ NamingStrategy tables, columns naming strategy\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eNamingStrategy\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eschema\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNamer\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ FullSaveAssociations full save associations\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eFullSaveAssociations\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Logger\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eLogger\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003elogger\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eInterface\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ NowFunc the function to be used when creating a new timestamp\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eNowFunc\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e() \u003cspan style=\u0022color:#a6e22e\u0022\u003etime\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTime\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ DryRun generate sql without execute\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eDryRun\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ PrepareStmt executes the given query in cached statement\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrepareStmt\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ DisableAutomaticPing\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eDisableAutomaticPing\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ DisableForeignKeyConstraintWhenMigrating\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eDisableForeignKeyConstraintWhenMigrating\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ DisableNestedTransaction disable nested transaction\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eDisableNestedTransaction\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ AllowGlobalUpdate allow global update\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAllowGlobalUpdate\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ QueryFields executes the SQL query with all fields of the table\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eQueryFields\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003ebool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ CreateBatchSize default create batch size\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eCreateBatchSize\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ ClauseBuilders clause builder\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eClauseBuilders\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e]\u003cspan style=\u0022color:#a6e22e\u0022\u003eclause\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eClauseBuilder\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ ConnPool db conn pool\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eConnPool\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eConnPool\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Dialector database dialector\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eDialector\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Plugins registered plugins\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlugins\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e]\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlugin\u003c\/span\u003e\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ ... 省略一些参数\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e这时，这个构造函数就变得复杂了。构造函数参数列表会变得很长，容易搞错各参数的顺序，造成隐蔽的bug。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eresourcePool\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewResourcePool\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;dbconnectionpool\u0026#34;\u003c\/span\u003e,   \u003cspan style=\u0022color:#ae81ff\u0022\u003e16\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003enull\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e8\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003enull\u003c\/span\u003e, \u003cspan style=\u0022color:#66d9ef\u0022\u003efalse\u003c\/span\u003e , \u003cspan style=\u0022color:#66d9ef\u0022\u003etrue\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e10\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e20\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e，\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efalse\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e，\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003etrue\u003c\/span\u003e )\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e开始重构，这里使用 set() 函数来给成员变量赋值，以替代冗长的构造函数，并在set()函数里做参数校验。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewResourcePool\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e{}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetName\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e\n}\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eSetName\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e len(\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eany\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;name should not be empty.\u0026#34;\u003c\/span\u003e))\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e\n}\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eSetMaxTotal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eany\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;maxTotal should be positive.\u0026#34;\u003c\/span\u003e))\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e\n}\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eSetMinIdle\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e \u0026lt; \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eany\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;minIdle should not be negative.\u0026#34;\u003c\/span\u003e))\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e重构后的构造函数：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eresourcePool\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewResourcePool\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;dbconnectionpool\u0026#34;\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetMaxTotal\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e16\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetMinIdle\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e8\u003c\/span\u003e)\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e但是，这里还是有几个问题：\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e如果必填的配置项有很多，那构造函数就又会出现参数列表很长的问题。\u003c\/li\u003e\n\u003cli\u003e如果配置项之间有一定的依赖关系，并校验参数的合法性。\u003c\/li\u003e\n\u003cli\u003e如果希望ResourcePool的配置项不对外提供修改方法。\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003ch3 id=\u0022使用构造者重构\u0022\u003e使用构造者重构\u003c\/h3\u003e\n\u003col\u003e\n\u003cli\u003e首先，创建一个构造者类Builder，并把参数改为私有，提供set()函数修改。\u003c\/li\u003e\n\u003cli\u003e其次build() 方法真正创建对象之前，做集中的校验，校验通过之后才会创建对象。\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewResourcePool\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e{}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxIdle\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxIdle\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e     \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxIdle\u003c\/span\u003e  \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e  \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eBuilder\u003c\/span\u003e() \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e{}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e = \u003cspan style=\u0022color:#ae81ff\u0022\u003e16\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e = \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ebuilder\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003eb\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eBuild\u003c\/span\u003e() \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePool\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 校验逻辑放到这里来做，包括必填项校验、依赖关系校验、约束条件校验等\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e len(\u003cspan style=\u0022color:#a6e22e\u0022\u003eb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eany\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;name should not be empty.\u0026#34;\u003c\/span\u003e))\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxIdle\u003c\/span\u003e \u0026gt; \u003cspan style=\u0022color:#a6e22e\u0022\u003eb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eany\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;maxIdle should bigger than maxTotal.\u0026#34;\u003c\/span\u003e))\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewResourcePool\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eb\u003c\/span\u003e)\n}\n\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eSetName\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e len(\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eany\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;name should not be empty.\u0026#34;\u003c\/span\u003e))\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ename\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e\n}\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eSetMaxTotal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eany\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;maxTotal should be positive.\u0026#34;\u003c\/span\u003e))\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003emaxTotal\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e\n}\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e (\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003eSetMinIdle\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e) \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eResourcePoolBuilder\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e \u0026lt; \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e {\n\t\tpanic(\u003cspan style=\u0022color:#a6e22e\u0022\u003eany\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;minIdle should not be negative.\u0026#34;\u003c\/span\u003e))\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003eminIdle\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ethis\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e重构后的构造函数\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eresourcePool\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eBuilder\u003c\/span\u003e().\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetName\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;test\u0026#34;\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetMaxTotal\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetMinIdle\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eBuild\u003c\/span\u003e()\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e如此，\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e这样我们就只能通过建造者Builder 来创建 ResourcePool 类对象。\u003c\/li\u003e\n\u003cli\u003e要修改resourcePool只能通过 Builder提供的 set()函数，配置项不对外提供修改方法。\u003c\/li\u003e\n\u003cli\u003e参数校验或者提供默认参数可以放在build()函数内。\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003ch3 id=\u0022小结\u0022\u003e小结\u003c\/h3\u003e\n\u003cp\u003e构造者模式原理并不复杂，主要适当的场景中灵活使用。通过构造者类Builder、提供的set()函数设置必选项，最终调用build()处理构造类之前的一些逻辑。如此，可以以通过设置不同的可选参数，“定制化”地创建不同的复杂对象.\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e设计模式之美 \u003ca href=\u0022https:\/\/item.jd.com\/13174161.html\u0022\u003ehttps:\/\/item.jd.com\/13174161.html\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/10\/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E6%9E%84%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F\/",
+  "keywords":"[disign-mode, 设计模式, 构造者]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="disign-mode, 设计模式, 构造者">
+<meta name="description" content="定义
+
+将一个复杂对象的构建与它的表示分离，使得同样的构建 过程可以创建不同的表示。
+
+复杂的构造函数
+创建一个对象最常用的方式是，使用 new 关键字调用类的构造函数来完成。举个常用资源连接池的例子
+type ResourcePool struct {
+	name     string
+	maxTotal int
+	maxIdle  int
+	minIdle  int
+}
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;, 16, 8, 
+10)
+在可配置项不多的时候没什么问题，但是，如果可配置项逐渐增多，以gorm的配置文件为例
+// Config GORM config
+type Config struct {
+	// GORM perform single create, update, delete operations in transactions by default to ensure database data integrity
+	// You can disable it by setting `SkipDefaultTransaction` to true
+	SkipDefaultTransaction bool
+	// NamingStrategy tables, columns naming strategy
+	NamingStrategy schema.Namer
+	// FullSaveAssociations full save associations
+	FullSaveAssociations bool
+	// Logger
+	Logger logger.Interface
+	// NowFunc the function to be used when creating a new timestamp
+	NowFunc func() time.Time
+	// DryRun generate sql without execute
+	DryRun bool
+	// PrepareStmt executes the given query in cached statement
+	PrepareStmt bool
+	// DisableAutomaticPing
+	DisableAutomaticPing bool
+	// DisableForeignKeyConstraintWhenMigrating
+	DisableForeignKeyConstraintWhenMigrating bool
+	// DisableNestedTransaction disable nested transaction
+	DisableNestedTransaction bool
+	// AllowGlobalUpdate allow global update
+	AllowGlobalUpdate bool
+	// QueryFields executes the SQL query with all fields of the table
+	QueryFields bool
+	// CreateBatchSize default create batch size
+	CreateBatchSize int
+
+	// ClauseBuilders clause builder
+	ClauseBuilders map[string]clause.ClauseBuilder
+	// ConnPool db conn pool
+	ConnPool ConnPool
+	// Dialector database dialector
+	Dialector
+	// Plugins registered plugins
+	Plugins map[string]Plugin
+    // ... 省略一些参数
+}
+
+这时，这个构造函数就变得复杂了。构造函数参数列表会变得很长，容易搞错各参数的顺序，造成隐蔽的bug。
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;,   16, null, 8, null, false , true, 10, 20，false， true )
+开始重构，这里使用 set() 函数来给成员变量赋值，以替代冗长的构造函数，并在set()函数里做参数校验。
+func NewResourcePool(name string) *ResourcePool {
+	this := &amp;ResourcePool{}
+	this.SetName(name)
+	return this
+}
+func (this *ResourcePool) SetName(name string) *ResourcePool {
+	if len(name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	this.name = name
+	return this
+}
+func (this *ResourcePool) SetMaxTotal(maxTotal int) *ResourcePool {
+	if maxTotal &lt;= 0 {
+		panic(any(&#34;maxTotal should be positive.&#34;))
+	}
+	this.maxTotal = maxTotal
+	return this
+}
+func (this *ResourcePool) SetMinIdle(minIdle int) *ResourcePool {
+	if minIdle &lt; 0 {
+		panic(any(&#34;minIdle should not be negative.&#34;))
+	}
+	this.minIdle = minIdle
+	return this
+}
+重构后的构造函数：
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;).SetMaxTotal(16).SetMinIdle(8)
+
+但是，这里还是有几个问题：
+
+如果必填的配置项有很多，那构造函数就又会出现参数列表很长的问题。
+如果配置项之间有一定的依赖关系，并校验参数的合法性。
+如果希望ResourcePool的配置项不对外提供修改方法。
+
+使用构造者重构
+
+首先，创建一个构造者类Builder，并把参数改为私有，提供set()函数修改。
+其次build() 方法真正创建对象之前，做集中的校验，校验通过之后才会创建对象。
+
+
+func NewResourcePool(builder *ResourcePoolBuilder) *ResourcePool {
+	this := &amp;ResourcePool{}
+	this.name = builder.name
+	this.maxTotal = builder.maxTotal
+	this.maxIdle = builder.maxIdle
+	this.minIdle = builder.minIdle
+	return this
+}
+
+type ResourcePoolBuilder struct {
+	name     string
+	maxTotal int
+	maxIdle  int
+	minIdle  int
+}
+
+func Builder() *ResourcePoolBuilder {
+	builder := &amp;ResourcePoolBuilder{}
+	builder.maxTotal = 16
+	builder.minIdle = 5
+	return builder
+}
+
+func (b *ResourcePoolBuilder) Build() *ResourcePool {
+	// 校验逻辑放到这里来做，包括必填项校验、依赖关系校验、约束条件校验等
+	if len(b.name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	if b.maxIdle &gt; b.maxTotal {
+		panic(any(&#34;maxIdle should bigger than maxTotal.&#34;))
+	}
+	return NewResourcePool(b)
+}
+
+
+func (this *ResourcePoolBuilder) SetName(name string) *ResourcePoolBuilder {
+	if len(name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	this.name = name
+	return this
+}
+func (this *ResourcePoolBuilder) SetMaxTotal(maxTotal int) *ResourcePoolBuilder {
+	if maxTotal &lt;= 0 {
+		panic(any(&#34;maxTotal should be positive.&#34;))
+	}
+	this.maxTotal = maxTotal
+	return this
+}
+func (this *ResourcePoolBuilder) SetMinIdle(minIdle int) *ResourcePoolBuilder {
+	if minIdle &lt; 0 {
+		panic(any(&#34;minIdle should not be negative.&#34;))
+	}
+	this.minIdle = minIdle
+	return this
+}
+重构后的构造函数
+resourcePool := Builder().SetName(&#34;test&#34;).SetMaxTotal(0).SetMinIdle(5).Build()
+如此，
+
+这样我们就只能通过建造者Builder 来创建 ResourcePool 类对象。
+要修改resourcePool只能通过 Builder提供的 set()函数，配置项不对外提供修改方法。
+参数校验或者提供默认参数可以放在build()函数内。
+
+小结
+构造者模式原理并不复杂，主要适当的场景中灵活使用。通过构造者类Builder、提供的set()函数设置必选项，最终调用build()处理构造类之前的一些逻辑。如此，可以以通过设置不同的可选参数，“定制化”地创建不同的复杂对象.
+参考
+
+设计模式之美 https://item.jd.com/13174161.html
+">
+
+
+<meta property="og:description" content="定义
+
+将一个复杂对象的构建与它的表示分离，使得同样的构建 过程可以创建不同的表示。
+
+复杂的构造函数
+创建一个对象最常用的方式是，使用 new 关键字调用类的构造函数来完成。举个常用资源连接池的例子
+type ResourcePool struct {
+	name     string
+	maxTotal int
+	maxIdle  int
+	minIdle  int
+}
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;, 16, 8, 
+10)
+在可配置项不多的时候没什么问题，但是，如果可配置项逐渐增多，以gorm的配置文件为例
+// Config GORM config
+type Config struct {
+	// GORM perform single create, update, delete operations in transactions by default to ensure database data integrity
+	// You can disable it by setting `SkipDefaultTransaction` to true
+	SkipDefaultTransaction bool
+	// NamingStrategy tables, columns naming strategy
+	NamingStrategy schema.Namer
+	// FullSaveAssociations full save associations
+	FullSaveAssociations bool
+	// Logger
+	Logger logger.Interface
+	// NowFunc the function to be used when creating a new timestamp
+	NowFunc func() time.Time
+	// DryRun generate sql without execute
+	DryRun bool
+	// PrepareStmt executes the given query in cached statement
+	PrepareStmt bool
+	// DisableAutomaticPing
+	DisableAutomaticPing bool
+	// DisableForeignKeyConstraintWhenMigrating
+	DisableForeignKeyConstraintWhenMigrating bool
+	// DisableNestedTransaction disable nested transaction
+	DisableNestedTransaction bool
+	// AllowGlobalUpdate allow global update
+	AllowGlobalUpdate bool
+	// QueryFields executes the SQL query with all fields of the table
+	QueryFields bool
+	// CreateBatchSize default create batch size
+	CreateBatchSize int
+
+	// ClauseBuilders clause builder
+	ClauseBuilders map[string]clause.ClauseBuilder
+	// ConnPool db conn pool
+	ConnPool ConnPool
+	// Dialector database dialector
+	Dialector
+	// Plugins registered plugins
+	Plugins map[string]Plugin
+    // ... 省略一些参数
+}
+
+这时，这个构造函数就变得复杂了。构造函数参数列表会变得很长，容易搞错各参数的顺序，造成隐蔽的bug。
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;,   16, null, 8, null, false , true, 10, 20，false， true )
+开始重构，这里使用 set() 函数来给成员变量赋值，以替代冗长的构造函数，并在set()函数里做参数校验。
+func NewResourcePool(name string) *ResourcePool {
+	this := &amp;ResourcePool{}
+	this.SetName(name)
+	return this
+}
+func (this *ResourcePool) SetName(name string) *ResourcePool {
+	if len(name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	this.name = name
+	return this
+}
+func (this *ResourcePool) SetMaxTotal(maxTotal int) *ResourcePool {
+	if maxTotal &lt;= 0 {
+		panic(any(&#34;maxTotal should be positive.&#34;))
+	}
+	this.maxTotal = maxTotal
+	return this
+}
+func (this *ResourcePool) SetMinIdle(minIdle int) *ResourcePool {
+	if minIdle &lt; 0 {
+		panic(any(&#34;minIdle should not be negative.&#34;))
+	}
+	this.minIdle = minIdle
+	return this
+}
+重构后的构造函数：
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;).SetMaxTotal(16).SetMinIdle(8)
+
+但是，这里还是有几个问题：
+
+如果必填的配置项有很多，那构造函数就又会出现参数列表很长的问题。
+如果配置项之间有一定的依赖关系，并校验参数的合法性。
+如果希望ResourcePool的配置项不对外提供修改方法。
+
+使用构造者重构
+
+首先，创建一个构造者类Builder，并把参数改为私有，提供set()函数修改。
+其次build() 方法真正创建对象之前，做集中的校验，校验通过之后才会创建对象。
+
+
+func NewResourcePool(builder *ResourcePoolBuilder) *ResourcePool {
+	this := &amp;ResourcePool{}
+	this.name = builder.name
+	this.maxTotal = builder.maxTotal
+	this.maxIdle = builder.maxIdle
+	this.minIdle = builder.minIdle
+	return this
+}
+
+type ResourcePoolBuilder struct {
+	name     string
+	maxTotal int
+	maxIdle  int
+	minIdle  int
+}
+
+func Builder() *ResourcePoolBuilder {
+	builder := &amp;ResourcePoolBuilder{}
+	builder.maxTotal = 16
+	builder.minIdle = 5
+	return builder
+}
+
+func (b *ResourcePoolBuilder) Build() *ResourcePool {
+	// 校验逻辑放到这里来做，包括必填项校验、依赖关系校验、约束条件校验等
+	if len(b.name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	if b.maxIdle &gt; b.maxTotal {
+		panic(any(&#34;maxIdle should bigger than maxTotal.&#34;))
+	}
+	return NewResourcePool(b)
+}
+
+
+func (this *ResourcePoolBuilder) SetName(name string) *ResourcePoolBuilder {
+	if len(name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	this.name = name
+	return this
+}
+func (this *ResourcePoolBuilder) SetMaxTotal(maxTotal int) *ResourcePoolBuilder {
+	if maxTotal &lt;= 0 {
+		panic(any(&#34;maxTotal should be positive.&#34;))
+	}
+	this.maxTotal = maxTotal
+	return this
+}
+func (this *ResourcePoolBuilder) SetMinIdle(minIdle int) *ResourcePoolBuilder {
+	if minIdle &lt; 0 {
+		panic(any(&#34;minIdle should not be negative.&#34;))
+	}
+	this.minIdle = minIdle
+	return this
+}
+重构后的构造函数
+resourcePool := Builder().SetName(&#34;test&#34;).SetMaxTotal(0).SetMinIdle(5).Build()
+如此，
+
+这样我们就只能通过建造者Builder 来创建 ResourcePool 类对象。
+要修改resourcePool只能通过 Builder提供的 set()函数，配置项不对外提供修改方法。
+参数校验或者提供默认参数可以放在build()函数内。
+
+小结
+构造者模式原理并不复杂，主要适当的场景中灵活使用。通过构造者类Builder、提供的set()函数设置必选项，最终调用build()处理构造类之前的一些逻辑。如此，可以以通过设置不同的可选参数，“定制化”地创建不同的复杂对象.
+参考
+
+设计模式之美 https://item.jd.com/13174161.html
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式 构造者模式">
+<meta name="twitter:title" content="设计模式 构造者模式">
+<meta property="og:url" content="https://luckytking.github.io/2022/10/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E6%9E%84%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/10/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E6%9E%84%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="定义
+
+将一个复杂对象的构建与它的表示分离，使得同样的构建 过程可以创建不同的表示。
+
+复杂的构造函数
+创建一个对象最常用的方式是，使用 new 关键字调用类的构造函数来完成。举个常用资源连接池的例子
+type ResourcePool struct {
+	name     string
+	maxTotal int
+	maxIdle  int
+	minIdle  int
+}
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;, 16, 8, 
+10)
+在可配置项不多的时候没什么问题，但是，如果可配置项逐渐增多，以gorm的配置文件为例
+// Config GORM config
+type Config struct {
+	// GORM perform single create, update, delete operations in transactions by default to ensure database data integrity
+	// You can disable it by setting `SkipDefaultTransaction` to true
+	SkipDefaultTransaction bool
+	// NamingStrategy tables, columns naming strategy
+	NamingStrategy schema.Namer
+	// FullSaveAssociations full save associations
+	FullSaveAssociations bool
+	// Logger
+	Logger logger.Interface
+	// NowFunc the function to be used when creating a new timestamp
+	NowFunc func() time.Time
+	// DryRun generate sql without execute
+	DryRun bool
+	// PrepareStmt executes the given query in cached statement
+	PrepareStmt bool
+	// DisableAutomaticPing
+	DisableAutomaticPing bool
+	// DisableForeignKeyConstraintWhenMigrating
+	DisableForeignKeyConstraintWhenMigrating bool
+	// DisableNestedTransaction disable nested transaction
+	DisableNestedTransaction bool
+	// AllowGlobalUpdate allow global update
+	AllowGlobalUpdate bool
+	// QueryFields executes the SQL query with all fields of the table
+	QueryFields bool
+	// CreateBatchSize default create batch size
+	CreateBatchSize int
+
+	// ClauseBuilders clause builder
+	ClauseBuilders map[string]clause.ClauseBuilder
+	// ConnPool db conn pool
+	ConnPool ConnPool
+	// Dialector database dialector
+	Dialector
+	// Plugins registered plugins
+	Plugins map[string]Plugin
+    // ... 省略一些参数
+}
+
+这时，这个构造函数就变得复杂了。构造函数参数列表会变得很长，容易搞错各参数的顺序，造成隐蔽的bug。
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;,   16, null, 8, null, false , true, 10, 20，false， true )
+开始重构，这里使用 set() 函数来给成员变量赋值，以替代冗长的构造函数，并在set()函数里做参数校验。
+func NewResourcePool(name string) *ResourcePool {
+	this := &amp;ResourcePool{}
+	this.SetName(name)
+	return this
+}
+func (this *ResourcePool) SetName(name string) *ResourcePool {
+	if len(name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	this.name = name
+	return this
+}
+func (this *ResourcePool) SetMaxTotal(maxTotal int) *ResourcePool {
+	if maxTotal &lt;= 0 {
+		panic(any(&#34;maxTotal should be positive.&#34;))
+	}
+	this.maxTotal = maxTotal
+	return this
+}
+func (this *ResourcePool) SetMinIdle(minIdle int) *ResourcePool {
+	if minIdle &lt; 0 {
+		panic(any(&#34;minIdle should not be negative.&#34;))
+	}
+	this.minIdle = minIdle
+	return this
+}
+重构后的构造函数：
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;).SetMaxTotal(16).SetMinIdle(8)
+
+但是，这里还是有几个问题：
+
+如果必填的配置项有很多，那构造函数就又会出现参数列表很长的问题。
+如果配置项之间有一定的依赖关系，并校验参数的合法性。
+如果希望ResourcePool的配置项不对外提供修改方法。
+
+使用构造者重构
+
+首先，创建一个构造者类Builder，并把参数改为私有，提供set()函数修改。
+其次build() 方法真正创建对象之前，做集中的校验，校验通过之后才会创建对象。
+
+
+func NewResourcePool(builder *ResourcePoolBuilder) *ResourcePool {
+	this := &amp;ResourcePool{}
+	this.name = builder.name
+	this.maxTotal = builder.maxTotal
+	this.maxIdle = builder.maxIdle
+	this.minIdle = builder.minIdle
+	return this
+}
+
+type ResourcePoolBuilder struct {
+	name     string
+	maxTotal int
+	maxIdle  int
+	minIdle  int
+}
+
+func Builder() *ResourcePoolBuilder {
+	builder := &amp;ResourcePoolBuilder{}
+	builder.maxTotal = 16
+	builder.minIdle = 5
+	return builder
+}
+
+func (b *ResourcePoolBuilder) Build() *ResourcePool {
+	// 校验逻辑放到这里来做，包括必填项校验、依赖关系校验、约束条件校验等
+	if len(b.name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	if b.maxIdle &gt; b.maxTotal {
+		panic(any(&#34;maxIdle should bigger than maxTotal.&#34;))
+	}
+	return NewResourcePool(b)
+}
+
+
+func (this *ResourcePoolBuilder) SetName(name string) *ResourcePoolBuilder {
+	if len(name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	this.name = name
+	return this
+}
+func (this *ResourcePoolBuilder) SetMaxTotal(maxTotal int) *ResourcePoolBuilder {
+	if maxTotal &lt;= 0 {
+		panic(any(&#34;maxTotal should be positive.&#34;))
+	}
+	this.maxTotal = maxTotal
+	return this
+}
+func (this *ResourcePoolBuilder) SetMinIdle(minIdle int) *ResourcePoolBuilder {
+	if minIdle &lt; 0 {
+		panic(any(&#34;minIdle should not be negative.&#34;))
+	}
+	this.minIdle = minIdle
+	return this
+}
+重构后的构造函数
+resourcePool := Builder().SetName(&#34;test&#34;).SetMaxTotal(0).SetMinIdle(5).Build()
+如此，
+
+这样我们就只能通过建造者Builder 来创建 ResourcePool 类对象。
+要修改resourcePool只能通过 Builder提供的 set()函数，配置项不对外提供修改方法。
+参数校验或者提供默认参数可以放在build()函数内。
+
+小结
+构造者模式原理并不复杂，主要适当的场景中灵活使用。通过构造者类Builder、提供的set()函数设置必选项，最终调用build()处理构造类之前的一些逻辑。如此，可以以通过设置不同的可选参数，“定制化”地创建不同的复杂对象.
+参考
+
+设计模式之美 https://item.jd.com/13174161.html
+">
+<meta name="twitter:description" content="定义
+
+将一个复杂对象的构建与它的表示分离，使得同样的构建 过程可以创建不同的表示。
+
+复杂的构造函数
+创建一个对象最常用的方式是，使用 new 关键字调用类的构造函数来完成。举个常用资源连接池的例子
+type ResourcePool struct {
+	name     string
+	maxTotal int
+	maxIdle  int
+	minIdle  int
+}
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;, 16, 8, 
+10)
+在可配置项不多的时候没什么问题，但是，如果可配置项逐渐增多，以gorm的配置文件为例
+// Config GORM config
+type Config struct {
+	// GORM perform single create, update, delete operations in transactions by default to ensure database data integrity
+	// You can disable it by setting `SkipDefaultTransaction` to true
+	SkipDefaultTransaction bool
+	// NamingStrategy tables, columns naming strategy
+	NamingStrategy schema.Namer
+	// FullSaveAssociations full save associations
+	FullSaveAssociations bool
+	// Logger
+	Logger logger.Interface
+	// NowFunc the function to be used when creating a new timestamp
+	NowFunc func() time.Time
+	// DryRun generate sql without execute
+	DryRun bool
+	// PrepareStmt executes the given query in cached statement
+	PrepareStmt bool
+	// DisableAutomaticPing
+	DisableAutomaticPing bool
+	// DisableForeignKeyConstraintWhenMigrating
+	DisableForeignKeyConstraintWhenMigrating bool
+	// DisableNestedTransaction disable nested transaction
+	DisableNestedTransaction bool
+	// AllowGlobalUpdate allow global update
+	AllowGlobalUpdate bool
+	// QueryFields executes the SQL query with all fields of the table
+	QueryFields bool
+	// CreateBatchSize default create batch size
+	CreateBatchSize int
+
+	// ClauseBuilders clause builder
+	ClauseBuilders map[string]clause.ClauseBuilder
+	// ConnPool db conn pool
+	ConnPool ConnPool
+	// Dialector database dialector
+	Dialector
+	// Plugins registered plugins
+	Plugins map[string]Plugin
+    // ... 省略一些参数
+}
+
+这时，这个构造函数就变得复杂了。构造函数参数列表会变得很长，容易搞错各参数的顺序，造成隐蔽的bug。
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;,   16, null, 8, null, false , true, 10, 20，false， true )
+开始重构，这里使用 set() 函数来给成员变量赋值，以替代冗长的构造函数，并在set()函数里做参数校验。
+func NewResourcePool(name string) *ResourcePool {
+	this := &amp;ResourcePool{}
+	this.SetName(name)
+	return this
+}
+func (this *ResourcePool) SetName(name string) *ResourcePool {
+	if len(name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	this.name = name
+	return this
+}
+func (this *ResourcePool) SetMaxTotal(maxTotal int) *ResourcePool {
+	if maxTotal &lt;= 0 {
+		panic(any(&#34;maxTotal should be positive.&#34;))
+	}
+	this.maxTotal = maxTotal
+	return this
+}
+func (this *ResourcePool) SetMinIdle(minIdle int) *ResourcePool {
+	if minIdle &lt; 0 {
+		panic(any(&#34;minIdle should not be negative.&#34;))
+	}
+	this.minIdle = minIdle
+	return this
+}
+重构后的构造函数：
+resourcePool := NewResourcePool(&#34;dbconnectionpool&#34;).SetMaxTotal(16).SetMinIdle(8)
+
+但是，这里还是有几个问题：
+
+如果必填的配置项有很多，那构造函数就又会出现参数列表很长的问题。
+如果配置项之间有一定的依赖关系，并校验参数的合法性。
+如果希望ResourcePool的配置项不对外提供修改方法。
+
+使用构造者重构
+
+首先，创建一个构造者类Builder，并把参数改为私有，提供set()函数修改。
+其次build() 方法真正创建对象之前，做集中的校验，校验通过之后才会创建对象。
+
+
+func NewResourcePool(builder *ResourcePoolBuilder) *ResourcePool {
+	this := &amp;ResourcePool{}
+	this.name = builder.name
+	this.maxTotal = builder.maxTotal
+	this.maxIdle = builder.maxIdle
+	this.minIdle = builder.minIdle
+	return this
+}
+
+type ResourcePoolBuilder struct {
+	name     string
+	maxTotal int
+	maxIdle  int
+	minIdle  int
+}
+
+func Builder() *ResourcePoolBuilder {
+	builder := &amp;ResourcePoolBuilder{}
+	builder.maxTotal = 16
+	builder.minIdle = 5
+	return builder
+}
+
+func (b *ResourcePoolBuilder) Build() *ResourcePool {
+	// 校验逻辑放到这里来做，包括必填项校验、依赖关系校验、约束条件校验等
+	if len(b.name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	if b.maxIdle &gt; b.maxTotal {
+		panic(any(&#34;maxIdle should bigger than maxTotal.&#34;))
+	}
+	return NewResourcePool(b)
+}
+
+
+func (this *ResourcePoolBuilder) SetName(name string) *ResourcePoolBuilder {
+	if len(name) &lt;= 0 {
+		panic(any(&#34;name should not be empty.&#34;))
+	}
+	this.name = name
+	return this
+}
+func (this *ResourcePoolBuilder) SetMaxTotal(maxTotal int) *ResourcePoolBuilder {
+	if maxTotal &lt;= 0 {
+		panic(any(&#34;maxTotal should be positive.&#34;))
+	}
+	this.maxTotal = maxTotal
+	return this
+}
+func (this *ResourcePoolBuilder) SetMinIdle(minIdle int) *ResourcePoolBuilder {
+	if minIdle &lt; 0 {
+		panic(any(&#34;minIdle should not be negative.&#34;))
+	}
+	this.minIdle = minIdle
+	return this
+}
+重构后的构造函数
+resourcePool := Builder().SetName(&#34;test&#34;).SetMaxTotal(0).SetMinIdle(5).Build()
+如此，
+
+这样我们就只能通过建造者Builder 来创建 ResourcePool 类对象。
+要修改resourcePool只能通过 Builder提供的 set()函数，配置项不对外提供修改方法。
+参数校验或者提供默认参数可以放在build()函数内。
+
+小结
+构造者模式原理并不复杂，主要适当的场景中灵活使用。通过构造者类Builder、提供的set()函数设置必选项，最终调用build()处理构造类之前的一些逻辑。如此，可以以通过设置不同的可选参数，“定制化”地创建不同的复杂对象.
+参考
+
+设计模式之美 https://item.jd.com/13174161.html
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-10-16T12:10:03">
+  
+  
+    <meta property="article:modified_time" content="2022-10-16T12:10:03">
+  
+  
+  
+    
+      <meta property="article:section" content="disign-mode">
+    
+      <meta property="article:section" content="builder">
+    
+  
+  
+    
+      <meta property="article:tag" content="disign-mode">
+    
+      <meta property="article:tag" content="observer">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>设计模式 构造者模式</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/10/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E6%9E%84%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      设计模式 构造者模式
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-10-16T12:10:03&#43;08:00">
+        
+   16, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/disign-mode">disign-mode</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/builder">builder</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <h3 id="定义">定义</h3>
+<blockquote>
+<p>将一个复杂对象的构建与它的表示分离，使得同样的构建 过程可以创建不同的表示。</p>
+</blockquote>
+<h3 id="复杂的构造函数">复杂的构造函数</h3>
+<p>创建一个对象最常用的方式是，使用 new 关键字调用类的构造函数来完成。举个常用资源连接池的例子</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ResourcePool</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">name</span>     <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">maxTotal</span> <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">maxIdle</span>  <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">minIdle</span>  <span style="color:#66d9ef">int</span>
+}
+<span style="color:#a6e22e">resourcePool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewResourcePool</span>(<span style="color:#e6db74">&#34;dbconnectionpool&#34;</span>, <span style="color:#ae81ff">16</span>, <span style="color:#ae81ff">8</span>, 
+<span style="color:#ae81ff">10</span>)
+</code></pre></div><p>在可配置项不多的时候没什么问题，但是，如果可配置项逐渐增多，以gorm的配置文件为例</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Config GORM config
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Config</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#75715e">// GORM perform single create, update, delete operations in transactions by default to ensure database data integrity
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// You can disable it by setting `SkipDefaultTransaction` to true
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">SkipDefaultTransaction</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// NamingStrategy tables, columns naming strategy
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">NamingStrategy</span> <span style="color:#a6e22e">schema</span>.<span style="color:#a6e22e">Namer</span>
+	<span style="color:#75715e">// FullSaveAssociations full save associations
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">FullSaveAssociations</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// Logger
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Logger</span> <span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Interface</span>
+	<span style="color:#75715e">// NowFunc the function to be used when creating a new timestamp
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">NowFunc</span> <span style="color:#66d9ef">func</span>() <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Time</span>
+	<span style="color:#75715e">// DryRun generate sql without execute
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">DryRun</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// PrepareStmt executes the given query in cached statement
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">PrepareStmt</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// DisableAutomaticPing
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">DisableAutomaticPing</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// DisableForeignKeyConstraintWhenMigrating
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">DisableForeignKeyConstraintWhenMigrating</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// DisableNestedTransaction disable nested transaction
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">DisableNestedTransaction</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// AllowGlobalUpdate allow global update
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">AllowGlobalUpdate</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// QueryFields executes the SQL query with all fields of the table
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">QueryFields</span> <span style="color:#66d9ef">bool</span>
+	<span style="color:#75715e">// CreateBatchSize default create batch size
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">CreateBatchSize</span> <span style="color:#66d9ef">int</span>
+
+	<span style="color:#75715e">// ClauseBuilders clause builder
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ClauseBuilders</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">clause</span>.<span style="color:#a6e22e">ClauseBuilder</span>
+	<span style="color:#75715e">// ConnPool db conn pool
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ConnPool</span> <span style="color:#a6e22e">ConnPool</span>
+	<span style="color:#75715e">// Dialector database dialector
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Dialector</span>
+	<span style="color:#75715e">// Plugins registered plugins
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Plugins</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">Plugin</span>
+    <span style="color:#75715e">// ... 省略一些参数
+</span><span style="color:#75715e"></span>}
+
+</code></pre></div><p>这时，这个构造函数就变得复杂了。构造函数参数列表会变得很长，容易搞错各参数的顺序，造成隐蔽的bug。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">resourcePool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewResourcePool</span>(<span style="color:#e6db74">&#34;dbconnectionpool&#34;</span>,   <span style="color:#ae81ff">16</span>, <span style="color:#a6e22e">null</span>, <span style="color:#ae81ff">8</span>, <span style="color:#a6e22e">null</span>, <span style="color:#66d9ef">false</span> , <span style="color:#66d9ef">true</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">20</span><span style="color:#960050;background-color:#1e0010">，</span><span style="color:#66d9ef">false</span><span style="color:#960050;background-color:#1e0010">，</span> <span style="color:#66d9ef">true</span> )
+</code></pre></div><p>开始重构，这里使用 set() 函数来给成员变量赋值，以替代冗长的构造函数，并在set()函数里做参数校验。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewResourcePool</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span> {
+	<span style="color:#a6e22e">this</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ResourcePool</span>{}
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">SetName</span>(<span style="color:#a6e22e">name</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span>) <span style="color:#a6e22e">SetName</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span> {
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">name</span>) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;name should not be empty.&#34;</span>))
+	}
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">name</span> = <span style="color:#a6e22e">name</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span>) <span style="color:#a6e22e">SetMaxTotal</span>(<span style="color:#a6e22e">maxTotal</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span> {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">maxTotal</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;maxTotal should be positive.&#34;</span>))
+	}
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">maxTotal</span> = <span style="color:#a6e22e">maxTotal</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span>) <span style="color:#a6e22e">SetMinIdle</span>(<span style="color:#a6e22e">minIdle</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span> {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">minIdle</span> &lt; <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;minIdle should not be negative.&#34;</span>))
+	}
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">minIdle</span> = <span style="color:#a6e22e">minIdle</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>
+}
+</code></pre></div><p>重构后的构造函数：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">resourcePool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewResourcePool</span>(<span style="color:#e6db74">&#34;dbconnectionpool&#34;</span>).<span style="color:#a6e22e">SetMaxTotal</span>(<span style="color:#ae81ff">16</span>).<span style="color:#a6e22e">SetMinIdle</span>(<span style="color:#ae81ff">8</span>)
+
+</code></pre></div><p>但是，这里还是有几个问题：</p>
+<ol>
+<li>如果必填的配置项有很多，那构造函数就又会出现参数列表很长的问题。</li>
+<li>如果配置项之间有一定的依赖关系，并校验参数的合法性。</li>
+<li>如果希望ResourcePool的配置项不对外提供修改方法。</li>
+</ol>
+<h3 id="使用构造者重构">使用构造者重构</h3>
+<ol>
+<li>首先，创建一个构造者类Builder，并把参数改为私有，提供set()函数修改。</li>
+<li>其次build() 方法真正创建对象之前，做集中的校验，校验通过之后才会创建对象。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewResourcePool</span>(<span style="color:#a6e22e">builder</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span> {
+	<span style="color:#a6e22e">this</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ResourcePool</span>{}
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">name</span> = <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">name</span>
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">maxTotal</span> = <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">maxTotal</span>
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">maxIdle</span> = <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">maxIdle</span>
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">minIdle</span> = <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">minIdle</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ResourcePoolBuilder</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">name</span>     <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">maxTotal</span> <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">maxIdle</span>  <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">minIdle</span>  <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Builder</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span> {
+	<span style="color:#a6e22e">builder</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ResourcePoolBuilder</span>{}
+	<span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">maxTotal</span> = <span style="color:#ae81ff">16</span>
+	<span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">minIdle</span> = <span style="color:#ae81ff">5</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">builder</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span>) <span style="color:#a6e22e">Build</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePool</span> {
+	<span style="color:#75715e">// 校验逻辑放到这里来做，包括必填项校验、依赖关系校验、约束条件校验等
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">name</span>) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;name should not be empty.&#34;</span>))
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">maxIdle</span> &gt; <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">maxTotal</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;maxIdle should bigger than maxTotal.&#34;</span>))
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">NewResourcePool</span>(<span style="color:#a6e22e">b</span>)
+}
+
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span>) <span style="color:#a6e22e">SetName</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span> {
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">name</span>) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;name should not be empty.&#34;</span>))
+	}
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">name</span> = <span style="color:#a6e22e">name</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span>) <span style="color:#a6e22e">SetMaxTotal</span>(<span style="color:#a6e22e">maxTotal</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span> {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">maxTotal</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;maxTotal should be positive.&#34;</span>))
+	}
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">maxTotal</span> = <span style="color:#a6e22e">maxTotal</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span>) <span style="color:#a6e22e">SetMinIdle</span>(<span style="color:#a6e22e">minIdle</span> <span style="color:#66d9ef">int</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ResourcePoolBuilder</span> {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">minIdle</span> &lt; <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;minIdle should not be negative.&#34;</span>))
+	}
+	<span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">minIdle</span> = <span style="color:#a6e22e">minIdle</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">this</span>
+}
+</code></pre></div><p>重构后的构造函数</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">resourcePool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Builder</span>().<span style="color:#a6e22e">SetName</span>(<span style="color:#e6db74">&#34;test&#34;</span>).<span style="color:#a6e22e">SetMaxTotal</span>(<span style="color:#ae81ff">0</span>).<span style="color:#a6e22e">SetMinIdle</span>(<span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Build</span>()
+</code></pre></div><p>如此，</p>
+<ul>
+<li>这样我们就只能通过建造者Builder 来创建 ResourcePool 类对象。</li>
+<li>要修改resourcePool只能通过 Builder提供的 set()函数，配置项不对外提供修改方法。</li>
+<li>参数校验或者提供默认参数可以放在build()函数内。</li>
+</ul>
+<h3 id="小结">小结</h3>
+<p>构造者模式原理并不复杂，主要适当的场景中灵活使用。通过构造者类Builder、提供的set()函数设置必选项，最终调用build()处理构造类之前的一些逻辑。如此，可以以通过设置不同的可选参数，“定制化”地创建不同的复杂对象.</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>设计模式之美 <a href="https://item.jd.com/13174161.html">https://item.jd.com/13174161.html</a></li>
+</ul>
+<ul>
+<li>相关代码 <a href="https://github.com/luckytking/practices/tree/main/design-mode">https://github.com/luckytking/practices/tree/main/design-mode</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/disign-mode/">disign-mode</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/observer/">observer</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/10/%E6%B5%85%E8%B0%88kratos%E7%9A%84%E8%A1%A8%E7%8E%B0%E5%B1%82%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E7%A0%81%E5%99%A8/" data-tooltip="浅谈kratos的表现层源码实现与解码器" aria-label=": 浅谈kratos的表现层源码实现与解码器">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/10/%E6%B5%85%E8%B0%88kratos%E7%9A%84%E8%A1%A8%E7%8E%B0%E5%B1%82%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E7%A0%81%E5%99%A8/" data-tooltip="浅谈kratos的表现层源码实现与解码器" aria-label=": 浅谈kratos的表现层源码实现与解码器">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

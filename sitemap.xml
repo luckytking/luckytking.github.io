@@ -2,8 +2,32 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://luckytking.github.io/categories/builder/</loc>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
+  </url><url>
     <loc>https://luckytking.github.io/categories/</loc>
-    <lastmod>2022-10-02T17:25:55+08:00</lastmod>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/disign-mode/</loc>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/categories/disign-mode/</loc>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/</loc>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/observer/</loc>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/post/</loc>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/</loc>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/2022/10/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E6%9E%84%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/</loc>
+    <lastmod>2022-10-16T12:10:03+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/codec/</loc>
     <lastmod>2022-10-02T17:25:55+08:00</lastmod>
@@ -14,32 +38,14 @@
     <loc>https://luckytking.github.io/categories/go%E5%BC%80%E5%8F%91/</loc>
     <lastmod>2022-10-02T17:25:55+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/</loc>
-    <lastmod>2022-10-02T17:25:55+08:00</lastmod>
-  </url><url>
     <loc>https://luckytking.github.io/tags/kratos/</loc>
     <lastmod>2022-10-02T17:25:55+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/categories/kratos/</loc>
     <lastmod>2022-10-02T17:25:55+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/post/</loc>
-    <lastmod>2022-10-02T17:25:55+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/tags/</loc>
-    <lastmod>2022-10-02T17:25:55+08:00</lastmod>
-  </url><url>
     <loc>https://luckytking.github.io/2022/10/%E6%B5%85%E8%B0%88kratos%E7%9A%84%E8%A1%A8%E7%8E%B0%E5%B1%82%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%B8%8E%E8%A7%A3%E7%A0%81%E5%99%A8/</loc>
     <lastmod>2022-10-02T17:25:55+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/tags/disign-mode/</loc>
-    <lastmod>2022-09-25T16:43:20+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/categories/disign-mode/</loc>
-    <lastmod>2022-09-25T16:43:20+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/tags/observer/</loc>
-    <lastmod>2022-09-25T16:43:20+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/categories/observer/</loc>
     <lastmod>2022-09-25T16:43:20+08:00</lastmod>
