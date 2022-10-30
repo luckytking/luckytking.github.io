@@ -6,7 +6,34 @@
     <description>Recent content in Tags on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 21 Oct 2022 23:17:35 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 30 Oct 2022 15:43:28 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>go-redis</title>
+      <link>https://luckytking.github.io/tags/go-redis/</link>
+      <pubDate>Sun, 30 Oct 2022 15:43:28 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/go-redis/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>leaderboard</title>
+      <link>https://luckytking.github.io/tags/leaderboard/</link>
+      <pubDate>Sun, 30 Oct 2022 15:43:28 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/leaderboard/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>redis</title>
+      <link>https://luckytking.github.io/tags/redis/</link>
+      <pubDate>Sun, 30 Oct 2022 15:43:28 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/redis/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>goroutine-pool</title>
       <link>https://luckytking.github.io/tags/goroutine-pool/</link>
@@ -130,15 +157,6 @@
       <pubDate>Sun, 11 Sep 2022 18:20:54 +0800</pubDate>
       
       <guid>https://luckytking.github.io/tags/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>redis</title>
-      <link>https://luckytking.github.io/tags/redis/</link>
-      <pubDate>Sun, 11 Sep 2022 18:20:54 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/tags/redis/</guid>
       <description></description>
     </item>
     
@@ -310,15 +328,6 @@
       <pubDate>Thu, 09 Jun 2022 21:52:17 +0800</pubDate>
       
       <guid>https://luckytking.github.io/tags/mac-m1/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>go-redis</title>
-      <link>https://luckytking.github.io/tags/go-redis/</link>
-      <pubDate>Sun, 05 Jun 2022 16:23:04 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/tags/go-redis/</guid>
       <description></description>
     </item>
     

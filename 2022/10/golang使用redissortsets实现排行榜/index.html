@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003ch3 id=\u0022前言\u0022\u003e前言\u003c\/h3\u003e\n\u003cp\u003e游戏排行榜是一个常见需求，今天主要介绍go语言使用redis-sort-sets来实现排行榜常见功能。\u003c\/p\u003e\n\u003ch3 id=\u0022redis-sort-sets\u0022\u003eRedis Sort Sets\u003c\/h3\u003e\n\u003cp\u003e官方介绍：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003eRedis排序集是按相关分数排序的惟一字符串(成员)的集合。当多个字符串具有相同的分数时，字符串将按字典顺序排列。排序集的一些用例包括:\u003c\/p\u003e\n\u003cp\u003e游戏排行榜。例如，您可以使用排序集轻松地维护大型在线游戏中最高分数的有序列表。\n速率限制器。特别是，您可以使用一个排序集来构建滑动窗口速率限制器，以防止过多的API请求。\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003e常用于排行榜的命令:\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003eZRANGE 返回排序集的成员（升序）\u003c\/li\u003e\n\u003cli\u003eZREVANGE 返回排序集的成员（降序序）\u003c\/li\u003e\n\u003cli\u003eZADD 向排序集添加一个新成员和相关分数。如果成员已经存在，则更新评分。\u003c\/li\u003e\n\u003cli\u003eZREM 删除排序集一个成员\u003c\/li\u003e\n\u003cli\u003eZRANK 返回提供的成员的排名(升序)\u003c\/li\u003e\n\u003cli\u003eZREVRANK 返回提供的成员的排名(降序)\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003ch3 id=\u0022go-redis\u0022\u003eGo Redis\u003c\/h3\u003e\n\u003cp\u003eGo Redis为各种风格的Redis提供Go客户端，基础的使用例子如下：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;context\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;fmt\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-redis\/redis\/v9\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBackground\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eredis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewClient\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eredis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eOptions\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddr\u003c\/span\u003e:     \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;localhost:6379\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ use default Addr\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePassword\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\u0026#34;\u003c\/span\u003e,               \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ no password set\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eDB\u003c\/span\u003e:       \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e,                \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ use default DB\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t})\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003epong\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePing\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003epong\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n    \u003cspan style=\u0022color:#66d9ef\u0022\u003edefer\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eClose\u003c\/span\u003e()\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022examples\u0022\u003eExamples\u003c\/h3\u003e\n\u003cp\u003e这里我们用go-redis实现排行榜常见的功能，包括:\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e获取排行榜成员和分数 （升序、降序）\u003c\/li\u003e\n\u003cli\u003e加入排行榜成员\u003c\/li\u003e\n\u003cli\u003e删除排行榜成员\u003c\/li\u003e\n\u003cli\u003e更新排行榜成员分数\u003c\/li\u003e\n\u003cli\u003e获取排行榜成员分数\u003c\/li\u003e\n\u003cli\u003e获取排行榜名次成员\u003c\/li\u003e\n\u003cli\u003e清空排行榜\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e完整代码如下：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;context\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;fmt\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-redis\/redis\/v9\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;math\/rand\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;strconv\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003econtext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBackground\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eredis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewClient\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eredis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eOptions\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddr\u003c\/span\u003e:     \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;localhost:6379\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ use default Addr\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePassword\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\u0026#34;\u003c\/span\u003e,               \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ no password set\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eDB\u003c\/span\u003e:       \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e,                \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ use default DB\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t}) \n    \n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003edefer\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eClose\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/增加玩家分数的变化\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e; \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e; \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\u002b\u002b\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZAdd\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eredis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZ\u003c\/span\u003e{\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eScore\u003c\/span\u003e:  float64(\u003cspan style=\u0022color:#a6e22e\u0022\u003erand\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eIntn\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e100\u003c\/span\u003e)),\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eMember\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;user:\u0026#34;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u002b\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003estrconv\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eItoa\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e),\n\t\t}).\u003cspan style=\u0022color:#a6e22e\u0022\u003eErr\u003c\/span\u003e()\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t\t}\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/查询排行榜成员-升序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emembers\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRange\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;查询排行榜成员-升序\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003emembers\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/查询排行榜成员和分数-升序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emembersWithScore\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRevRangeWithScores\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;查询排行榜成员和分数-升序\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003emembersWithScore\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/查询排行榜成员-降序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emembersRev\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRevRange\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;查询排行榜成员-降序\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003emembersRev\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/查询排行榜成员和分数-升序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emembersRevWithScore\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRangeWithScores\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;查询排行榜成员和分数-升序\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003emembersRevWithScore\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/获取某玩家的分数\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003euser2Score\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZScore\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;user:2\u0026#34;\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;获取某玩家 user:2 的分数\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003euser2Score\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/更新某玩家的分数\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZAdd\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eredis\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZ\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eScore\u003c\/span\u003e:  \u003cspan style=\u0022color:#a6e22e\u0022\u003euser2Score\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eMember\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;user:1\u0026#34;\u003c\/span\u003e,\n\t}).\u003cspan style=\u0022color:#a6e22e\u0022\u003eErr\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;更新某玩家 user:1 的分数\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003euser2Score\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/查询排行榜成员和分数-升序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emembersRevWithScore\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRangeWithScores\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;查询排行榜变化后的排行榜成员和分数-升序\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003emembersRevWithScore\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/查询排行榜某玩家的分数-升序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ememberRank\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRank\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;user:2\u0026#34;\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;查询排行榜某玩家  user:2 的排名\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ememberRank\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/查询排行榜某玩家的分数-降序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ememberRevRank\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRevRank\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;user:2\u0026#34;\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;查询排行榜某玩家 user:2 的排名-降序\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ememberRevRank\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/删除排序集一个成员\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ezrem\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRem\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;user:1\u0026#34;\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;删除排序集一个成员\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ezrem\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/删除后查询排行榜成员-升序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emembers\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRange\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;删除后查询排行榜成员-升序\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003emembers\u003c\/span\u003e)\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/清空排行榜\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eclear\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRemRangeByRank\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e4\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;err zrem\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;清空排行榜\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eclear\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/清空后查询排行榜成员-升序\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emembers\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003erdb\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eZRange\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ectx\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;leaderboard\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eResult\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;清空后查询排行榜成员-升序\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003emembers\u003c\/span\u003e)\n \n}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eOutPut:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e查询排行榜成员-升序 [user:3 user:4 user:1 user:5 user:2]\r\n查询排行榜成员和分数-升序 [{87 user:2} {81 user:5} {81 user:1} {59 user:4} {47 user:3}]\r\n查询排行榜成员-降序 [user:2 user:5 user:1 user:4 user:3]\r\n查询排行榜成员和分数-升序 [{59 user:4} {81 user:1} {81 user:5} {87 user:2}]\r\n获取某玩家 user:2 的分数 87\r\n更新某玩家 user:1 的分数 87\r\n查询排行榜变化后的排行榜成员和分数-升序 [{59 user:4} {81 user:5} {87 user:1} {87 user:2}]\r\n查询排行榜某玩家  user:2 的排名 4\r\n查询排行榜某玩家 user:2 的排名-降序 0\r\n删除排序集一个成员 1\r\n删除后查询排行榜成员-升序 [user:4 user:5 user:2]\r\n清空排行榜 3\r\n清空后查询排行榜成员-升序 []\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e安装Redis \u003ca href=\u0022https:\/\/redis.io\/docs\/getting-started\/installation\/\u0022\u003ehttps:\/\/redis.io\/docs\/getting-started\/installation\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eRedis Sort Sets Docs \u003ca href=\u0022https:\/\/redis.io\/docs\/data-types\/sorted-sets\/\u0022\u003ehttps:\/\/redis.io\/docs\/data-types\/sorted-sets\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eGo Redis \u003ca href=\u0022https:\/\/github.com\/go-redis\/redis\/v9\u0022\u003ehttps:\/\/github.com\/go-redis\/redis\/v9\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/10\/golang%E4%BD%BF%E7%94%A8redissortsets%E5%AE%9E%E7%8E%B0%E6%8E%92%E8%A1%8C%E6%A6%9C\/",
+  "keywords":"[go-redis, leaderboard]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="go-redis, leaderboard">
+<meta name="description" content="前言
+游戏排行榜是一个常见需求，今天主要介绍go语言使用redis-sort-sets来实现排行榜常见功能。
+Redis Sort Sets
+官方介绍：
+
+Redis排序集是按相关分数排序的惟一字符串(成员)的集合。当多个字符串具有相同的分数时，字符串将按字典顺序排列。排序集的一些用例包括:
+游戏排行榜。例如，您可以使用排序集轻松地维护大型在线游戏中最高分数的有序列表。
+速率限制器。特别是，您可以使用一个排序集来构建滑动窗口速率限制器，以防止过多的API请求。
+
+常用于排行榜的命令:
+
+ZRANGE 返回排序集的成员（升序）
+ZREVANGE 返回排序集的成员（降序序）
+ZADD 向排序集添加一个新成员和相关分数。如果成员已经存在，则更新评分。
+ZREM 删除排序集一个成员
+ZRANK 返回提供的成员的排名(升序)
+ZREVRANK 返回提供的成员的排名(降序)
+
+Go Redis
+Go Redis为各种风格的Redis提供Go客户端，基础的使用例子如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;github.com/go-redis/redis/v9&#34;
+)
+
+func main() {
+	ctx := context.Background()
+	rdb := redis.NewClient(&amp;redis.Options{
+		Addr:     &#34;localhost:6379&#34;, // use default Addr
+		Password: &#34;&#34;,               // no password set
+		DB:       0,                // use default DB
+	})
+	pong, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(pong, err)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+    defer rdb.Close()
+}
+Examples
+这里我们用go-redis实现排行榜常见的功能，包括:
+
+获取排行榜成员和分数 （升序、降序）
+加入排行榜成员
+删除排行榜成员
+更新排行榜成员分数
+获取排行榜成员分数
+获取排行榜名次成员
+清空排行榜
+
+完整代码如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;github.com/go-redis/redis/v9&#34;
+	&#34;math/rand&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	ctx := context.Background()
+	rdb := redis.NewClient(&amp;redis.Options{
+		Addr:     &#34;localhost:6379&#34;, // use default Addr
+		Password: &#34;&#34;,               // no password set
+		DB:       0,                // use default DB
+	}) 
+    
+	var err error
+	defer rdb.Close()
+	//增加玩家分数的变化
+	for i := 1; i &lt;= 5; i&#43;&#43; {
+		err = rdb.ZAdd(ctx, &#34;leaderboard&#34;, redis.Z{
+			Score:  float64(rand.Intn(100)),
+			Member: &#34;user:&#34; &#43; strconv.Itoa(i),
+		}).Err()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	//查询排行榜成员-升序
+	members, err := rdb.ZRange(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员-升序&#34;, members)
+	//查询排行榜成员和分数-升序
+	membersWithScore, err := rdb.ZRevRangeWithScores(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员和分数-升序&#34;, membersWithScore)
+
+	//查询排行榜成员-降序
+	membersRev, err := rdb.ZRevRange(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员-降序&#34;, membersRev)
+	//查询排行榜成员和分数-升序
+	membersRevWithScore, err := rdb.ZRangeWithScores(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员和分数-升序&#34;, membersRevWithScore)
+
+	//获取某玩家的分数
+	user2Score, err := rdb.ZScore(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;获取某玩家 user:2 的分数&#34;, user2Score)
+	//更新某玩家的分数
+	err = rdb.ZAdd(ctx, &#34;leaderboard&#34;, redis.Z{
+		Score:  user2Score,
+		Member: &#34;user:1&#34;,
+	}).Err()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;更新某玩家 user:1 的分数&#34;, user2Score)
+	//查询排行榜成员和分数-升序
+	membersRevWithScore, err = rdb.ZRangeWithScores(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜变化后的排行榜成员和分数-升序&#34;, membersRevWithScore)
+
+	//查询排行榜某玩家的分数-升序
+	memberRank, err := rdb.ZRank(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜某玩家  user:2 的排名&#34;, memberRank)
+
+	//查询排行榜某玩家的分数-降序
+	memberRevRank, err := rdb.ZRevRank(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜某玩家 user:2 的排名-降序&#34;, memberRevRank)
+
+	//删除排序集一个成员
+	zrem, err := rdb.ZRem(ctx, &#34;leaderboard&#34;, &#34;user:1&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;删除排序集一个成员&#34;, zrem)
+
+	//删除后查询排行榜成员-升序
+	members, err = rdb.ZRange(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;删除后查询排行榜成员-升序&#34;, members)
+
+	//清空排行榜
+	clear, err := rdb.ZRemRangeByRank(ctx, &#34;leaderboard&#34;, 1, 4).Result()
+	if err != nil {
+		fmt.Println(&#34;err zrem&#34;, err)
+		return
+	}
+	fmt.Println(&#34;清空排行榜&#34;, clear)
+	//清空后查询排行榜成员-升序
+	members, err = rdb.ZRange(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;清空后查询排行榜成员-升序&#34;, members)
+ 
+}
+
+OutPut:
+查询排行榜成员-升序 [user:3 user:4 user:1 user:5 user:2]
+查询排行榜成员和分数-升序 [{87 user:2} {81 user:5} {81 user:1} {59 user:4} {47 user:3}]
+查询排行榜成员-降序 [user:2 user:5 user:1 user:4 user:3]
+查询排行榜成员和分数-升序 [{59 user:4} {81 user:1} {81 user:5} {87 user:2}]
+获取某玩家 user:2 的分数 87
+更新某玩家 user:1 的分数 87
+查询排行榜变化后的排行榜成员和分数-升序 [{59 user:4} {81 user:5} {87 user:1} {87 user:2}]
+查询排行榜某玩家  user:2 的排名 4
+查询排行榜某玩家 user:2 的排名-降序 0
+删除排序集一个成员 1
+删除后查询排行榜成员-升序 [user:4 user:5 user:2]
+清空排行榜 3
+清空后查询排行榜成员-升序 []
+参考
+
+安装Redis https://redis.io/docs/getting-started/installation/
+Redis Sort Sets Docs https://redis.io/docs/data-types/sorted-sets/
+Go Redis https://github.com/go-redis/redis/v9
+">
+
+
+<meta property="og:description" content="前言
+游戏排行榜是一个常见需求，今天主要介绍go语言使用redis-sort-sets来实现排行榜常见功能。
+Redis Sort Sets
+官方介绍：
+
+Redis排序集是按相关分数排序的惟一字符串(成员)的集合。当多个字符串具有相同的分数时，字符串将按字典顺序排列。排序集的一些用例包括:
+游戏排行榜。例如，您可以使用排序集轻松地维护大型在线游戏中最高分数的有序列表。
+速率限制器。特别是，您可以使用一个排序集来构建滑动窗口速率限制器，以防止过多的API请求。
+
+常用于排行榜的命令:
+
+ZRANGE 返回排序集的成员（升序）
+ZREVANGE 返回排序集的成员（降序序）
+ZADD 向排序集添加一个新成员和相关分数。如果成员已经存在，则更新评分。
+ZREM 删除排序集一个成员
+ZRANK 返回提供的成员的排名(升序)
+ZREVRANK 返回提供的成员的排名(降序)
+
+Go Redis
+Go Redis为各种风格的Redis提供Go客户端，基础的使用例子如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;github.com/go-redis/redis/v9&#34;
+)
+
+func main() {
+	ctx := context.Background()
+	rdb := redis.NewClient(&amp;redis.Options{
+		Addr:     &#34;localhost:6379&#34;, // use default Addr
+		Password: &#34;&#34;,               // no password set
+		DB:       0,                // use default DB
+	})
+	pong, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(pong, err)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+    defer rdb.Close()
+}
+Examples
+这里我们用go-redis实现排行榜常见的功能，包括:
+
+获取排行榜成员和分数 （升序、降序）
+加入排行榜成员
+删除排行榜成员
+更新排行榜成员分数
+获取排行榜成员分数
+获取排行榜名次成员
+清空排行榜
+
+完整代码如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;github.com/go-redis/redis/v9&#34;
+	&#34;math/rand&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	ctx := context.Background()
+	rdb := redis.NewClient(&amp;redis.Options{
+		Addr:     &#34;localhost:6379&#34;, // use default Addr
+		Password: &#34;&#34;,               // no password set
+		DB:       0,                // use default DB
+	}) 
+    
+	var err error
+	defer rdb.Close()
+	//增加玩家分数的变化
+	for i := 1; i &lt;= 5; i&#43;&#43; {
+		err = rdb.ZAdd(ctx, &#34;leaderboard&#34;, redis.Z{
+			Score:  float64(rand.Intn(100)),
+			Member: &#34;user:&#34; &#43; strconv.Itoa(i),
+		}).Err()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	//查询排行榜成员-升序
+	members, err := rdb.ZRange(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员-升序&#34;, members)
+	//查询排行榜成员和分数-升序
+	membersWithScore, err := rdb.ZRevRangeWithScores(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员和分数-升序&#34;, membersWithScore)
+
+	//查询排行榜成员-降序
+	membersRev, err := rdb.ZRevRange(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员-降序&#34;, membersRev)
+	//查询排行榜成员和分数-升序
+	membersRevWithScore, err := rdb.ZRangeWithScores(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员和分数-升序&#34;, membersRevWithScore)
+
+	//获取某玩家的分数
+	user2Score, err := rdb.ZScore(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;获取某玩家 user:2 的分数&#34;, user2Score)
+	//更新某玩家的分数
+	err = rdb.ZAdd(ctx, &#34;leaderboard&#34;, redis.Z{
+		Score:  user2Score,
+		Member: &#34;user:1&#34;,
+	}).Err()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;更新某玩家 user:1 的分数&#34;, user2Score)
+	//查询排行榜成员和分数-升序
+	membersRevWithScore, err = rdb.ZRangeWithScores(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜变化后的排行榜成员和分数-升序&#34;, membersRevWithScore)
+
+	//查询排行榜某玩家的分数-升序
+	memberRank, err := rdb.ZRank(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜某玩家  user:2 的排名&#34;, memberRank)
+
+	//查询排行榜某玩家的分数-降序
+	memberRevRank, err := rdb.ZRevRank(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜某玩家 user:2 的排名-降序&#34;, memberRevRank)
+
+	//删除排序集一个成员
+	zrem, err := rdb.ZRem(ctx, &#34;leaderboard&#34;, &#34;user:1&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;删除排序集一个成员&#34;, zrem)
+
+	//删除后查询排行榜成员-升序
+	members, err = rdb.ZRange(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;删除后查询排行榜成员-升序&#34;, members)
+
+	//清空排行榜
+	clear, err := rdb.ZRemRangeByRank(ctx, &#34;leaderboard&#34;, 1, 4).Result()
+	if err != nil {
+		fmt.Println(&#34;err zrem&#34;, err)
+		return
+	}
+	fmt.Println(&#34;清空排行榜&#34;, clear)
+	//清空后查询排行榜成员-升序
+	members, err = rdb.ZRange(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;清空后查询排行榜成员-升序&#34;, members)
+ 
+}
+
+OutPut:
+查询排行榜成员-升序 [user:3 user:4 user:1 user:5 user:2]
+查询排行榜成员和分数-升序 [{87 user:2} {81 user:5} {81 user:1} {59 user:4} {47 user:3}]
+查询排行榜成员-降序 [user:2 user:5 user:1 user:4 user:3]
+查询排行榜成员和分数-升序 [{59 user:4} {81 user:1} {81 user:5} {87 user:2}]
+获取某玩家 user:2 的分数 87
+更新某玩家 user:1 的分数 87
+查询排行榜变化后的排行榜成员和分数-升序 [{59 user:4} {81 user:5} {87 user:1} {87 user:2}]
+查询排行榜某玩家  user:2 的排名 4
+查询排行榜某玩家 user:2 的排名-降序 0
+删除排序集一个成员 1
+删除后查询排行榜成员-升序 [user:4 user:5 user:2]
+清空排行榜 3
+清空后查询排行榜成员-升序 []
+参考
+
+安装Redis https://redis.io/docs/getting-started/installation/
+Redis Sort Sets Docs https://redis.io/docs/data-types/sorted-sets/
+Go Redis https://github.com/go-redis/redis/v9
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Golang使用RedisSortSets实现排行榜">
+<meta name="twitter:title" content="Golang使用RedisSortSets实现排行榜">
+<meta property="og:url" content="https://luckytking.github.io/2022/10/golang%E4%BD%BF%E7%94%A8redissortsets%E5%AE%9E%E7%8E%B0%E6%8E%92%E8%A1%8C%E6%A6%9C/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/10/golang%E4%BD%BF%E7%94%A8redissortsets%E5%AE%9E%E7%8E%B0%E6%8E%92%E8%A1%8C%E6%A6%9C/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="前言
+游戏排行榜是一个常见需求，今天主要介绍go语言使用redis-sort-sets来实现排行榜常见功能。
+Redis Sort Sets
+官方介绍：
+
+Redis排序集是按相关分数排序的惟一字符串(成员)的集合。当多个字符串具有相同的分数时，字符串将按字典顺序排列。排序集的一些用例包括:
+游戏排行榜。例如，您可以使用排序集轻松地维护大型在线游戏中最高分数的有序列表。
+速率限制器。特别是，您可以使用一个排序集来构建滑动窗口速率限制器，以防止过多的API请求。
+
+常用于排行榜的命令:
+
+ZRANGE 返回排序集的成员（升序）
+ZREVANGE 返回排序集的成员（降序序）
+ZADD 向排序集添加一个新成员和相关分数。如果成员已经存在，则更新评分。
+ZREM 删除排序集一个成员
+ZRANK 返回提供的成员的排名(升序)
+ZREVRANK 返回提供的成员的排名(降序)
+
+Go Redis
+Go Redis为各种风格的Redis提供Go客户端，基础的使用例子如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;github.com/go-redis/redis/v9&#34;
+)
+
+func main() {
+	ctx := context.Background()
+	rdb := redis.NewClient(&amp;redis.Options{
+		Addr:     &#34;localhost:6379&#34;, // use default Addr
+		Password: &#34;&#34;,               // no password set
+		DB:       0,                // use default DB
+	})
+	pong, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(pong, err)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+    defer rdb.Close()
+}
+Examples
+这里我们用go-redis实现排行榜常见的功能，包括:
+
+获取排行榜成员和分数 （升序、降序）
+加入排行榜成员
+删除排行榜成员
+更新排行榜成员分数
+获取排行榜成员分数
+获取排行榜名次成员
+清空排行榜
+
+完整代码如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;github.com/go-redis/redis/v9&#34;
+	&#34;math/rand&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	ctx := context.Background()
+	rdb := redis.NewClient(&amp;redis.Options{
+		Addr:     &#34;localhost:6379&#34;, // use default Addr
+		Password: &#34;&#34;,               // no password set
+		DB:       0,                // use default DB
+	}) 
+    
+	var err error
+	defer rdb.Close()
+	//增加玩家分数的变化
+	for i := 1; i &lt;= 5; i&#43;&#43; {
+		err = rdb.ZAdd(ctx, &#34;leaderboard&#34;, redis.Z{
+			Score:  float64(rand.Intn(100)),
+			Member: &#34;user:&#34; &#43; strconv.Itoa(i),
+		}).Err()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	//查询排行榜成员-升序
+	members, err := rdb.ZRange(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员-升序&#34;, members)
+	//查询排行榜成员和分数-升序
+	membersWithScore, err := rdb.ZRevRangeWithScores(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员和分数-升序&#34;, membersWithScore)
+
+	//查询排行榜成员-降序
+	membersRev, err := rdb.ZRevRange(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员-降序&#34;, membersRev)
+	//查询排行榜成员和分数-升序
+	membersRevWithScore, err := rdb.ZRangeWithScores(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员和分数-升序&#34;, membersRevWithScore)
+
+	//获取某玩家的分数
+	user2Score, err := rdb.ZScore(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;获取某玩家 user:2 的分数&#34;, user2Score)
+	//更新某玩家的分数
+	err = rdb.ZAdd(ctx, &#34;leaderboard&#34;, redis.Z{
+		Score:  user2Score,
+		Member: &#34;user:1&#34;,
+	}).Err()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;更新某玩家 user:1 的分数&#34;, user2Score)
+	//查询排行榜成员和分数-升序
+	membersRevWithScore, err = rdb.ZRangeWithScores(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜变化后的排行榜成员和分数-升序&#34;, membersRevWithScore)
+
+	//查询排行榜某玩家的分数-升序
+	memberRank, err := rdb.ZRank(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜某玩家  user:2 的排名&#34;, memberRank)
+
+	//查询排行榜某玩家的分数-降序
+	memberRevRank, err := rdb.ZRevRank(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜某玩家 user:2 的排名-降序&#34;, memberRevRank)
+
+	//删除排序集一个成员
+	zrem, err := rdb.ZRem(ctx, &#34;leaderboard&#34;, &#34;user:1&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;删除排序集一个成员&#34;, zrem)
+
+	//删除后查询排行榜成员-升序
+	members, err = rdb.ZRange(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;删除后查询排行榜成员-升序&#34;, members)
+
+	//清空排行榜
+	clear, err := rdb.ZRemRangeByRank(ctx, &#34;leaderboard&#34;, 1, 4).Result()
+	if err != nil {
+		fmt.Println(&#34;err zrem&#34;, err)
+		return
+	}
+	fmt.Println(&#34;清空排行榜&#34;, clear)
+	//清空后查询排行榜成员-升序
+	members, err = rdb.ZRange(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;清空后查询排行榜成员-升序&#34;, members)
+ 
+}
+
+OutPut:
+查询排行榜成员-升序 [user:3 user:4 user:1 user:5 user:2]
+查询排行榜成员和分数-升序 [{87 user:2} {81 user:5} {81 user:1} {59 user:4} {47 user:3}]
+查询排行榜成员-降序 [user:2 user:5 user:1 user:4 user:3]
+查询排行榜成员和分数-升序 [{59 user:4} {81 user:1} {81 user:5} {87 user:2}]
+获取某玩家 user:2 的分数 87
+更新某玩家 user:1 的分数 87
+查询排行榜变化后的排行榜成员和分数-升序 [{59 user:4} {81 user:5} {87 user:1} {87 user:2}]
+查询排行榜某玩家  user:2 的排名 4
+查询排行榜某玩家 user:2 的排名-降序 0
+删除排序集一个成员 1
+删除后查询排行榜成员-升序 [user:4 user:5 user:2]
+清空排行榜 3
+清空后查询排行榜成员-升序 []
+参考
+
+安装Redis https://redis.io/docs/getting-started/installation/
+Redis Sort Sets Docs https://redis.io/docs/data-types/sorted-sets/
+Go Redis https://github.com/go-redis/redis/v9
+">
+<meta name="twitter:description" content="前言
+游戏排行榜是一个常见需求，今天主要介绍go语言使用redis-sort-sets来实现排行榜常见功能。
+Redis Sort Sets
+官方介绍：
+
+Redis排序集是按相关分数排序的惟一字符串(成员)的集合。当多个字符串具有相同的分数时，字符串将按字典顺序排列。排序集的一些用例包括:
+游戏排行榜。例如，您可以使用排序集轻松地维护大型在线游戏中最高分数的有序列表。
+速率限制器。特别是，您可以使用一个排序集来构建滑动窗口速率限制器，以防止过多的API请求。
+
+常用于排行榜的命令:
+
+ZRANGE 返回排序集的成员（升序）
+ZREVANGE 返回排序集的成员（降序序）
+ZADD 向排序集添加一个新成员和相关分数。如果成员已经存在，则更新评分。
+ZREM 删除排序集一个成员
+ZRANK 返回提供的成员的排名(升序)
+ZREVRANK 返回提供的成员的排名(降序)
+
+Go Redis
+Go Redis为各种风格的Redis提供Go客户端，基础的使用例子如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;github.com/go-redis/redis/v9&#34;
+)
+
+func main() {
+	ctx := context.Background()
+	rdb := redis.NewClient(&amp;redis.Options{
+		Addr:     &#34;localhost:6379&#34;, // use default Addr
+		Password: &#34;&#34;,               // no password set
+		DB:       0,                // use default DB
+	})
+	pong, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(pong, err)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+    defer rdb.Close()
+}
+Examples
+这里我们用go-redis实现排行榜常见的功能，包括:
+
+获取排行榜成员和分数 （升序、降序）
+加入排行榜成员
+删除排行榜成员
+更新排行榜成员分数
+获取排行榜成员分数
+获取排行榜名次成员
+清空排行榜
+
+完整代码如下：
+package main
+
+import (
+	&#34;context&#34;
+	&#34;fmt&#34;
+	&#34;github.com/go-redis/redis/v9&#34;
+	&#34;math/rand&#34;
+	&#34;strconv&#34;
+)
+
+func main() {
+	ctx := context.Background()
+	rdb := redis.NewClient(&amp;redis.Options{
+		Addr:     &#34;localhost:6379&#34;, // use default Addr
+		Password: &#34;&#34;,               // no password set
+		DB:       0,                // use default DB
+	}) 
+    
+	var err error
+	defer rdb.Close()
+	//增加玩家分数的变化
+	for i := 1; i &lt;= 5; i&#43;&#43; {
+		err = rdb.ZAdd(ctx, &#34;leaderboard&#34;, redis.Z{
+			Score:  float64(rand.Intn(100)),
+			Member: &#34;user:&#34; &#43; strconv.Itoa(i),
+		}).Err()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	//查询排行榜成员-升序
+	members, err := rdb.ZRange(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员-升序&#34;, members)
+	//查询排行榜成员和分数-升序
+	membersWithScore, err := rdb.ZRevRangeWithScores(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员和分数-升序&#34;, membersWithScore)
+
+	//查询排行榜成员-降序
+	membersRev, err := rdb.ZRevRange(ctx, &#34;leaderboard&#34;, 0, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员-降序&#34;, membersRev)
+	//查询排行榜成员和分数-升序
+	membersRevWithScore, err := rdb.ZRangeWithScores(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜成员和分数-升序&#34;, membersRevWithScore)
+
+	//获取某玩家的分数
+	user2Score, err := rdb.ZScore(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;获取某玩家 user:2 的分数&#34;, user2Score)
+	//更新某玩家的分数
+	err = rdb.ZAdd(ctx, &#34;leaderboard&#34;, redis.Z{
+		Score:  user2Score,
+		Member: &#34;user:1&#34;,
+	}).Err()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;更新某玩家 user:1 的分数&#34;, user2Score)
+	//查询排行榜成员和分数-升序
+	membersRevWithScore, err = rdb.ZRangeWithScores(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜变化后的排行榜成员和分数-升序&#34;, membersRevWithScore)
+
+	//查询排行榜某玩家的分数-升序
+	memberRank, err := rdb.ZRank(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜某玩家  user:2 的排名&#34;, memberRank)
+
+	//查询排行榜某玩家的分数-降序
+	memberRevRank, err := rdb.ZRevRank(ctx, &#34;leaderboard&#34;, &#34;user:2&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;查询排行榜某玩家 user:2 的排名-降序&#34;, memberRevRank)
+
+	//删除排序集一个成员
+	zrem, err := rdb.ZRem(ctx, &#34;leaderboard&#34;, &#34;user:1&#34;).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;删除排序集一个成员&#34;, zrem)
+
+	//删除后查询排行榜成员-升序
+	members, err = rdb.ZRange(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;删除后查询排行榜成员-升序&#34;, members)
+
+	//清空排行榜
+	clear, err := rdb.ZRemRangeByRank(ctx, &#34;leaderboard&#34;, 1, 4).Result()
+	if err != nil {
+		fmt.Println(&#34;err zrem&#34;, err)
+		return
+	}
+	fmt.Println(&#34;清空排行榜&#34;, clear)
+	//清空后查询排行榜成员-升序
+	members, err = rdb.ZRange(ctx, &#34;leaderboard&#34;, 1, 5).Result()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(&#34;清空后查询排行榜成员-升序&#34;, members)
+ 
+}
+
+OutPut:
+查询排行榜成员-升序 [user:3 user:4 user:1 user:5 user:2]
+查询排行榜成员和分数-升序 [{87 user:2} {81 user:5} {81 user:1} {59 user:4} {47 user:3}]
+查询排行榜成员-降序 [user:2 user:5 user:1 user:4 user:3]
+查询排行榜成员和分数-升序 [{59 user:4} {81 user:1} {81 user:5} {87 user:2}]
+获取某玩家 user:2 的分数 87
+更新某玩家 user:1 的分数 87
+查询排行榜变化后的排行榜成员和分数-升序 [{59 user:4} {81 user:5} {87 user:1} {87 user:2}]
+查询排行榜某玩家  user:2 的排名 4
+查询排行榜某玩家 user:2 的排名-降序 0
+删除排序集一个成员 1
+删除后查询排行榜成员-升序 [user:4 user:5 user:2]
+清空排行榜 3
+清空后查询排行榜成员-升序 []
+参考
+
+安装Redis https://redis.io/docs/getting-started/installation/
+Redis Sort Sets Docs https://redis.io/docs/data-types/sorted-sets/
+Go Redis https://github.com/go-redis/redis/v9
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-10-30T15:43:28">
+  
+  
+    <meta property="article:modified_time" content="2022-10-30T15:43:28">
+  
+  
+  
+    
+      <meta property="article:section" content="go开发">
+    
+      <meta property="article:section" content="redis">
+    
+  
+  
+    
+      <meta property="article:tag" content="redis">
+    
+      <meta property="article:tag" content="go-redis">
+    
+      <meta property="article:tag" content="leaderboard">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Golang使用RedisSortSets实现排行榜</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/10/golang%E4%BD%BF%E7%94%A8redissortsets%E5%AE%9E%E7%8E%B0%E6%8E%92%E8%A1%8C%E6%A6%9C/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Golang使用RedisSortSets实现排行榜
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-10-30T15:43:28&#43;08:00">
+        
+   30, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/redis">redis</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <h3 id="前言">前言</h3>
+<p>游戏排行榜是一个常见需求，今天主要介绍go语言使用redis-sort-sets来实现排行榜常见功能。</p>
+<h3 id="redis-sort-sets">Redis Sort Sets</h3>
+<p>官方介绍：</p>
+<blockquote>
+<p>Redis排序集是按相关分数排序的惟一字符串(成员)的集合。当多个字符串具有相同的分数时，字符串将按字典顺序排列。排序集的一些用例包括:</p>
+<p>游戏排行榜。例如，您可以使用排序集轻松地维护大型在线游戏中最高分数的有序列表。
+速率限制器。特别是，您可以使用一个排序集来构建滑动窗口速率限制器，以防止过多的API请求。</p>
+</blockquote>
+<p>常用于排行榜的命令:</p>
+<ul>
+<li>ZRANGE 返回排序集的成员（升序）</li>
+<li>ZREVANGE 返回排序集的成员（降序序）</li>
+<li>ZADD 向排序集添加一个新成员和相关分数。如果成员已经存在，则更新评分。</li>
+<li>ZREM 删除排序集一个成员</li>
+<li>ZRANK 返回提供的成员的排名(升序)</li>
+<li>ZREVRANK 返回提供的成员的排名(降序)</li>
+</ul>
+<h3 id="go-redis">Go Redis</h3>
+<p>Go Redis为各种风格的Redis提供Go客户端，基础的使用例子如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-redis/redis/v9&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+	<span style="color:#a6e22e">rdb</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Addr</span>:     <span style="color:#e6db74">&#34;localhost:6379&#34;</span>, <span style="color:#75715e">// use default Addr
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">Password</span>: <span style="color:#e6db74">&#34;&#34;</span>,               <span style="color:#75715e">// no password set
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">DB</span>:       <span style="color:#ae81ff">0</span>,                <span style="color:#75715e">// use default DB
+</span><span style="color:#75715e"></span>	})
+	<span style="color:#a6e22e">pong</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">Ping</span>(<span style="color:#a6e22e">ctx</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">pong</span>, <span style="color:#a6e22e">err</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">Close</span>()
+}
+</code></pre></div><h3 id="examples">Examples</h3>
+<p>这里我们用go-redis实现排行榜常见的功能，包括:</p>
+<ul>
+<li>获取排行榜成员和分数 （升序、降序）</li>
+<li>加入排行榜成员</li>
+<li>删除排行榜成员</li>
+<li>更新排行榜成员分数</li>
+<li>获取排行榜成员分数</li>
+<li>获取排行榜名次成员</li>
+<li>清空排行榜</li>
+</ul>
+<p>完整代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;context&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-redis/redis/v9&#34;</span>
+	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+	<span style="color:#e6db74">&#34;strconv&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
+	<span style="color:#a6e22e">rdb</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Addr</span>:     <span style="color:#e6db74">&#34;localhost:6379&#34;</span>, <span style="color:#75715e">// use default Addr
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">Password</span>: <span style="color:#e6db74">&#34;&#34;</span>,               <span style="color:#75715e">// no password set
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">DB</span>:       <span style="color:#ae81ff">0</span>,                <span style="color:#75715e">// use default DB
+</span><span style="color:#75715e"></span>	}) 
+    
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">Close</span>()
+	<span style="color:#75715e">//增加玩家分数的变化
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">5</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Z</span>{
+			<span style="color:#a6e22e">Score</span>:  float64(<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">100</span>)),
+			<span style="color:#a6e22e">Member</span>: <span style="color:#e6db74">&#34;user:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(<span style="color:#a6e22e">i</span>),
+		}).<span style="color:#a6e22e">Err</span>()
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+			<span style="color:#66d9ef">return</span>
+		}
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#75715e">//查询排行榜成员-升序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">members</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;查询排行榜成员-升序&#34;</span>, <span style="color:#a6e22e">members</span>)
+	<span style="color:#75715e">//查询排行榜成员和分数-升序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">membersWithScore</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRevRangeWithScores</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;查询排行榜成员和分数-升序&#34;</span>, <span style="color:#a6e22e">membersWithScore</span>)
+
+	<span style="color:#75715e">//查询排行榜成员-降序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">membersRev</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRevRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;查询排行榜成员-降序&#34;</span>, <span style="color:#a6e22e">membersRev</span>)
+	<span style="color:#75715e">//查询排行榜成员和分数-升序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">membersRevWithScore</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRangeWithScores</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;查询排行榜成员和分数-升序&#34;</span>, <span style="color:#a6e22e">membersRevWithScore</span>)
+
+	<span style="color:#75715e">//获取某玩家的分数
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">user2Score</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZScore</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#e6db74">&#34;user:2&#34;</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;获取某玩家 user:2 的分数&#34;</span>, <span style="color:#a6e22e">user2Score</span>)
+	<span style="color:#75715e">//更新某玩家的分数
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Z</span>{
+		<span style="color:#a6e22e">Score</span>:  <span style="color:#a6e22e">user2Score</span>,
+		<span style="color:#a6e22e">Member</span>: <span style="color:#e6db74">&#34;user:1&#34;</span>,
+	}).<span style="color:#a6e22e">Err</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;更新某玩家 user:1 的分数&#34;</span>, <span style="color:#a6e22e">user2Score</span>)
+	<span style="color:#75715e">//查询排行榜成员和分数-升序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">membersRevWithScore</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRangeWithScores</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;查询排行榜变化后的排行榜成员和分数-升序&#34;</span>, <span style="color:#a6e22e">membersRevWithScore</span>)
+
+	<span style="color:#75715e">//查询排行榜某玩家的分数-升序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">memberRank</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRank</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#e6db74">&#34;user:2&#34;</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;查询排行榜某玩家  user:2 的排名&#34;</span>, <span style="color:#a6e22e">memberRank</span>)
+
+	<span style="color:#75715e">//查询排行榜某玩家的分数-降序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">memberRevRank</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRevRank</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#e6db74">&#34;user:2&#34;</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;查询排行榜某玩家 user:2 的排名-降序&#34;</span>, <span style="color:#a6e22e">memberRevRank</span>)
+
+	<span style="color:#75715e">//删除排序集一个成员
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">zrem</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRem</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#e6db74">&#34;user:1&#34;</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;删除排序集一个成员&#34;</span>, <span style="color:#a6e22e">zrem</span>)
+
+	<span style="color:#75715e">//删除后查询排行榜成员-升序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">members</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;删除后查询排行榜成员-升序&#34;</span>, <span style="color:#a6e22e">members</span>)
+
+	<span style="color:#75715e">//清空排行榜
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">clear</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRemRangeByRank</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">4</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;err zrem&#34;</span>, <span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;清空排行榜&#34;</span>, <span style="color:#a6e22e">clear</span>)
+	<span style="color:#75715e">//清空后查询排行榜成员-升序
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">members</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;清空后查询排行榜成员-升序&#34;</span>, <span style="color:#a6e22e">members</span>)
+ 
+}
+
+</code></pre></div><p>OutPut:</p>
+<pre tabindex="0"><code>查询排行榜成员-升序 [user:3 user:4 user:1 user:5 user:2]
+查询排行榜成员和分数-升序 [{87 user:2} {81 user:5} {81 user:1} {59 user:4} {47 user:3}]
+查询排行榜成员-降序 [user:2 user:5 user:1 user:4 user:3]
+查询排行榜成员和分数-升序 [{59 user:4} {81 user:1} {81 user:5} {87 user:2}]
+获取某玩家 user:2 的分数 87
+更新某玩家 user:1 的分数 87
+查询排行榜变化后的排行榜成员和分数-升序 [{59 user:4} {81 user:5} {87 user:1} {87 user:2}]
+查询排行榜某玩家  user:2 的排名 4
+查询排行榜某玩家 user:2 的排名-降序 0
+删除排序集一个成员 1
+删除后查询排行榜成员-升序 [user:4 user:5 user:2]
+清空排行榜 3
+清空后查询排行榜成员-升序 []
+</code></pre><h3 id="参考">参考</h3>
+<ul>
+<li>安装Redis <a href="https://redis.io/docs/getting-started/installation/">https://redis.io/docs/getting-started/installation/</a></li>
+<li>Redis Sort Sets Docs <a href="https://redis.io/docs/data-types/sorted-sets/">https://redis.io/docs/data-types/sorted-sets/</a></li>
+<li>Go Redis <a href="https://github.com/go-redis/redis/v9">https://github.com/go-redis/redis/v9</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/redis/">redis</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/go-redis/">go-redis</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/leaderboard/">leaderboard</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/10/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Bants/" data-tooltip="Go开发常用第三方库之ants" aria-label=": Go开发常用第三方库之ants">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/10/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Bants/" data-tooltip="Go开发常用第三方库之ants" aria-label=": Go开发常用第三方库之ants">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

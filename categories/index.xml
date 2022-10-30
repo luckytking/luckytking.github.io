@@ -6,13 +6,22 @@
     <description>Recent content in Categories on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 21 Oct 2022 23:17:35 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 30 Oct 2022 15:43:28 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>go开发</title>
       <link>https://luckytking.github.io/categories/go%E5%BC%80%E5%8F%91/</link>
-      <pubDate>Fri, 21 Oct 2022 23:17:35 +0800</pubDate>
+      <pubDate>Sun, 30 Oct 2022 15:43:28 +0800</pubDate>
       
       <guid>https://luckytking.github.io/categories/go%E5%BC%80%E5%8F%91/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>redis</title>
+      <link>https://luckytking.github.io/categories/redis/</link>
+      <pubDate>Sun, 30 Oct 2022 15:43:28 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/categories/redis/</guid>
       <description></description>
     </item>
     
@@ -157,15 +166,6 @@
       <pubDate>Thu, 23 Jun 2022 21:53:01 +0800</pubDate>
       
       <guid>https://luckytking.github.io/categories/%E5%8E%8B%E5%8A%9B%E6%B5%8B%E8%AF%95/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>redis</title>
-      <link>https://luckytking.github.io/categories/redis/</link>
-      <pubDate>Sun, 05 Jun 2022 16:23:04 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/categories/redis/</guid>
       <description></description>
     </item>
     
