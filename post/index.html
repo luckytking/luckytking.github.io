@@ -344,7 +344,6 @@
 </span><span style="color:#75715e"></span>		<span style="color:#a6e22e">Password</span>: <span style="color:#e6db74">&#34;&#34;</span>,               <span style="color:#75715e">// no password set
 </span><span style="color:#75715e"></span>		<span style="color:#a6e22e">DB</span>:       <span style="color:#ae81ff">0</span>,                <span style="color:#75715e">// use default DB
 </span><span style="color:#75715e"></span>	}) 
-    
 	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>
 	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">Close</span>()
 	<span style="color:#75715e">//增加玩家分数的变化
@@ -385,7 +384,7 @@
 	}
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;查询排行榜成员-降序&#34;</span>, <span style="color:#a6e22e">membersRev</span>)
 	<span style="color:#75715e">//查询排行榜成员和分数-升序
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">membersRevWithScore</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRangeWithScores</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">membersRevWithScore</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRangeWithScores</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
 		<span style="color:#66d9ef">return</span>
@@ -410,7 +409,7 @@
 	}
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;更新某玩家 user:1 的分数&#34;</span>, <span style="color:#a6e22e">user2Score</span>)
 	<span style="color:#75715e">//查询排行榜成员和分数-升序
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">membersRevWithScore</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRangeWithScores</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">membersRevWithScore</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRangeWithScores</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
 		<span style="color:#66d9ef">return</span>
@@ -442,7 +441,7 @@
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;删除排序集一个成员&#34;</span>, <span style="color:#a6e22e">zrem</span>)
 
 	<span style="color:#75715e">//删除后查询排行榜成员-升序
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">members</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">members</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
 		<span style="color:#66d9ef">return</span>
@@ -450,36 +449,35 @@
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;删除后查询排行榜成员-升序&#34;</span>, <span style="color:#a6e22e">members</span>)
 
 	<span style="color:#75715e">//清空排行榜
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">clear</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRemRangeByRank</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">4</span>).<span style="color:#a6e22e">Result</span>()
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">clear</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRemRangeByRank</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">4</span>).<span style="color:#a6e22e">Result</span>()
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;err zrem&#34;</span>, <span style="color:#a6e22e">err</span>)
 		<span style="color:#66d9ef">return</span>
 	}
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;清空排行榜&#34;</span>, <span style="color:#a6e22e">clear</span>)
 	<span style="color:#75715e">//清空后查询排行榜成员-升序
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">members</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">members</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;leaderboard&#34;</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>).<span style="color:#a6e22e">Result</span>()
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
 		<span style="color:#66d9ef">return</span>
 	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;清空后查询排行榜成员-升序&#34;</span>, <span style="color:#a6e22e">members</span>)
- 
-}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;清空后查询排行榜成员-升序&#34;</span>, <span style="color:#a6e22e">members</span>) 
 
 </code></pre></div><p>OutPut:</p>
 <pre tabindex="0"><code>查询排行榜成员-升序 [user:3 user:4 user:1 user:5 user:2]
 查询排行榜成员和分数-升序 [{87 user:2} {81 user:5} {81 user:1} {59 user:4} {47 user:3}]
 查询排行榜成员-降序 [user:2 user:5 user:1 user:4 user:3]
-查询排行榜成员和分数-升序 [{59 user:4} {81 user:1} {81 user:5} {87 user:2}]
+查询排行榜成员和分数-升序 [{47 user:3} {59 user:4} {81 user:1} {81 user:5} {87 user:2}]
 获取某玩家 user:2 的分数 87
 更新某玩家 user:1 的分数 87
-查询排行榜变化后的排行榜成员和分数-升序 [{59 user:4} {81 user:5} {87 user:1} {87 user:2}]
+查询排行榜变化后的排行榜成员和分数-升序 [{47 user:3} {59 user:4} {81 user:5} {87 user:1} {87 user:2}]
 查询排行榜某玩家  user:2 的排名 4
 查询排行榜某玩家 user:2 的排名-降序 0
 删除排序集一个成员 1
-删除后查询排行榜成员-升序 [user:4 user:5 user:2]
-清空排行榜 3
+删除后查询排行榜成员-升序 [user:3 user:4 user:5 user:2]
+清空排行榜 4
 清空后查询排行榜成员-升序 []
+
 </code></pre><h3 id="参考">参考</h3>
 <ul>
 <li>安装Redis <a href="https://redis.io/docs/getting-started/installation/">https://redis.io/docs/getting-started/installation/</a></li>
