@@ -3,7 +3,34 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://luckytking.github.io/categories/</loc>
-    <lastmod>2022-10-30T15:43:28+08:00</lastmod>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/k8s/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/categories/k8s/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/2022/11/kubernetes%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E7%9B%91%E6%8E%A7%E4%B8%80%E6%9C%BA%E5%88%B6%E5%92%8C%E8%B5%84%E6%BA%90%E6%8C%87%E6%A0%87/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/monitoring/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/categories/monitoring/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/post/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
+  </url><url>
+    <loc>https://luckytking.github.io/tags/</loc>
+    <lastmod>2022-11-05T22:50:36+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/go-redis/</loc>
     <lastmod>2022-10-30T15:43:28+08:00</lastmod>
@@ -14,22 +41,13 @@
     <loc>https://luckytking.github.io/categories/go%E5%BC%80%E5%8F%91/</loc>
     <lastmod>2022-10-30T15:43:28+08:00</lastmod>
   </url><url>
-    <loc>https://luckytking.github.io/</loc>
-    <lastmod>2022-10-30T15:43:28+08:00</lastmod>
-  </url><url>
     <loc>https://luckytking.github.io/tags/leaderboard/</loc>
-    <lastmod>2022-10-30T15:43:28+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/post/</loc>
     <lastmod>2022-10-30T15:43:28+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/redis/</loc>
     <lastmod>2022-10-30T15:43:28+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/categories/redis/</loc>
-    <lastmod>2022-10-30T15:43:28+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/tags/</loc>
     <lastmod>2022-10-30T15:43:28+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/goroutine-pool/</loc>
@@ -103,15 +121,6 @@
   </url><url>
     <loc>https://luckytking.github.io/tags/gitlab-update/</loc>
     <lastmod>2022-09-16T21:32:33+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/tags/k8s/</loc>
-    <lastmod>2022-09-11T18:20:54+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/categories/k8s/</loc>
-    <lastmod>2022-09-11T18:20:54+08:00</lastmod>
-  </url><url>
-    <loc>https://luckytking.github.io/tags/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</loc>
-    <lastmod>2022-09-11T18:20:54+08:00</lastmod>
   </url><url>
     <loc>https://luckytking.github.io/tags/statefulset/</loc>
     <lastmod>2022-09-11T18:20:54+08:00</lastmod>

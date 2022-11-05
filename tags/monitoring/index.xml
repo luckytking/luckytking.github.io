@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>monitoring on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/monitoring/</link>
+    <description>Recent content in monitoring on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 05 Nov 2022 22:50:36 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/monitoring/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Kubernetes集群资源监控一机制和资源指标</title>
+      <link>https://luckytking.github.io/2022/11/kubernetes%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E7%9B%91%E6%8E%A7%E4%B8%80%E6%9C%BA%E5%88%B6%E5%92%8C%E8%B5%84%E6%BA%90%E6%8C%87%E6%A0%87/</link>
+      <pubDate>Sat, 05 Nov 2022 22:50:36 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/11/kubernetes%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E7%9B%91%E6%8E%A7%E4%B8%80%E6%9C%BA%E5%88%B6%E5%92%8C%E8%B5%84%E6%BA%90%E6%8C%87%E6%A0%87/</guid>
+      <description>本文主要介绍Kubernetes集群资源监控机制和资源指标
+前言 临近双11，对于码农，尤其是后端，尤其是某宝某东的后端，那是多么激动人心（心惊胆战）的一夜，为什么？怕宕机呀~。那么就让我们来构建护城河&amp;ndash;监控与自动扩容，来抵挡千军万马&amp;ndash;高并发场景。首先让我们学习一些基础：k8s集群资源监控机制和资源指标。
+分析 从需求出发，我们自然需要收集一些数据(资源指标)，再根据指标做一系列的操作(control)，比如说预警警告、统计、自动扩容等。
+首先，我们希望可以监控整个Kubernetes集群的健康状况，包括：
+ 整个集群的资源利⽤率 集群中的所有⼯作节点是否运⾏正常、系统资源容量⼤⼩ 每个⼯作节点上运⾏的容器化应⽤的数量  k8s资源控制 我们看看k8s如何资源控制
+限制节点 以购物平台为例，微服务广受推崇，比如双11当天，用户进首页是流畅的，但是进活动主页就卡顿，到了零点时，加入购物车的按钮都转圈了。设想你的设计可能是三个微服务（主页服务 、双十一活动服务、订单服务），可想而知，活动服务是压力最大的，我们希望，就算宕机，不要影响其他的服务。所以可以把活动服务限制运行在某节点。
+ 创建一个会被调度到特定节点上的 Pod，你也可以通过设置 nodeName 将某个 Pod 调度到特定的节点
+ nodeName: foo-node # 调度 Pod 到特定的节点 限制内存 还是上面的例子，我们把活动服务调度到了 foo-node。那么剩下的服务没有去限制，但想想订单服务的压力也不小，这里我们希望限制它的资源上限。
+ 要为容器指定内存请求，请在容器资源清单中包含 resources：requests 字段。 同理，要指定内存限制，请包含 resources：limits。
+ resources: requests: memory: &amp;#34;1000Gi&amp;#34; limits: memory: &amp;#34;1000Gi&amp;#34; 限制CPU  要为容器指定 CPU 请求，请在容器资源清单中包含 resources: requests 字段。 要指定 CPU 限制，请包含 resources:limits
+ resources: limits: cpu: &amp;#34;100&amp;#34; requests: cpu: &amp;#34;100&amp;#34; Example 环境准备:
+ k8s集群（master * 1，node * 2 ) kubectl 命令行工具( 笔者使用rancher)   创建一个namespace（stress）。 增加一个deployment, 修改内存上限为10M 1.</description>
+    </item>
+    
+  </channel>
+</rss>
