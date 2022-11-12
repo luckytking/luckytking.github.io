@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e本文简要介绍Go网络抓包、引流工具GoReplay。\u003c\/p\u003e\n\u003ch3 id=\u0022前言\u0022\u003e前言\u003c\/h3\u003e\n\u003cp\u003e在后端的实际开发中，会遇到以下一些场景：\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e用户通过作弊手段绕过前端，利用抓包，进行破解，模拟，魔改交互数据进行伪装。后端程序需要对其操作记录进行重现和跟踪。\u003c\/li\u003e\n\u003cli\u003e某个bug在测试环境无法复现。\u003c\/li\u003e\n\u003cli\u003e服务压测数据和线上数据有偏差，压测数据希望能和线上接近 。\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003eGoReplay是Go语言编写的流量回放工具，侦听器服务器捕获http流量并将其发送到重放服务器或保存到文件。重播服务器将流量转发给给定的地址。\u003c\/p\u003e\n\u003ch3 id=\u0022安装\u0022\u003e安装\u003c\/h3\u003e\n\u003cp\u003e测试环境： Windows。\n版本： Version:1.3.0\n安装分2步骤：\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e前置条件： 安装npcap \n\u003ca href=\u0022https:\/\/npcap.com\u0022\u003ehttps:\/\/npcap.com\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cblockquote\u003e\n\u003cp\u003eGoReplay可以在Windows机器上工作，但由于Windows堆栈的不同网络层的性质，它有一些细节。\n默认情况下，Windows不像Unix系统那样有支持包捕获的网络驱动程序，如果您想捕获通信量，则必须单独安装它。其中一个选项是安装https:\/\/nmap.org\/npcap\/。\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003col start=\u00222\u0022\u003e\n\u003cli\u003e安装：这里测试使用的是 gor-1.3.3_windows.zip\n\u003ca href=\u0022https:\/\/github.com\/buger\/goreplay\/releases\u0022\u003ehttps:\/\/github.com\/buger\/goreplay\/releases\u003c\/a\u003e \n下载解压即可。\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003ch3 id=\u0022捕获流量\u0022\u003e捕获流量\u003c\/h3\u003e\n\u003cblockquote\u003e\n\u003cp\u003e启动两个http服务：\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003col\u003e\n\u003cli\u003ehttpServerA: http:\/\/localhost:8000 监听端口8000\u003c\/li\u003e\n\u003cli\u003ehttpServerB: http:\/\/localhost:8001 监听端口8001\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cp\u003e路由为 “get: \u0026ldquo;\/helloworld\/{name}\u0026rdquo;\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e监听端口8000，并输出到stdout\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-powershell\u0022 data-lang=\u0022powershell\u0022\u003e .\/gor --input-raw \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e:\u003c\/span\u003e8000 --output-stdout\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cblockquote\u003e\n\u003cp\u003e打开浏览器请求接口 http:\/\/localhost:8000\/helloworld\/lilei\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cblockquote\u003e\n\u003cp\u003e在gor的命令行窗口：\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e1 db0a1f4000000001c344a1d3 1668261985986369000 0\r\nGET \/helloworld\/lilei HTTP\/1.1\r\nHost: localhost:8000\r\nConnection: keep-alive\r\nsec-ch-ua: \u0026quot; Not A;Brand\u0026quot;;v=\u0026quot; 此处省略一些系数\r\nsec-ch-ua-mobile: ?0\r\nsec-ch-ua-platform: \u0026quot;Windows\u0026quot;\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/102.0.0.0 Safari\/537.36\r\nAccept: text\/html,application\/xhtml\u002bxml,application\/xml;q=0.9,image\/avif,image\/webp,image\/apng,*\/*;q=0.8,application\/signed-exchange;v=b3;q=0.9\r\nSec-Fetch-Site: none\r\n此处省略一些参数\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e可见，gor已经把整个http请求的完整信息记录下来。\n同时gor还支持输出到文件和ElasticSearch，进行回放和分析。记录到文件request.gor\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-powershell\u0022 data-lang=\u0022powershell\u0022\u003e .\/gor --input-raw \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e:\u003c\/span\u003e8000 --output\u003cspan style=\u0022color:#f92672\u0022\u003e-file\u003c\/span\u003e request.gor --input-raw-track-response --input-raw-override-snaplen\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cblockquote\u003e\n\u003cp\u003e打开浏览器请求接口 http:\/\/localhost:8000\/helloworld\/hanmeimei\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003e写入到文件 request_0.gor\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-powershell\u0022 data-lang=\u0022powershell\u0022\u003eMode                 LastWriteTime         Length Name\n----                 -------------         ------ ---- \n-a----        2022\/11\/12     21\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e:\u003c\/span\u003e36           1876 request_0.gor\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003erequest_0 内容如下:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode class=\u0022language-gor\u0022 data-lang=\u0022gor\u0022\u003e1 d4571f4000000001b7adc1a6 1668260139796335000 0\r\nGET \/helloworld\/lilei HTTP\/1.1\r\nHost: localhost:8000\r\nConnection: keep-alive\r\nsec-ch-ua: \u0026quot; Not A;Brand\u0026quot;;v=\u0026quot;99\u0026quot;, 此处省略一些参数\r\nsec-ch-ua-mobile: ?0\r\nsec-ch-ua-platform: \u0026quot;Windows\u0026quot;\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla\/5.0 (Windows NT 10.0; Win64; x64), 此处省略一些参数\r\nAccept: text\/html,application\/xhtml\u002bxml,application\/xml;q=0.9,image\/avif,image\/webp,image\/apng,*\/*;q=0.8,application\/signed-exchange;v=b3;q=0.9\r\nSec-Fetch-Site: none\r\n此处省略一些参数\r\n\r\n\r\n🐵🙈🙉\r\n2 d4571f4000000001b7adc1a6 1668260139796652000 0\r\nHTTP\/1.1 200 OK\r\nContent-Type: application\/json\r\nDate: Sat, 12 Nov 2022 13:35:39 GMT\r\nContent-Length: 25\r\n\r\n{\u0026quot;message\u0026quot;:\u0026quot;Hello lilei\u0026quot;}\r\n🐵🙈🙉\r\n1 d4571f4000000001b7adc22b 1668260148757949000 0\r\nGET \/helloworld\/hanmeimei HTTP\/1.1\r\nHost: localhost:8000\r\nConnection: keep-alive\r\nsec-ch-ua: \u0026quot; Not A;Brand\u0026quot;;v=\u0026quot;99\u0026quot;, 此处省略一些参数\r\nsec-ch-ua-mobile: ?0\r\nsec-ch-ua-platform: \u0026quot;Windows\u0026quot;\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla\/5.0 (Windows NT 10.0; Win64; x64) , 此处省略一些参数\r\nAccept: text\/html,application\/xhtml\u002bxml,application\/xml;q=0.9,image\/avif,image\/webp,image\/apng,*\/*;q=0.8,application\/signed-exchange;v=b3;q=0.9\r\nSec-Fetch-Site: none\r\n此处省略一些参数\r\n\r\n\r\n🐵🙈🙉\r\n2 d4571f4000000001b7adc22b 1668260148758268000 0\r\n此处省略一些参数\r\n\r\n{\u0026quot;message\u0026quot;:\u0026quot;Hello hanmeimei\u0026quot;}\r\n🐵🙈🙉\r\n\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch3 id=\u0022流量回放\u0022\u003e流量回放\u003c\/h3\u003e\n\u003cp\u003e接着将该文件request_0.gor 进行流量回放，并转发到另外一台服务器（HttpServerB）上：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-powershell\u0022 data-lang=\u0022powershell\u0022\u003e.\/gor --input\u003cspan style=\u0022color:#f92672\u0022\u003e-file\u003c\/span\u003e request_0.gor --output-http http\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e:\u003c\/span\u003e\/\/localhost\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e:\u003c\/span\u003e8001\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e观察HttpServerB服务器控制台输出：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eINFO ts=2022-11-12T21:37:26\u002b08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: lilei\r\nINFO ts=2022-11-12T21:37:34\u002b08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: hanmeimei\r\n\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e从日志中可以看到两个请求（http:\/\/localhost:8000\/helloworld\/ilei、http:\/\/localhost:8000\/helloworld\/hanmeimei）分别重放请求到了HttpServerB。\u003c\/p\u003e\n\u003cp\u003egor支持进行流量缩小、放大、倍速重放，实现真实流量的压测效果。\n更多命令 .\/gor -help 查看\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e官方GitHub  \u003ca href=\u0022https:\/\/github.com\/buger\/goreplay\u0022\u003ehttps:\/\/github.com\/buger\/goreplay\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e安装包 \u003ca href=\u0022https:\/\/github.com\/buger\/goreplay\/releases\u0022\u003ehttps:\/\/github.com\/buger\/goreplay\/releases\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eWindows 安装 \u003ca href=\u0022https:\/\/github.com\/buger\/goreplay\/wiki\/Running-on-Windows\u0022\u003ehttps:\/\/github.com\/buger\/goreplay\/wiki\/Running-on-Windows\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e官方npcap \u003ca href=\u0022https:\/\/npcap.com\/\u0022\u003ehttps:\/\/npcap.com\/\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003eGoreplay详解 \u003ca href=\u0022https:\/\/www.cnblogs.com\/sunsky303\/p\/9072871.html\u0022\u003ehttps:\/\/www.cnblogs.com\/sunsky303\/p\/9072871.html\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e入门和导入Es  \u003ca href=\u0022https:\/\/mp.weixin.qq.com\/s\/mNjLiEBnHIZhOTrDwNkmvA\u0022\u003ehttps:\/\/mp.weixin.qq.com\/s\/mNjLiEBnHIZhOTrDwNkmvA\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e简介  \u003ca href=\u0022https:\/\/www.jianshu.com\/p\/0f3bcfbf7874\u0022\u003ehttps:\/\/www.jianshu.com\/p\/0f3bcfbf7874\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/11\/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay\/",
+  "keywords":"[网络抓包, 引流]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="网络抓包, 引流">
+<meta name="description" content="本文简要介绍Go网络抓包、引流工具GoReplay。
+前言
+在后端的实际开发中，会遇到以下一些场景：
+
+用户通过作弊手段绕过前端，利用抓包，进行破解，模拟，魔改交互数据进行伪装。后端程序需要对其操作记录进行重现和跟踪。
+某个bug在测试环境无法复现。
+服务压测数据和线上数据有偏差，压测数据希望能和线上接近 。
+
+GoReplay是Go语言编写的流量回放工具，侦听器服务器捕获http流量并将其发送到重放服务器或保存到文件。重播服务器将流量转发给给定的地址。
+安装
+测试环境： Windows。
+版本： Version:1.3.0
+安装分2步骤：
+
+前置条件： 安装npcap 
+https://npcap.com
+
+
+GoReplay可以在Windows机器上工作，但由于Windows堆栈的不同网络层的性质，它有一些细节。
+默认情况下，Windows不像Unix系统那样有支持包捕获的网络驱动程序，如果您想捕获通信量，则必须单独安装它。其中一个选项是安装https://nmap.org/npcap/。
+
+
+安装：这里测试使用的是 gor-1.3.3_windows.zip
+https://github.com/buger/goreplay/releases 
+下载解压即可。
+
+捕获流量
+
+启动两个http服务：
+
+
+httpServerA: http://localhost:8000 监听端口8000
+httpServerB: http://localhost:8001 监听端口8001
+
+路由为 “get: &ldquo;/helloworld/{name}&rdquo;
+
+监听端口8000，并输出到stdout
+
+ ./gor --input-raw :8000 --output-stdout
+
+打开浏览器请求接口 http://localhost:8000/helloworld/lilei
+
+
+在gor的命令行窗口：
+
+1 db0a1f4000000001c344a1d3 1668261985986369000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot; 此处省略一些系数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+可见，gor已经把整个http请求的完整信息记录下来。
+同时gor还支持输出到文件和ElasticSearch，进行回放和分析。记录到文件request.gor
+ ./gor --input-raw :8000 --output-file request.gor --input-raw-track-response --input-raw-override-snaplen
+
+打开浏览器请求接口 http://localhost:8000/helloworld/hanmeimei
+
+写入到文件 request_0.gor
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ---- 
+-a----        2022/11/12     21:36           1876 request_0.gor
+request_0 内容如下:
+1 d4571f4000000001b7adc1a6 1668260139796335000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64), 此处省略一些参数
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc1a6 1668260139796652000 0
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Sat, 12 Nov 2022 13:35:39 GMT
+Content-Length: 25
+
+{&quot;message&quot;:&quot;Hello lilei&quot;}
+🐵🙈🙉
+1 d4571f4000000001b7adc22b 1668260148757949000 0
+GET /helloworld/hanmeimei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) , 此处省略一些参数
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc22b 1668260148758268000 0
+此处省略一些参数
+
+{&quot;message&quot;:&quot;Hello hanmeimei&quot;}
+🐵🙈🙉
+
+流量回放
+接着将该文件request_0.gor 进行流量回放，并转发到另外一台服务器（HttpServerB）上：
+./gor --input-file request_0.gor --output-http http://localhost:8001
+观察HttpServerB服务器控制台输出：
+INFO ts=2022-11-12T21:37:26&#43;08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: lilei
+INFO ts=2022-11-12T21:37:34&#43;08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: hanmeimei
+
+从日志中可以看到两个请求（http://localhost:8000/helloworld/ilei、http://localhost:8000/helloworld/hanmeimei）分别重放请求到了HttpServerB。
+gor支持进行流量缩小、放大、倍速重放，实现真实流量的压测效果。
+更多命令 ./gor -help 查看
+参考
+
+官方GitHub  https://github.com/buger/goreplay
+安装包 https://github.com/buger/goreplay/releases
+Windows 安装 https://github.com/buger/goreplay/wiki/Running-on-Windows
+官方npcap https://npcap.com/
+Goreplay详解 https://www.cnblogs.com/sunsky303/p/9072871.html
+入门和导入Es  https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA
+简介  https://www.jianshu.com/p/0f3bcfbf7874
+">
+
+
+<meta property="og:description" content="本文简要介绍Go网络抓包、引流工具GoReplay。
+前言
+在后端的实际开发中，会遇到以下一些场景：
+
+用户通过作弊手段绕过前端，利用抓包，进行破解，模拟，魔改交互数据进行伪装。后端程序需要对其操作记录进行重现和跟踪。
+某个bug在测试环境无法复现。
+服务压测数据和线上数据有偏差，压测数据希望能和线上接近 。
+
+GoReplay是Go语言编写的流量回放工具，侦听器服务器捕获http流量并将其发送到重放服务器或保存到文件。重播服务器将流量转发给给定的地址。
+安装
+测试环境： Windows。
+版本： Version:1.3.0
+安装分2步骤：
+
+前置条件： 安装npcap 
+https://npcap.com
+
+
+GoReplay可以在Windows机器上工作，但由于Windows堆栈的不同网络层的性质，它有一些细节。
+默认情况下，Windows不像Unix系统那样有支持包捕获的网络驱动程序，如果您想捕获通信量，则必须单独安装它。其中一个选项是安装https://nmap.org/npcap/。
+
+
+安装：这里测试使用的是 gor-1.3.3_windows.zip
+https://github.com/buger/goreplay/releases 
+下载解压即可。
+
+捕获流量
+
+启动两个http服务：
+
+
+httpServerA: http://localhost:8000 监听端口8000
+httpServerB: http://localhost:8001 监听端口8001
+
+路由为 “get: &ldquo;/helloworld/{name}&rdquo;
+
+监听端口8000，并输出到stdout
+
+ ./gor --input-raw :8000 --output-stdout
+
+打开浏览器请求接口 http://localhost:8000/helloworld/lilei
+
+
+在gor的命令行窗口：
+
+1 db0a1f4000000001c344a1d3 1668261985986369000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot; 此处省略一些系数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+可见，gor已经把整个http请求的完整信息记录下来。
+同时gor还支持输出到文件和ElasticSearch，进行回放和分析。记录到文件request.gor
+ ./gor --input-raw :8000 --output-file request.gor --input-raw-track-response --input-raw-override-snaplen
+
+打开浏览器请求接口 http://localhost:8000/helloworld/hanmeimei
+
+写入到文件 request_0.gor
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ---- 
+-a----        2022/11/12     21:36           1876 request_0.gor
+request_0 内容如下:
+1 d4571f4000000001b7adc1a6 1668260139796335000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64), 此处省略一些参数
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc1a6 1668260139796652000 0
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Sat, 12 Nov 2022 13:35:39 GMT
+Content-Length: 25
+
+{&quot;message&quot;:&quot;Hello lilei&quot;}
+🐵🙈🙉
+1 d4571f4000000001b7adc22b 1668260148757949000 0
+GET /helloworld/hanmeimei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) , 此处省略一些参数
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc22b 1668260148758268000 0
+此处省略一些参数
+
+{&quot;message&quot;:&quot;Hello hanmeimei&quot;}
+🐵🙈🙉
+
+流量回放
+接着将该文件request_0.gor 进行流量回放，并转发到另外一台服务器（HttpServerB）上：
+./gor --input-file request_0.gor --output-http http://localhost:8001
+观察HttpServerB服务器控制台输出：
+INFO ts=2022-11-12T21:37:26&#43;08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: lilei
+INFO ts=2022-11-12T21:37:34&#43;08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: hanmeimei
+
+从日志中可以看到两个请求（http://localhost:8000/helloworld/ilei、http://localhost:8000/helloworld/hanmeimei）分别重放请求到了HttpServerB。
+gor支持进行流量缩小、放大、倍速重放，实现真实流量的压测效果。
+更多命令 ./gor -help 查看
+参考
+
+官方GitHub  https://github.com/buger/goreplay
+安装包 https://github.com/buger/goreplay/releases
+Windows 安装 https://github.com/buger/goreplay/wiki/Running-on-Windows
+官方npcap https://npcap.com/
+Goreplay详解 https://www.cnblogs.com/sunsky303/p/9072871.html
+入门和导入Es  https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA
+简介  https://www.jianshu.com/p/0f3bcfbf7874
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go网络抓包、引流工具GoReplay">
+<meta name="twitter:title" content="Go网络抓包、引流工具GoReplay">
+<meta property="og:url" content="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="本文简要介绍Go网络抓包、引流工具GoReplay。
+前言
+在后端的实际开发中，会遇到以下一些场景：
+
+用户通过作弊手段绕过前端，利用抓包，进行破解，模拟，魔改交互数据进行伪装。后端程序需要对其操作记录进行重现和跟踪。
+某个bug在测试环境无法复现。
+服务压测数据和线上数据有偏差，压测数据希望能和线上接近 。
+
+GoReplay是Go语言编写的流量回放工具，侦听器服务器捕获http流量并将其发送到重放服务器或保存到文件。重播服务器将流量转发给给定的地址。
+安装
+测试环境： Windows。
+版本： Version:1.3.0
+安装分2步骤：
+
+前置条件： 安装npcap 
+https://npcap.com
+
+
+GoReplay可以在Windows机器上工作，但由于Windows堆栈的不同网络层的性质，它有一些细节。
+默认情况下，Windows不像Unix系统那样有支持包捕获的网络驱动程序，如果您想捕获通信量，则必须单独安装它。其中一个选项是安装https://nmap.org/npcap/。
+
+
+安装：这里测试使用的是 gor-1.3.3_windows.zip
+https://github.com/buger/goreplay/releases 
+下载解压即可。
+
+捕获流量
+
+启动两个http服务：
+
+
+httpServerA: http://localhost:8000 监听端口8000
+httpServerB: http://localhost:8001 监听端口8001
+
+路由为 “get: &ldquo;/helloworld/{name}&rdquo;
+
+监听端口8000，并输出到stdout
+
+ ./gor --input-raw :8000 --output-stdout
+
+打开浏览器请求接口 http://localhost:8000/helloworld/lilei
+
+
+在gor的命令行窗口：
+
+1 db0a1f4000000001c344a1d3 1668261985986369000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot; 此处省略一些系数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+可见，gor已经把整个http请求的完整信息记录下来。
+同时gor还支持输出到文件和ElasticSearch，进行回放和分析。记录到文件request.gor
+ ./gor --input-raw :8000 --output-file request.gor --input-raw-track-response --input-raw-override-snaplen
+
+打开浏览器请求接口 http://localhost:8000/helloworld/hanmeimei
+
+写入到文件 request_0.gor
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ---- 
+-a----        2022/11/12     21:36           1876 request_0.gor
+request_0 内容如下:
+1 d4571f4000000001b7adc1a6 1668260139796335000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64), 此处省略一些参数
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc1a6 1668260139796652000 0
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Sat, 12 Nov 2022 13:35:39 GMT
+Content-Length: 25
+
+{&quot;message&quot;:&quot;Hello lilei&quot;}
+🐵🙈🙉
+1 d4571f4000000001b7adc22b 1668260148757949000 0
+GET /helloworld/hanmeimei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) , 此处省略一些参数
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc22b 1668260148758268000 0
+此处省略一些参数
+
+{&quot;message&quot;:&quot;Hello hanmeimei&quot;}
+🐵🙈🙉
+
+流量回放
+接着将该文件request_0.gor 进行流量回放，并转发到另外一台服务器（HttpServerB）上：
+./gor --input-file request_0.gor --output-http http://localhost:8001
+观察HttpServerB服务器控制台输出：
+INFO ts=2022-11-12T21:37:26&#43;08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: lilei
+INFO ts=2022-11-12T21:37:34&#43;08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: hanmeimei
+
+从日志中可以看到两个请求（http://localhost:8000/helloworld/ilei、http://localhost:8000/helloworld/hanmeimei）分别重放请求到了HttpServerB。
+gor支持进行流量缩小、放大、倍速重放，实现真实流量的压测效果。
+更多命令 ./gor -help 查看
+参考
+
+官方GitHub  https://github.com/buger/goreplay
+安装包 https://github.com/buger/goreplay/releases
+Windows 安装 https://github.com/buger/goreplay/wiki/Running-on-Windows
+官方npcap https://npcap.com/
+Goreplay详解 https://www.cnblogs.com/sunsky303/p/9072871.html
+入门和导入Es  https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA
+简介  https://www.jianshu.com/p/0f3bcfbf7874
+">
+<meta name="twitter:description" content="本文简要介绍Go网络抓包、引流工具GoReplay。
+前言
+在后端的实际开发中，会遇到以下一些场景：
+
+用户通过作弊手段绕过前端，利用抓包，进行破解，模拟，魔改交互数据进行伪装。后端程序需要对其操作记录进行重现和跟踪。
+某个bug在测试环境无法复现。
+服务压测数据和线上数据有偏差，压测数据希望能和线上接近 。
+
+GoReplay是Go语言编写的流量回放工具，侦听器服务器捕获http流量并将其发送到重放服务器或保存到文件。重播服务器将流量转发给给定的地址。
+安装
+测试环境： Windows。
+版本： Version:1.3.0
+安装分2步骤：
+
+前置条件： 安装npcap 
+https://npcap.com
+
+
+GoReplay可以在Windows机器上工作，但由于Windows堆栈的不同网络层的性质，它有一些细节。
+默认情况下，Windows不像Unix系统那样有支持包捕获的网络驱动程序，如果您想捕获通信量，则必须单独安装它。其中一个选项是安装https://nmap.org/npcap/。
+
+
+安装：这里测试使用的是 gor-1.3.3_windows.zip
+https://github.com/buger/goreplay/releases 
+下载解压即可。
+
+捕获流量
+
+启动两个http服务：
+
+
+httpServerA: http://localhost:8000 监听端口8000
+httpServerB: http://localhost:8001 监听端口8001
+
+路由为 “get: &ldquo;/helloworld/{name}&rdquo;
+
+监听端口8000，并输出到stdout
+
+ ./gor --input-raw :8000 --output-stdout
+
+打开浏览器请求接口 http://localhost:8000/helloworld/lilei
+
+
+在gor的命令行窗口：
+
+1 db0a1f4000000001c344a1d3 1668261985986369000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot; 此处省略一些系数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+可见，gor已经把整个http请求的完整信息记录下来。
+同时gor还支持输出到文件和ElasticSearch，进行回放和分析。记录到文件request.gor
+ ./gor --input-raw :8000 --output-file request.gor --input-raw-track-response --input-raw-override-snaplen
+
+打开浏览器请求接口 http://localhost:8000/helloworld/hanmeimei
+
+写入到文件 request_0.gor
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ---- 
+-a----        2022/11/12     21:36           1876 request_0.gor
+request_0 内容如下:
+1 d4571f4000000001b7adc1a6 1668260139796335000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64), 此处省略一些参数
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc1a6 1668260139796652000 0
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Sat, 12 Nov 2022 13:35:39 GMT
+Content-Length: 25
+
+{&quot;message&quot;:&quot;Hello lilei&quot;}
+🐵🙈🙉
+1 d4571f4000000001b7adc22b 1668260148757949000 0
+GET /helloworld/hanmeimei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) , 此处省略一些参数
+Accept: text/html,application/xhtml&#43;xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc22b 1668260148758268000 0
+此处省略一些参数
+
+{&quot;message&quot;:&quot;Hello hanmeimei&quot;}
+🐵🙈🙉
+
+流量回放
+接着将该文件request_0.gor 进行流量回放，并转发到另外一台服务器（HttpServerB）上：
+./gor --input-file request_0.gor --output-http http://localhost:8001
+观察HttpServerB服务器控制台输出：
+INFO ts=2022-11-12T21:37:26&#43;08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: lilei
+INFO ts=2022-11-12T21:37:34&#43;08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: hanmeimei
+
+从日志中可以看到两个请求（http://localhost:8000/helloworld/ilei、http://localhost:8000/helloworld/hanmeimei）分别重放请求到了HttpServerB。
+gor支持进行流量缩小、放大、倍速重放，实现真实流量的压测效果。
+更多命令 ./gor -help 查看
+参考
+
+官方GitHub  https://github.com/buger/goreplay
+安装包 https://github.com/buger/goreplay/releases
+Windows 安装 https://github.com/buger/goreplay/wiki/Running-on-Windows
+官方npcap https://npcap.com/
+Goreplay详解 https://www.cnblogs.com/sunsky303/p/9072871.html
+入门和导入Es  https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA
+简介  https://www.jianshu.com/p/0f3bcfbf7874
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-11-12T22:57:15">
+  
+  
+    <meta property="article:modified_time" content="2022-11-12T22:57:15">
+  
+  
+  
+    
+      <meta property="article:section" content="后端开发">
+    
+  
+  
+    
+      <meta property="article:tag" content="网络抓包">
+    
+      <meta property="article:tag" content="引流">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Go网络抓包、引流工具GoReplay</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Go网络抓包、引流工具GoReplay
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-11-12T22:57:15&#43;08:00">
+        
+   12, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91">后端开发</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>本文简要介绍Go网络抓包、引流工具GoReplay。</p>
+<h3 id="前言">前言</h3>
+<p>在后端的实际开发中，会遇到以下一些场景：</p>
+<ul>
+<li>用户通过作弊手段绕过前端，利用抓包，进行破解，模拟，魔改交互数据进行伪装。后端程序需要对其操作记录进行重现和跟踪。</li>
+<li>某个bug在测试环境无法复现。</li>
+<li>服务压测数据和线上数据有偏差，压测数据希望能和线上接近 。</li>
+</ul>
+<p>GoReplay是Go语言编写的流量回放工具，侦听器服务器捕获http流量并将其发送到重放服务器或保存到文件。重播服务器将流量转发给给定的地址。</p>
+<h3 id="安装">安装</h3>
+<p>测试环境： Windows。
+版本： Version:1.3.0
+安装分2步骤：</p>
+<ol>
+<li>前置条件： 安装npcap 
+<a href="https://npcap.com">https://npcap.com</a></li>
+</ol>
+<blockquote>
+<p>GoReplay可以在Windows机器上工作，但由于Windows堆栈的不同网络层的性质，它有一些细节。
+默认情况下，Windows不像Unix系统那样有支持包捕获的网络驱动程序，如果您想捕获通信量，则必须单独安装它。其中一个选项是安装https://nmap.org/npcap/。</p>
+</blockquote>
+<ol start="2">
+<li>安装：这里测试使用的是 gor-1.3.3_windows.zip
+<a href="https://github.com/buger/goreplay/releases">https://github.com/buger/goreplay/releases</a> 
+下载解压即可。</li>
+</ol>
+<h3 id="捕获流量">捕获流量</h3>
+<blockquote>
+<p>启动两个http服务：</p>
+</blockquote>
+<ol>
+<li>httpServerA: http://localhost:8000 监听端口8000</li>
+<li>httpServerB: http://localhost:8001 监听端口8001</li>
+</ol>
+<p>路由为 “get: &ldquo;/helloworld/{name}&rdquo;</p>
+<blockquote>
+<p>监听端口8000，并输出到stdout</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell"> ./gor --input-raw <span style="color:#960050;background-color:#1e0010">:</span>8000 --output-stdout
+</code></pre></div><blockquote>
+<p>打开浏览器请求接口 http://localhost:8000/helloworld/lilei</p>
+</blockquote>
+<blockquote>
+<p>在gor的命令行窗口：</p>
+</blockquote>
+<pre tabindex="0"><code>1 db0a1f4000000001c344a1d3 1668261985986369000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot; 此处省略一些系数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+</code></pre><p>可见，gor已经把整个http请求的完整信息记录下来。
+同时gor还支持输出到文件和ElasticSearch，进行回放和分析。记录到文件request.gor</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell"> ./gor --input-raw <span style="color:#960050;background-color:#1e0010">:</span>8000 --output<span style="color:#f92672">-file</span> request.gor --input-raw-track-response --input-raw-override-snaplen
+</code></pre></div><blockquote>
+<p>打开浏览器请求接口 http://localhost:8000/helloworld/hanmeimei</p>
+</blockquote>
+<p>写入到文件 request_0.gor</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ---- 
+-a----        2022/11/12     21<span style="color:#960050;background-color:#1e0010">:</span>36           1876 request_0.gor
+</code></pre></div><p>request_0 内容如下:</p>
+<pre tabindex="0"><code class="language-gor" data-lang="gor">1 d4571f4000000001b7adc1a6 1668260139796335000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64), 此处省略一些参数
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc1a6 1668260139796652000 0
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Sat, 12 Nov 2022 13:35:39 GMT
+Content-Length: 25
+
+{&quot;message&quot;:&quot;Hello lilei&quot;}
+🐵🙈🙉
+1 d4571f4000000001b7adc22b 1668260148757949000 0
+GET /helloworld/hanmeimei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &quot;Windows&quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) , 此处省略一些参数
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc22b 1668260148758268000 0
+此处省略一些参数
+
+{&quot;message&quot;:&quot;Hello hanmeimei&quot;}
+🐵🙈🙉
+
+</code></pre><h3 id="流量回放">流量回放</h3>
+<p>接着将该文件request_0.gor 进行流量回放，并转发到另外一台服务器（HttpServerB）上：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">./gor --input<span style="color:#f92672">-file</span> request_0.gor --output-http http<span style="color:#960050;background-color:#1e0010">:</span>//localhost<span style="color:#960050;background-color:#1e0010">:</span>8001
+</code></pre></div><p>观察HttpServerB服务器控制台输出：</p>
+<pre tabindex="0"><code>INFO ts=2022-11-12T21:37:26+08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: lilei
+INFO ts=2022-11-12T21:37:34+08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: hanmeimei
+
+</code></pre><p>从日志中可以看到两个请求（http://localhost:8000/helloworld/ilei、http://localhost:8000/helloworld/hanmeimei）分别重放请求到了HttpServerB。</p>
+<p>gor支持进行流量缩小、放大、倍速重放，实现真实流量的压测效果。
+更多命令 ./gor -help 查看</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>官方GitHub  <a href="https://github.com/buger/goreplay">https://github.com/buger/goreplay</a></li>
+<li>安装包 <a href="https://github.com/buger/goreplay/releases">https://github.com/buger/goreplay/releases</a></li>
+<li>Windows 安装 <a href="https://github.com/buger/goreplay/wiki/Running-on-Windows">https://github.com/buger/goreplay/wiki/Running-on-Windows</a></li>
+<li>官方npcap <a href="https://npcap.com/">https://npcap.com/</a></li>
+<li>Goreplay详解 <a href="https://www.cnblogs.com/sunsky303/p/9072871.html">https://www.cnblogs.com/sunsky303/p/9072871.html</a></li>
+<li>入门和导入Es  <a href="https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA">https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA</a></li>
+<li>简介  <a href="https://www.jianshu.com/p/0f3bcfbf7874">https://www.jianshu.com/p/0f3bcfbf7874</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85/">网络抓包</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/%E5%BC%95%E6%B5%81/">引流</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/11/kubernetes%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E7%9B%91%E6%8E%A7%E4%B8%80%E6%9C%BA%E5%88%B6%E5%92%8C%E8%B5%84%E6%BA%90%E6%8C%87%E6%A0%87/" data-tooltip="Kubernetes集群资源监控一机制和资源指标" aria-label=": Kubernetes集群资源监控一机制和资源指标">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/11/kubernetes%E9%9B%86%E7%BE%A4%E8%B5%84%E6%BA%90%E7%9B%91%E6%8E%A7%E4%B8%80%E6%9C%BA%E5%88%B6%E5%92%8C%E8%B5%84%E6%BA%90%E6%8C%87%E6%A0%87/" data-tooltip="Kubernetes集群资源监控一机制和资源指标" aria-label=": Kubernetes集群资源监控一机制和资源指标">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

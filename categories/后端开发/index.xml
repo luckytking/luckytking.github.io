@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>后端开发 on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/categories/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/</link>
+    <description>Recent content in 后端开发 on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 12 Nov 2022 22:57:15 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go网络抓包、引流工具GoReplay</title>
+      <link>https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/</link>
+      <pubDate>Sat, 12 Nov 2022 22:57:15 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/</guid>
+      <description>&lt;p&gt;本文简要介绍Go网络抓包、引流工具GoReplay。&lt;/p&gt;
+&lt;h3 id=&#34;前言&#34;&gt;前言&lt;/h3&gt;
+&lt;p&gt;在后端的实际开发中，会遇到以下一些场景：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用户通过作弊手段绕过前端，利用抓包，进行破解，模拟，魔改交互数据进行伪装。后端程序需要对其操作记录进行重现和跟踪。&lt;/li&gt;
+&lt;li&gt;某个bug在测试环境无法复现。&lt;/li&gt;
+&lt;li&gt;服务压测数据和线上数据有偏差，压测数据希望能和线上接近 。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;GoReplay是Go语言编写的流量回放工具，侦听器服务器捕获http流量并将其发送到重放服务器或保存到文件。重播服务器将流量转发给给定的地址。&lt;/p&gt;
+&lt;h3 id=&#34;安装&#34;&gt;安装&lt;/h3&gt;
+&lt;p&gt;测试环境： Windows。
+版本： Version:1.3.0
+安装分2步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;前置条件： 安装npcap 
+&lt;a href=&#34;https://npcap.com&#34;&gt;https://npcap.com&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;GoReplay可以在Windows机器上工作，但由于Windows堆栈的不同网络层的性质，它有一些细节。
+默认情况下，Windows不像Unix系统那样有支持包捕获的网络驱动程序，如果您想捕获通信量，则必须单独安装它。其中一个选项是安装https://nmap.org/npcap/。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;安装：这里测试使用的是 gor-1.3.3_windows.zip
+&lt;a href=&#34;https://github.com/buger/goreplay/releases&#34;&gt;https://github.com/buger/goreplay/releases&lt;/a&gt; 
+下载解压即可。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;捕获流量&#34;&gt;捕获流量&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;启动两个http服务：&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;httpServerA: http://localhost:8000 监听端口8000&lt;/li&gt;
+&lt;li&gt;httpServerB: http://localhost:8001 监听端口8001&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;路由为 “get: &amp;ldquo;/helloworld/{name}&amp;rdquo;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;监听端口8000，并输出到stdout&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt; ./gor --input-raw &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;8000 --output-stdout
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;打开浏览器请求接口 http://localhost:8000/helloworld/lilei&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在gor的命令行窗口：&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;1 db0a1f4000000001c344a1d3 1668261985986369000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &amp;quot; Not A;Brand&amp;quot;;v=&amp;quot; 此处省略一些系数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &amp;quot;Windows&amp;quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可见，gor已经把整个http请求的完整信息记录下来。
+同时gor还支持输出到文件和ElasticSearch，进行回放和分析。记录到文件request.gor&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt; ./gor --input-raw &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;8000 --output&lt;span style=&#34;color:#f92672&#34;&gt;-file&lt;/span&gt; request.gor --input-raw-track-response --input-raw-override-snaplen
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;打开浏览器请求接口 http://localhost:8000/helloworld/hanmeimei&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;写入到文件 request_0.gor&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ---- 
+-a----        2022/11/12     21&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;36           1876 request_0.gor
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;request_0 内容如下:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-gor&#34; data-lang=&#34;gor&#34;&gt;1 d4571f4000000001b7adc1a6 1668260139796335000 0
+GET /helloworld/lilei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &amp;quot; Not A;Brand&amp;quot;;v=&amp;quot;99&amp;quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &amp;quot;Windows&amp;quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64), 此处省略一些参数
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc1a6 1668260139796652000 0
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Sat, 12 Nov 2022 13:35:39 GMT
+Content-Length: 25
+
+{&amp;quot;message&amp;quot;:&amp;quot;Hello lilei&amp;quot;}
+🐵🙈🙉
+1 d4571f4000000001b7adc22b 1668260148757949000 0
+GET /helloworld/hanmeimei HTTP/1.1
+Host: localhost:8000
+Connection: keep-alive
+sec-ch-ua: &amp;quot; Not A;Brand&amp;quot;;v=&amp;quot;99&amp;quot;, 此处省略一些参数
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: &amp;quot;Windows&amp;quot;
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) , 此处省略一些参数
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+此处省略一些参数
+
+
+🐵🙈🙉
+2 d4571f4000000001b7adc22b 1668260148758268000 0
+此处省略一些参数
+
+{&amp;quot;message&amp;quot;:&amp;quot;Hello hanmeimei&amp;quot;}
+🐵🙈🙉
+
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;流量回放&#34;&gt;流量回放&lt;/h3&gt;
+&lt;p&gt;接着将该文件request_0.gor 进行流量回放，并转发到另外一台服务器（HttpServerB）上：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;./gor --input&lt;span style=&#34;color:#f92672&#34;&gt;-file&lt;/span&gt; request_0.gor --output-http http&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;//localhost&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;8001
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;观察HttpServerB服务器控制台输出：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;INFO ts=2022-11-12T21:37:26+08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: lilei
+INFO ts=2022-11-12T21:37:34+08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: hanmeimei
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;从日志中可以看到两个请求（http://localhost:8000/helloworld/ilei、http://localhost:8000/helloworld/hanmeimei）分别重放请求到了HttpServerB。&lt;/p&gt;
+&lt;p&gt;gor支持进行流量缩小、放大、倍速重放，实现真实流量的压测效果。
+更多命令 ./gor -help 查看&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;官方GitHub  &lt;a href=&#34;https://github.com/buger/goreplay&#34;&gt;https://github.com/buger/goreplay&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;安装包 &lt;a href=&#34;https://github.com/buger/goreplay/releases&#34;&gt;https://github.com/buger/goreplay/releases&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Windows 安装 &lt;a href=&#34;https://github.com/buger/goreplay/wiki/Running-on-Windows&#34;&gt;https://github.com/buger/goreplay/wiki/Running-on-Windows&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;官方npcap &lt;a href=&#34;https://npcap.com/&#34;&gt;https://npcap.com/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Goreplay详解 &lt;a href=&#34;https://www.cnblogs.com/sunsky303/p/9072871.html&#34;&gt;https://www.cnblogs.com/sunsky303/p/9072871.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;入门和导入Es  &lt;a href=&#34;https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA&#34;&gt;https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;简介  &lt;a href=&#34;https://www.jianshu.com/p/0f3bcfbf7874&#34;&gt;https://www.jianshu.com/p/0f3bcfbf7874&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+    <item>
+      <title>性能测试平台（locust&#43;boomer）之二</title>
+      <link>https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/</link>
+      <pubDate>Thu, 23 Jun 2022 21:53:01 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%BA%8C/</guid>
+      <description>&lt;p&gt;上一篇（&lt;a href=&#34;https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/&#34;&gt;传送门&lt;/a&gt;）介绍了测试平台 locust + boomer 的环境搭建，以及运行http压测用例，观测性能指数、图表。这篇接上篇，继续讲go boomer如何实现。&lt;/p&gt;
+&lt;h4 id=&#34;setup&#34;&gt;setup&lt;/h4&gt;
+&lt;h5 id=&#34;install-the-master-branch&#34;&gt;Install the master branch&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$ go get github.com/myzhan/boomer&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h5 id=&#34;install-a-tagged-version-that-works-with-locust-160&#34;&gt;Install a tagged version that works with locust 1.6.0&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$ go get &lt;a href=&#34;mailto:github.com/myzhan/boomer@v1.6.0&#34;&gt;github.com/myzhan/boomer@v1.6.0&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h5 id=&#34;install-gomq&#34;&gt;install gomq&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$ go get -u github.com/zeromq/gomq&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;quick-start&#34;&gt;quick start&lt;/h4&gt;
+&lt;h5 id=&#34;run-master&#34;&gt;run master&lt;/h5&gt;
+&lt;p&gt;创建python文件 workspace/dummy.py&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; locust &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; Locust, TaskSet, task
+&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MyTaskSet&lt;/span&gt;(TaskSet):
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;@task&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;hello&lt;/span&gt;(self):
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;pass&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Dummy&lt;/span&gt;(Locust):
+    task_set &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; MyTaskSet
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;运行：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$ locust &amp;ndash;master -f dummy.py
+output：&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$locust.main: Starting web interface at http://0.0.0.0:8089 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;accepting connections from all network interfaces&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+$locust.main: Starting Locust 2.9.1.dev23
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id=&#34;run-slave&#34;&gt;run slave&lt;/h5&gt;
+&lt;p&gt;创建go文件 workspace/main.go&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt;(
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;io/ioutil&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;net/http&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;time&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;github.com/myzhan/boomer&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;helloTask&lt;/span&gt;() {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;start&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Now&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;HttpGet&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;elapsed&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Since&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;start&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;boomer&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;RecordFailure&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;http&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;world&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;elapsed&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Nanoseconds&lt;/span&gt;()&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;int64(&lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Millisecond&lt;/span&gt;), &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Error&lt;/span&gt;())
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+	}
+    
+&lt;span style=&#34;color:#75715e&#34;&gt;/*    Report your test result as a success, if you write it in locust, it will looks like this    events.request_success.fire(request_type=&amp;#34;http&amp;#34;, name=&amp;#34;world&amp;#34;, response_time=100, response_length=10)    */&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;boomer&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;RecordSuccess&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;http&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;world&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;elapsed&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Nanoseconds&lt;/span&gt;()&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;int64(&lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Millisecond&lt;/span&gt;), int64(&lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;))
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;worldTask&lt;/span&gt;() {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;start&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Now&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;HttpGet&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;world&amp;#34;&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;elapsed&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Since&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;start&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;boomer&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;RecordFailure&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;udp&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;world&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;elapsed&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Nanoseconds&lt;/span&gt;()&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;int64(&lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Millisecond&lt;/span&gt;), &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Error&lt;/span&gt;())
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+	} 
+&lt;span style=&#34;color:#75715e&#34;&gt;/*  Report your test result as a failure, if you write it in locust, it will looks like this    events.request_failure.fire(request_type=&amp;#34;udp&amp;#34;, name=&amp;#34;hello&amp;#34;, response_time=100, exception=Exception(&amp;#34;udp error&amp;#34;))    */&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;boomer&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;RecordSuccess&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;udp&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;world&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;elapsed&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Nanoseconds&lt;/span&gt;()&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;int64(&lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Millisecond&lt;/span&gt;), int64(&lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;))
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;task1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;boomer&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Task&lt;/span&gt;{
+		&lt;span style=&#34;color:#75715e&#34;&gt;// 同时跑多个 tasks 的时候，Weight 字段用于分配 goroutines
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#a6e22e&#34;&gt;Weight&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Fn&lt;/span&gt;:     &lt;span style=&#34;color:#a6e22e&#34;&gt;helloTask&lt;/span&gt;,
+	}
+
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;task2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;boomer&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Task&lt;/span&gt;{
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Weight&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Fn&lt;/span&gt;:     &lt;span style=&#34;color:#a6e22e&#34;&gt;worldTask&lt;/span&gt;,
+	}
+
+	&lt;span style=&#34;color:#75715e&#34;&gt;// 连接到 master，等待页面上下发指令，支持多个 Task
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;boomer&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Run&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;task1&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;task2&lt;/span&gt;)
+}
+
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;HttpGet&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;path&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;url&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Sprintf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;http://localhost:8090/%s&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;path&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;method&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;GET&amp;#34;&lt;/span&gt;
+
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;client&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Client&lt;/span&gt;{}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewRequest&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;method&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;url&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt;)
+
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;client&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Do&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Body&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Close&lt;/span&gt;()
+
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ioutil&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;ReadAll&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Body&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(string(&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;))
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt;
+}
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;go run main.go&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;output&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ Boomer is built with gomq support.
+$ Boomer is connected to master(tcp://127.0.0.1:5557) press Ctrl+c to quit.
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;说明启动slave成功，查看是否连接上master&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ locust.runners: Client &#39;crazyMac.local_axxbyy123456&#39; reported as ready. Currently 1 clients ready to swarm.
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;说明已经连接上master
+。&lt;/p&gt;
+&lt;h4 id=&#34;testing&#34;&gt;testing&lt;/h4&gt;
+&lt;p&gt;启动测试，output
+&lt;img src=&#34;https://luckytking.github.io/images/locust-boomer.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;succeed&lt;/p&gt;
+&lt;h4 id=&#34;小结&#34;&gt;小结&lt;/h4&gt;
+&lt;p&gt;本文主要介绍了如何利用go boomer 实现locust的通讯协议，以及使用boomer实现一个上一篇的http压测例子。&lt;/p&gt;
+&lt;h4 id=&#34;reference&#34;&gt;reference&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Locust Website: &lt;a href=&#34;locust.io&#34;&gt;locust.io&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Locust Documentation: &lt;a href=&#34;docs.locust.io&#34;&gt;docs.locust.io&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Boomer Documentation: &lt;a href=&#34;boomer.readthedocs.io&#34;&gt;boomer.readthedocs.io&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Examples :&lt;a href=&#34;https://github.com/myzhan/boomer/blob/master/_examples/default/main.go&#34;&gt; https://github.com/myzhan/boomer/blob/master/_examples/default/main.go&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Dummy.py : &lt;a href=&#34;https://www.cnblogs.com/Detector/p/11469233.html&#34;&gt;https://www.cnblogs.com/Detector/p/11469233.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+    <item>
+      <title>性能测试平台（locust&#43;boomer）之一</title>
+      <link>https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/</link>
+      <pubDate>Sun, 19 Jun 2022 16:11:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/</guid>
+      <description>&lt;p&gt;最近公司打算对后端服务进行压力测试，考虑后端的主要使用golang实现，因此作者准备使用 locust + boomer 实现一个性能测试平台，mark一下实现过程。&lt;/p&gt;
+&lt;h3 id=&#34;what-is-locust&#34;&gt;what is locust&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Locust 是一种易于使用、可编写脚本且可扩展的性能测试工具。
+您可以在常规 Python 代码中定义用户的行为，而不是停留在 UI 或限制性特定领域的语言中。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;what-is-boomer&#34;&gt;what is boomer&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;boomer 完整地实现了 locust 的通讯协议，运行在 slave 模式下，用 goroutine 来执行用户提供的测试函数，然后将测试结果上报给运行在 master 模式下的 locust。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;与 locust 原生的实现相比，解决了两个问题&lt;/strong&gt;。
+一是单台施压机上，能充分利用多个 CPU 核心来施压，
+二是再也不用提防阻塞 IO 操作导致 gevent 阻塞。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;环境&#34;&gt;环境&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;服务器
+&lt;ul&gt;
+&lt;li&gt;Ubuntu （2核4G300G）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;压测机
+&lt;ul&gt;
+&lt;li&gt;Mac&lt;/li&gt;
+&lt;li&gt;Python 版本 Python 3.10.2&lt;/li&gt;
+&lt;li&gt;Go 版本 go version go1.17.1 darwin/arm64&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;压测机&#34;&gt;压测机&lt;/h3&gt;
+&lt;h4 id=&#34;安装-locust&#34;&gt;安装 locust&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;安装python3.7或者版本大于3.7 （mac 自带python2.X版本）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;brew install python
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;查看安装版本&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# python3 -V
+Python 3.10.2
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;Install Locust&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# pip3 install locust
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;检查安装是否成功&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# locust -V
+locust 2.9.1.dev23
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;运行-locust-hello-world&#34;&gt;运行 locust: hello-world&lt;/h4&gt;
+&lt;p&gt;要把大象放冰箱一共分三步：第一步打开冰箱&amp;ndash;，不不不，第一步：先试试把小象(hello-world)看看能不能放的进去&lt;/p&gt;
+&lt;p&gt;在当前目录 workspace/ 底下创建 locustfile.py&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; locust &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; HttpUser, task
+&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;HelloWorldUser&lt;/span&gt;(HttpUser):
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;@task&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;hello_world&lt;/span&gt;(self):
+        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;client&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;get(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/hello&amp;#34;&lt;/span&gt;)
+        self&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;client&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;get(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/world&amp;#34;&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id=&#34;启动-locust&#34;&gt;&lt;strong&gt;启动 locust&lt;/strong&gt;&lt;/h5&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt; # locust
+ locust 
+$: Starting web interface at http://0.0.0.0:8089 (accepting connections from all network interfaces)
+$: Starting Locust 2.9.1.dev23
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;访问 http://localhost:8089/ 可以看到
+&lt;img src=&#34;https://luckytking.github.io/images/locust-dashboard.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;接着，这边使用golang启动一个http服务 localhost:80（path：/hello &amp;amp; /world）&lt;/p&gt;
+&lt;h5 id=&#34;locust---helloworld&#34;&gt;locust - HelloWorld&lt;/h5&gt;
+&lt;p&gt;进行一个简单测试 50 个并发用户，加速速度为 1个用户/秒，将其指向响应/hello和的服务器/world
+&lt;img src=&#34;https://luckytking.github.io/images/locust-helloworld-test.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;点击 &amp;ldquo;start swarming&amp;rdquo;
+&lt;img src=&#34;https://luckytking.github.io/images/locust-helloworld.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;切换标签页 “Charts”
+可以查看：显示每秒请求数 (RPS)
+&lt;img src=&#34;https://luckytking.github.io/images/locust-dashboard-rps.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;查看：响应时间（以毫秒为单位） 
+&lt;img src=&#34;https://luckytking.github.io/images/locust-dashboard-responsetime.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;查看： 用户数量
+&lt;img src=&#34;https://luckytking.github.io/images/locust-dashboard-user.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;小结&#34;&gt;小结&lt;/h4&gt;
+&lt;p&gt;本文主要介绍性能测试平台 locust + boomer 的环境搭建，以及运行http 测试用例helloworld，使用locust观测性能指数、图表等。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://locust.io/&#34;&gt;https://locust.io/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/myzhan/boomer&#34;&gt;https://github.com/myzhan/boomer&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+    <item>
+      <title>Google、meta第三方登入后端验证</title>
+      <link>https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/</link>
+      <pubDate>Sun, 29 May 2022 16:01:18 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/</guid>
+      <description>&lt;p&gt;本文主要记录 Android app 第三方（google和meta/facebook)登入的后端(go)验证。&lt;/p&gt;
+&lt;h2 id=&#34;android-sdk-接入流程&#34;&gt;android sdk 接入流程&lt;/h2&gt;
+&lt;p&gt;可参考
+&lt;a href=&#34;https://juejin.cn/post/7094889100389384228&#34;&gt;https://juejin.cn/post/7094889100389384228&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;google&#34;&gt;google&lt;/h2&gt;
+&lt;p&gt;官网链接: (&lt;a href=&#34;https://developers.google.com/identity/sign-in/web/backend-auth&#34;&gt;https://developers.google.com/identity/sign-in/web/backend-auth&lt;/a&gt;)
+官网推荐两中验证方式 ：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;使用谷歌API客户端库&lt;/strong&gt;，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。&lt;strong&gt;go客户端库&lt;/strong&gt;：https://github.com/googleapis/google-api-go-client)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;调用谷歌API&lt;/strong&gt;（https://oauth2.googleapis.com/tokeninfo?id_token=XYZ123）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;这里采用第一种，参考代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;context&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt; 
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;google.golang.org/api/oauth2/v2&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;google.golang.org/api/option&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;net/http&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+   &lt;span style=&#34;color:#75715e&#34;&gt;// 从客户端获取的谷歌token
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;googleToken&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`user token from client`&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;oatuService&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;oauth2&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewService&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Background&lt;/span&gt;(), &lt;span style=&#34;color:#a6e22e&#34;&gt;option&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithHTTPClient&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;DefaultClient&lt;/span&gt;))
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; { 
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfoCall&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;oatuService&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Tokeninfo&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfoCall&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;IdToken&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;googleToken&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfo&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfoCall&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Do&lt;/span&gt;() 
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; { 
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfo&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;tokenInfo&lt;/span&gt;)
+    &lt;span style=&#34;color:#75715e&#34;&gt;//可以拿客户端发送的id，和 tokenInfo.Id 做校验
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;metafacebook-登入&#34;&gt;meta(facebook) 登入&lt;/h2&gt;
+&lt;p&gt;meta 的验证和 google 类型，调用验证api&lt;/p&gt;
+&lt;p&gt;官网链接:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Android版本Facebook快速入门&lt;/strong&gt;：https://developers.facebook.com/docs/facebook-login/android&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;后端验证&lt;/strong&gt; : (&lt;a href=&#34;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&#34;&gt;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&lt;/a&gt;)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;请求格式：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;GET /debug_token?
+  input_token={session-info-token}&amp;amp;
+  access_token={your-access-token}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;go-api&lt;/strong&gt; : &lt;a href=&#34;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&#34;&gt;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;net/http&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fb&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;github.com/huandu/facebook/v2&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+   &lt;span style=&#34;color:#75715e&#34;&gt;//客户端传递过来的 token
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;inputToken&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;token from client&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;globalApp&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fb&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;New&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;developer-app-client-id&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;develop-app-client-secret&amp;#34;&lt;/span&gt;)
+    &lt;span style=&#34;color:#75715e&#34;&gt;//生成 access_token
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;globalApp&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;AppAccessToken&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;session&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;globalApp&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Session&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;resp&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;session&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Get&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;debug_token&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;fb&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Params&lt;/span&gt;{
+		&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;input_token&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#a6e22e&#34;&gt;inputToken&lt;/span&gt;,
+	})
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://developers.google.com/identity/sign-in/web/backend-auth&#34;&gt;https://developers.google.com/identity/sign-in/web/backend-auth&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/googleapis/google-api-go-client&#34;&gt;https://github.com/googleapis/google-api-go-client&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://juejin.cn/post/7094889100389384228&#34;&gt;https://juejin.cn/post/7094889100389384228&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&#34;&gt;https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/huandu/facebook/v2&#34;&gt;https://github.com/huandu/facebook/v2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

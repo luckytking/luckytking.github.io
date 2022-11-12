@@ -238,6 +238,148 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/" aria-label="">
+      
+          性能测试平台（locust&#43;boomer）之一
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-06-19T16:11:18&#43;08:00">
+        
+   19, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91">后端开发</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>最近公司打算对后端服务进行压力测试，考虑后端的主要使用golang实现，因此作者准备使用 locust + boomer 实现一个性能测试平台，mark一下实现过程。</p>
+<h3 id="what-is-locust">what is locust</h3>
+<blockquote>
+<p>Locust 是一种易于使用、可编写脚本且可扩展的性能测试工具。
+您可以在常规 Python 代码中定义用户的行为，而不是停留在 UI 或限制性特定领域的语言中。</p>
+</blockquote>
+<h3 id="what-is-boomer">what is boomer</h3>
+<blockquote>
+<p>boomer 完整地实现了 locust 的通讯协议，运行在 slave 模式下，用 goroutine 来执行用户提供的测试函数，然后将测试结果上报给运行在 master 模式下的 locust。</p>
+<p><strong>与 locust 原生的实现相比，解决了两个问题</strong>。
+一是单台施压机上，能充分利用多个 CPU 核心来施压，
+二是再也不用提防阻塞 IO 操作导致 gevent 阻塞。</p>
+</blockquote>
+<h3 id="环境">环境</h3>
+<ul>
+<li>服务器
+<ul>
+<li>Ubuntu （2核4G300G）</li>
+</ul>
+</li>
+<li>压测机
+<ul>
+<li>Mac</li>
+<li>Python 版本 Python 3.10.2</li>
+<li>Go 版本 go version go1.17.1 darwin/arm64</li>
+</ul>
+</li>
+</ul>
+<h3 id="压测机">压测机</h3>
+<h4 id="安装-locust">安装 locust</h4>
+<ol>
+<li>安装python3.7或者版本大于3.7 （mac 自带python2.X版本）</li>
+</ol>
+<pre tabindex="0"><code>brew install python
+</code></pre><p>查看安装版本</p>
+<pre tabindex="0"><code># python3 -V
+Python 3.10.2
+</code></pre><ol start="2">
+<li>Install Locust</li>
+</ol>
+<pre tabindex="0"><code># pip3 install locust
+</code></pre><ol start="3">
+<li>检查安装是否成功</li>
+</ol>
+<pre tabindex="0"><code># locust -V
+locust 2.9.1.dev23
+</code></pre><h4 id="运行-locust-hello-world">运行 locust: hello-world</h4>
+<p>要把大象放冰箱一共分三步：第一步打开冰箱&ndash;，不不不，第一步：先试试把小象(hello-world)看看能不能放的进去</p>
+<p>在当前目录 workspace/ 底下创建 locustfile.py</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> locust <span style="color:#f92672">import</span> HttpUser, task
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">HelloWorldUser</span>(HttpUser):
+    <span style="color:#a6e22e">@task</span>
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">hello_world</span>(self):
+        self<span style="color:#f92672">.</span>client<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;/hello&#34;</span>)
+        self<span style="color:#f92672">.</span>client<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;/world&#34;</span>)
+</code></pre></div><h5 id="启动-locust"><strong>启动 locust</strong></h5>
+<pre tabindex="0"><code> # locust
+ locust 
+$: Starting web interface at http://0.0.0.0:8089 (accepting connections from all network interfaces)
+$: Starting Locust 2.9.1.dev23
+
+</code></pre><p>访问 http://localhost:8089/ 可以看到
+<img src="https://luckytking.github.io/images/locust-dashboard.png" alt=""></p>
+<p>接着，这边使用golang启动一个http服务 localhost:80（path：/hello &amp; /world）</p>
+<h5 id="locust---helloworld">locust - HelloWorld</h5>
+<p>进行一个简单测试 50 个并发用户，加速速度为 1个用户/秒，将其指向响应/hello和的服务器/world
+<img src="https://luckytking.github.io/images/locust-helloworld-test.png" alt=""></p>
+<p>点击 &ldquo;start swarming&rdquo;
+<img src="https://luckytking.github.io/images/locust-helloworld.png" alt=""></p>
+<p>切换标签页 “Charts”
+可以查看：显示每秒请求数 (RPS)
+<img src="https://luckytking.github.io/images/locust-dashboard-rps.png" alt=""></p>
+<p>查看：响应时间（以毫秒为单位） 
+<img src="https://luckytking.github.io/images/locust-dashboard-responsetime.png" alt=""></p>
+<p>查看： 用户数量
+<img src="https://luckytking.github.io/images/locust-dashboard-user.png" alt=""></p>
+<h4 id="小结">小结</h4>
+<p>本文主要介绍性能测试平台 locust + boomer 的环境搭建，以及运行http 测试用例helloworld，使用locust观测性能指数、图表等。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://locust.io/">https://locust.io/</a></li>
+<li><a href="https://github.com/myzhan/boomer">https://github.com/myzhan/boomer</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/06/%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B9%B3%E5%8F%B0locust-boomer%E4%B9%8B%E4%B8%80/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/06/%E5%9C%A8macm1%E4%B8%8A%E6%9E%84%E5%BB%BAx86%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84docker%E9%95%9C%E5%83%8F/" aria-label="">
       
           在MacM1上构建x86系统架构Docker镜像
@@ -257,9 +399,7 @@
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/deployment">deployment</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/dockers">dockers</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/dockers">Dockers</a>
     
   
 
@@ -410,9 +550,7 @@ my-service | INFO msg=[HTTP] server listening on: [::]:8000
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/redis">redis</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
     
   
 
@@ -558,9 +696,7 @@ my-service | INFO msg=[HTTP] server listening on: [::]:8000
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e7%ac%ac%e4%b8%89%e6%96%b9%e7%99%bb%e5%85%a5">第三方登入</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91">后端开发</a>
     
   
 
@@ -700,9 +836,7 @@ my-service | INFO msg=[HTTP] server listening on: [::]:8000
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e7%ac%ac%e4%b8%89%e6%96%b9%e5%ba%93">第三方库</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
     
   
 
@@ -878,9 +1012,7 @@ my-service | INFO msg=[HTTP] server listening on: [::]:8000
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/micro-service">micro service</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/kratos">kratos</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
     
   
 
@@ -1130,9 +1262,7 @@ $  service: config
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e7%ac%ac%e4%b8%89%e6%96%b9%e5%ba%93">第三方库</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
     
   
 
@@ -1334,9 +1464,7 @@ runtime.goexit
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/go%e5%bc%80%e5%8f%91">go开发</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e7%ac%ac%e4%b8%89%e6%96%b9%e5%ba%93">第三方库</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
     
   
 
@@ -1459,9 +1587,7 @@ runtime.goexit
   
     <span></span>
     
-      <a class="category-link" href="https://luckytking.github.io/categories/micro-service">micro service</a>, 
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/kratos">kratos</a>
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
     
   
 
