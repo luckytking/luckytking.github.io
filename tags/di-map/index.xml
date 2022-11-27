@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>di map on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/di-map/</link>
+    <description>Recent content in di map on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 27 Nov 2022 12:24:50 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/di-map/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go可视化工具 绘制项目代码结构和依赖</title>
+      <link>https://luckytking.github.io/2022/11/go%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B7%A5%E5%85%B7-%E7%BB%98%E5%88%B6%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%E5%92%8C%E4%BE%9D%E8%B5%96/</link>
+      <pubDate>Sun, 27 Nov 2022 12:24:50 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/11/go%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B7%A5%E5%85%B7-%E7%BB%98%E5%88%B6%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%E5%92%8C%E4%BE%9D%E8%B5%96/</guid>
+      <description>&lt;p&gt;比较常见pprof 可以把调用栈可视化成调用图，embedded-struct-visualizer 可以把Go 的项目的代码分层结构和依赖都可视化成流程图。&lt;/p&gt;
+&lt;h3 id=&#34;安装-embedded-struct-visualizer&#34;&gt;安装 embedded-struct-visualizer&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt; go install github.com/davidschlachter/embedded-struct-visualizer@latest
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;查看命令选项参数&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;embedded-struct-visualizer -h
+Usage: [OPTIONS] DirToScan
+If the directory to scan is not provided, it defaults to &#39;./&#39;
+OPTIONS:
+  -out &amp;lt;file&amp;gt;  path to output file (default: write to stdout)
+  -v           verbose logging
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
+&lt;p&gt;以官方给的例子 main.go&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;time&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;A&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;B&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;C&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;]&lt;span style=&#34;color:#a6e22e&#34;&gt;D&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;B&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;E&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;F&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;G&lt;/span&gt;     &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Timer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;H&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;D&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;I&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;uint64&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;H&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Timer&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Ticker&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;J&lt;/span&gt;     &lt;span style=&#34;color:#66d9ef&#34;&gt;chan&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;D&lt;/span&gt;
+}
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;生成结构关系：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;&amp;gt; embedded-struct-visualizer
+digraph {
+&amp;quot;main.A&amp;quot; -&amp;gt; { &amp;quot;main.B&amp;quot; &amp;quot;main.D&amp;quot; };
+&amp;quot;main.B&amp;quot; -&amp;gt; { &amp;quot;main.H&amp;quot; };
+&amp;quot;main.H&amp;quot; -&amp;gt; { &amp;quot;time.Ticker&amp;quot; &amp;quot;main.D&amp;quot; };
+}
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;生成结构关系 并 输出到.gv 文件：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;&amp;gt;embedded-struct-visualizer -out .\example.gv
+&amp;gt; ls
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        2022/11/27     10:54            112 example.gv
+-a----        2022/11/26     22:06             31 go.mod
+-a----        2022/11/26     22:07            208 main.go
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;项目目录下多出了example.gv ,具体内容如下&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;cat .\example.gv
+digraph {
+&amp;quot;main.A&amp;quot; -&amp;gt; { &amp;quot;main.B&amp;quot; &amp;quot;main.D&amp;quot; };
+&amp;quot;main.B&amp;quot; -&amp;gt; { &amp;quot;main.H&amp;quot; };
+&amp;quot;main.H&amp;quot; -&amp;gt; { &amp;quot;time.Ticker&amp;quot; &amp;quot;main.D&amp;quot; };
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;安装-graphviz&#34;&gt;安装 graphviz &lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;graphviz 是一种将结构信息表示为抽象图和网络的图的工具。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;接着，把生成的gv文件利用graphviz绘制的更美观。&lt;/p&gt;
+&lt;p&gt;首先下载安装:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://graphviz.org/download/&#34;&gt;https://graphviz.org/download/&lt;/a&gt;
+查看是否安装成功（Win）：&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt; dot -v
+dot - graphviz version 7.0.2 (20221119.0110)
+... &amp;lt;为了不篇幅过长，省略一些细节&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;利用graphviz绘图&#34;&gt;利用graphviz绘图&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;dot  -Tformat[:renderer[:formatter]] -o 
+将输出语言设置为支持的格式之一。默认情况下，生成带属性的点。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;接着把上一步生成的gv文件，生成PNG输出&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;dot -Tpng example.gv -o example.png
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在项目目录下多出example.png
+&lt;img src=&#34;https://luckytking.github.io/images/embedded-struct-visualizer1.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;接着，实用于一个相对复杂的Gin Engine的gv&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;源码链接： &lt;a href=&#34;https://github.com/gin-gonic/gin/blob/master/gin.go&#34;&gt;https://github.com/gin-gonic/gin/blob/master/gin.go&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;生成的gv：&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;embedded-struct-visualizer -out .\gin.gv
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;gin.gv 详细如下：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-gin.gv&#34; data-lang=&#34;gin.gv&#34;&gt;digraph {&amp;quot;gin.mockWriter&amp;quot; -&amp;gt; { &amp;quot;http.Header&amp;quot; };&amp;quot;binding.QueryTest&amp;quot; -&amp;gt; { &amp;quot;binding.appkey&amp;quot; };&amp;quot;binding.FooBarStruct&amp;quot; -&amp;gt; { &amp;quot;binding.FooStruct&amp;quot; };&amp;quot;binding.FooBarFileStruct&amp;quot; -&amp;gt; { &amp;quot;binding.FooBarStruct&amp;quot; 
+&amp;quot;multipart.FileHeader&amp;quot; };&amp;quot;binding.FooBarFileFailStruct&amp;quot; -&amp;gt; { &amp;quot;binding.FooBarStruct&amp;quot; 
+&amp;quot;multipart.FileHeader&amp;quot; };&amp;quot;binding.FooDefaultBarStruct&amp;quot; -&amp;gt; { &amp;quot;binding.FooStruct&amp;quot; };&amp;quot;binding.FooStructUseNumber&amp;quot; -&amp;gt; { &amp;quot;binding.any&amp;quot; };&amp;quot;binding.FooStructDisallowUnknownFields&amp;quot; -&amp;gt; { &amp;quot;binding.any&amp;quot; 
+};&amp;quot;binding.FooBarStructForTimeType&amp;quot; -&amp;gt; { &amp;quot;time.Time&amp;quot; };&amp;quot;binding.FooStructForTimeTypeNotUnixFormat&amp;quot; -&amp;gt; { &amp;quot;time.Time&amp;quot; 
+};&amp;quot;binding.FooStructForTimeTypeNotFormat&amp;quot; -&amp;gt; { &amp;quot;time.Time&amp;quot; };&amp;quot;binding.FooStructForTimeTypeFailFormat&amp;quot; -&amp;gt; { &amp;quot;time.Time&amp;quot; };&amp;quot;binding.FooStructForTimeTypeFailLocation&amp;quot; -&amp;gt; { &amp;quot;time.Time&amp;quot; 
+};&amp;quot;binding.FooStructForMapType&amp;quot; -&amp;gt; { &amp;quot;binding.any&amp;quot; };&amp;quot;binding.FooStructForIgnoreFormTag&amp;quot; -&amp;gt; { &amp;quot;binding.string&amp;quot; };&amp;quot;binding.defaultValidator&amp;quot; -&amp;gt; { &amp;quot;sync.Once&amp;quot; 
+&amp;quot;validator.Validate&amp;quot; };&amp;quot;binding.structFull&amp;quot; -&amp;gt; { &amp;quot;binding.&amp;quot; &amp;quot;time.Time&amp;quot; 
+&amp;quot;binding.string&amp;quot; };&amp;quot;binding.S&amp;quot; -&amp;gt; { &amp;quot;binding.S&amp;quot; };&amp;quot;binding.testFile&amp;quot; -&amp;gt; { &amp;quot;binding.byte&amp;quot; };&amp;quot;binding.structNoValidationValues&amp;quot; -&amp;gt; { 
+&amp;quot;binding.substructNoValidation&amp;quot; &amp;quot;binding.int16&amp;quot; 
+&amp;quot;binding.uint16&amp;quot; &amp;quot;time.Time&amp;quot; &amp;quot;binding.mapNoValidationSub&amp;quot; 
+&amp;quot;binding.&amp;quot; };&amp;quot;binding.structNoValidationPointer&amp;quot; -&amp;gt; { 
+&amp;quot;binding.substructNoValidation&amp;quot; &amp;quot;binding.uint32&amp;quot; 
+&amp;quot;binding.mapNoValidationSub&amp;quot; &amp;quot;binding.int8&amp;quot; &amp;quot;binding.int32&amp;quot; 
+&amp;quot;binding.uint8&amp;quot; &amp;quot;binding.uint16&amp;quot; &amp;quot;binding.float64&amp;quot; 
+&amp;quot;binding.map&amp;quot; &amp;quot;binding.int&amp;quot; &amp;quot;binding.int16&amp;quot; &amp;quot;binding.int64&amp;quot; 
+&amp;quot;binding.float32&amp;quot; &amp;quot;time.Time&amp;quot; &amp;quot;binding.testInterface&amp;quot; 
+&amp;quot;binding.uint&amp;quot; &amp;quot;binding.uint64&amp;quot; &amp;quot;binding.string&amp;quot; };&amp;quot;gin.Context&amp;quot; -&amp;gt; { &amp;quot;url.Values&amp;quot; &amp;quot;gin.responseWriter&amp;quot; 
+&amp;quot;gin.HandlersChain&amp;quot; &amp;quot;gin.any&amp;quot; &amp;quot;gin.errorMsgs&amp;quot; 
+&amp;quot;gin.skippedNode&amp;quot; &amp;quot;sync.RWMutex&amp;quot; &amp;quot;gin.string&amp;quot; 
+&amp;quot;http.SameSite&amp;quot; &amp;quot;http.Request&amp;quot; &amp;quot;gin.ResponseWriter&amp;quot; 
+&amp;quot;gin.Params&amp;quot; &amp;quot;gin.Engine&amp;quot; };&amp;quot;gin.interceptedWriter&amp;quot; -&amp;gt; { &amp;quot;gin.ResponseWriter&amp;quot; 
+&amp;quot;bytes.Buffer&amp;quot; };&amp;quot;gin.Error&amp;quot; -&amp;gt; { &amp;quot;gin.error&amp;quot; &amp;quot;gin.ErrorType&amp;quot; &amp;quot;gin.any&amp;quot; };&amp;quot;gin.onlyFilesFS&amp;quot; -&amp;gt; { &amp;quot;http.FileSystem&amp;quot; };&amp;quot;gin.neuteredReaddirFile&amp;quot; -&amp;gt; { &amp;quot;http.File&amp;quot; };&amp;quot;gin.RouteInfo&amp;quot; -&amp;gt; { &amp;quot;gin.HandlerFunc&amp;quot; };&amp;quot;gin.Engine&amp;quot; -&amp;gt; { &amp;quot;gin.RouterGroup&amp;quot; &amp;quot;gin.string&amp;quot; 
+&amp;quot;render.HTMLRender&amp;quot; &amp;quot;gin.HandlersChain&amp;quot; &amp;quot;sync.Pool&amp;quot; 
+&amp;quot;gin.methodTrees&amp;quot; &amp;quot;render.Delims&amp;quot; &amp;quot;template.FuncMap&amp;quot; 
+&amp;quot;gin.uint16&amp;quot; &amp;quot;net.IPNet&amp;quot; };&amp;quot;gin.LoggerConfig&amp;quot; -&amp;gt; { &amp;quot;gin.LogFormatter&amp;quot; &amp;quot;io.Writer&amp;quot; 
+&amp;quot;gin.string&amp;quot; };&amp;quot;gin.LogFormatterParams&amp;quot; -&amp;gt; { &amp;quot;http.Request&amp;quot; &amp;quot;time.Time&amp;quot; 
+&amp;quot;time.Duration&amp;quot; &amp;quot;gin.any&amp;quot; };&amp;quot;render.Data&amp;quot; -&amp;gt; { &amp;quot;render.byte&amp;quot; };&amp;quot;render.HTMLProduction&amp;quot; -&amp;gt; { &amp;quot;template.Template&amp;quot; 
+&amp;quot;render.Delims&amp;quot; };&amp;quot;render.HTMLDebug&amp;quot; -&amp;gt; { &amp;quot;render.string&amp;quot; &amp;quot;render.Delims&amp;quot; 
+&amp;quot;template.FuncMap&amp;quot; };&amp;quot;render.HTML&amp;quot; -&amp;gt; { &amp;quot;template.Template&amp;quot; &amp;quot;render.any&amp;quot; };&amp;quot;render.JSON&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.IndentedJSON&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.SecureJSON&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.JsonpJSON&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.AsciiJSON&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.PureJSON&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.MsgPack&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.ProtoBuf&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.Reader&amp;quot; -&amp;gt; { &amp;quot;io.Reader&amp;quot; };&amp;quot;render.Redirect&amp;quot; -&amp;gt; { &amp;quot;http.Request&amp;quot; };&amp;quot;render.String&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.TOML&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.XML&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;render.YAML&amp;quot; -&amp;gt; { &amp;quot;render.any&amp;quot; };&amp;quot;gin.responseWriter&amp;quot; -&amp;gt; { &amp;quot;http.ResponseWriter&amp;quot; };&amp;quot;gin.RouterGroup&amp;quot; -&amp;gt; { &amp;quot;gin.HandlersChain&amp;quot; &amp;quot;gin.Engine&amp;quot; };&amp;quot;protoexample.Test&amp;quot; -&amp;gt; { &amp;quot;protoexample.int32&amp;quot; 
+&amp;quot;protoexample.int64&amp;quot; &amp;quot;protoexample.TestOptionalGroup&amp;quot; 
+&amp;quot;protoimpl.MessageState&amp;quot; &amp;quot;protoimpl.SizeCache&amp;quot; 
+&amp;quot;protoimpl.UnknownFields&amp;quot; &amp;quot;protoexample.string&amp;quot; };&amp;quot;protoexample.Test_OptionalGroup&amp;quot; -&amp;gt; { 
+&amp;quot;protoimpl.MessageState&amp;quot; &amp;quot;protoimpl.SizeCache&amp;quot; 
+&amp;quot;protoimpl.UnknownFields&amp;quot; &amp;quot;protoexample.string&amp;quot; };&amp;quot;gin.methodTree&amp;quot; -&amp;gt; { &amp;quot;gin.node&amp;quot; };&amp;quot;gin.node&amp;quot; -&amp;gt; { &amp;quot;gin.node&amp;quot; &amp;quot;gin.HandlersChain&amp;quot; 
+&amp;quot;gin.nodeType&amp;quot; };&amp;quot;gin.nodeValue&amp;quot; -&amp;gt; { &amp;quot;gin.HandlersChain&amp;quot; &amp;quot;gin.Params&amp;quot; };&amp;quot;gin.skippedNode&amp;quot; -&amp;gt; { &amp;quot;gin.node&amp;quot; &amp;quot;gin.int16&amp;quot; };}
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;绘制png&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt; dot -Tpng gin.gv -o gin.png
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/embedded-struct-visualizer-gin.png&#34; alt=&#34;&#34;&gt;
+&amp;lt;ps： 图片过大可下载预览&amp;gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;graphviz guide优化: &lt;a href=&#34;https://www.graphviz.org/pdf/dotguide.pdf&#34;&gt;https://www.graphviz.org/pdf/dotguide.pdf&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/davidschlachter/embedded-struct-visualizer&#34;&gt;https://github.com/davidschlachter/embedded-struct-visualizer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/VGotQkmlnqFDNhmKuEBhwg&#34;&gt;https://mp.weixin.qq.com/s/VGotQkmlnqFDNhmKuEBhwg&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

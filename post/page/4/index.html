@@ -17,7 +17,7 @@
   },
   "name":"jefffff\u0027s Blog",
   "description":"",
-  "url":"https:\/\/luckytking.github.io\/categories\/go\/",
+  "url":"https:\/\/luckytking.github.io\/post\/",
   "keywords":"[]"
 }
 
@@ -33,10 +33,10 @@
 
 <meta property="og:description" content="">
 <meta property="og:type" content="website">
-<meta property="og:title" content="go">
-<meta name="twitter:title" content="go">
-<meta property="og:url" content="https://luckytking.github.io/categories/go/">
-<meta property="twitter:url" content="https://luckytking.github.io/categories/go/">
+<meta property="og:title" content="Posts">
+<meta name="twitter:title" content="Posts">
+<meta property="og:url" content="https://luckytking.github.io/post/">
+<meta property="twitter:url" content="https://luckytking.github.io/post/">
 <meta property="og:site_name" content="jefffff&#39;s Blog">
 <meta property="og:description" content="">
 <meta name="twitter:description" content="">
@@ -63,18 +63,18 @@
 
 
 
-    <title>go</title>
+    <title>Posts</title>
 
     <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
     
-      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/categories/go/index.xml">
+      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/post/index.xml">
     
 
     
       <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
     
 
-    <link rel="canonical" href="https://luckytking.github.io/categories/go/">
+    <link rel="canonical" href="https://luckytking.github.io/post/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -211,343 +211,16 @@
 </nav>
 
       
-        
 
-      
       <div id="main" data-behavior="2"
         class="
                hasCoverMetaIn
                ">
-        
-          <section class="postShorten-group main-content-wrap">
+        <section class="postShorten-group main-content-wrap">
+          
+          
+          
             
-            
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Berrors/" aria-label="">
-      
-          Go开发常用第三方库之errors
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-05-05T18:53:15&#43;08:00">
-        
-   5, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要介绍 在go开发中 errors 的处理和第三方库 <strong>github.com/pkg/errors</strong> 的使用。</p>
-<h2 id="error-interface">error interface</h2>
-<p>官方定义：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// The error built-in interface type is the conventional interface for
-</span><span style="color:#75715e">// representing an error condition, with the nil value representing no error.
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">error</span> <span style="color:#66d9ef">interface</span> {
-	<span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span>
-}
-</code></pre></div><h3 id="常用的声明方式">常用的声明方式</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//方式一
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">err1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;io.EOF&#34;</span>)
-<span style="color:#75715e">//方式二
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">err2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;io.EOF&#34;</span>)
-<span style="color:#75715e">//方式三: 实现interface
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">err3</span> <span style="color:#66d9ef">struct</span>{
-}
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">err3</span>) <span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;err3&#34;</span>
-}
-</code></pre></div><p>go的错误常见是把错误层层传递，这样可能带来一些不友好的地方：</p>
-<ul>
-<li>错误判断，经过层次包裹的错误，使用层不好判断真实错误</li>
-<li>定位错误，error库过于简单，没有提供粗错误堆栈，不好定位问题</li>
-</ul>
-<h3 id="错误判断">错误判断</h3>
-<p>常见错误的判断方式是：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">base</span> <span style="color:#66d9ef">struct</span>{}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">base</span>) <span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;base error&#34;</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">wrapBase</span>() <span style="color:#66d9ef">error</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;wrapBase: %w&#34;</span>, <span style="color:#a6e22e">base</span>{})
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestErrors</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;==&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-		<span style="color:#a6e22e">foo</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">base</span>{}
-		<span style="color:#a6e22e">bar</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">base</span>{}
-		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">foo</span>)
-		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">bar</span>)
-		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">foo</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">bar</span>)
-		<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">True</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">foo</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">bar</span>)
-	})
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;断言&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>
-		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">base</span>)
-		<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">False</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">ok</span>)
-	})
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;Is&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-		<span style="color:#a6e22e">foo</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base</span>{}
-		<span style="color:#a6e22e">wrapFoo</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">wrapBase</span>()
-		<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">False</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">foo</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">wrapFoo</span>)
-		<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">True</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Is</span>(<span style="color:#a6e22e">wrapFoo</span>, <span style="color:#a6e22e">foo</span>))
-		<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">False</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Is</span>(<span style="color:#a6e22e">wrapFoo</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">base</span>{}))
-	})
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;As&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-		<span style="color:#a6e22e">foo</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base</span>{}
-		<span style="color:#a6e22e">wrapFoo</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">wrapBase</span>()
-		<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">False</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">foo</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">wrapFoo</span>)
-		<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">True</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">As</span>(<span style="color:#a6e22e">wrapFoo</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">base</span>{}))
-	})
-}
-</code></pre></div><p>OutPut：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">--- PASS: TestErrors (0.00s)
---- PASS: TestErrors/== (0.00s)
---- PASS: TestErrors/断言 (0.00s)
---- PASS: TestErrors/Is (0.00s)
- --- PASS: TestErrors/As (0.00s)
-</code></pre></div><ul>
-<li>当没有嵌套错误，可以使用 ==来判断；</li>
-<li>当有多层嵌套，可以使用 Is() ：
-<ul>
-<li>//一个错误被认为匹配一个目标，如果它等于那个目标或如果它实现了一个方法Is(error) bool，使Is(target)返回true。</li>
-<li>// As在err&rsquo;s chain中找到第一个与target匹配的错误，如果找到，则设置指向错误值并返回true。否则，返回false</li>
-</ul>
-</li>
-</ul>
-<h3 id="定位错误">定位错误</h3>
-<p>常用的第三方库</p>
-<blockquote>
-<p>github.com/pkg/errors/errors.go
-提供了以下功能：</p>
-</blockquote>
-<ul>
-<li>WithStack 包装堆栈</li>
-<li>WithMessagef 包装异常</li>
-<li>等</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestWithStackCompare</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;fmt.Errorf，无堆栈，不好定位&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-		<span style="color:#a6e22e">err1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;io.EOF&#34;</span>)
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;err1: %+v&#34;</span>, <span style="color:#a6e22e">err1</span>)
-	})
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;errors ，无堆栈，不好定位&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-		<span style="color:#a6e22e">err2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;io.EOF&#34;</span>)
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;err2: %+v&#34;</span>, <span style="color:#a6e22e">err2</span>)
-	})
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;pkgerrors，有堆栈，方便定位&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-		<span style="color:#a6e22e">err3</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pkgerrors</span>.<span style="color:#a6e22e">WithStack</span>(<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">EOF</span>)
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;err3: %+v&#34;</span>, <span style="color:#a6e22e">err3</span>)
-	})
-
-}
-
-</code></pre></div><p>OutPut:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">=== RUN   TestWithStackCompare
-=== RUN   TestWithStackCompare/fmt.Errorf，无堆栈，不好定位
-err1: io.EOF=== RUN   TestWithStackCompare/errors_，无堆栈，不好定位
-err2: io.EOF=== RUN   TestWithStackCompare/pkgerrors，有堆栈，便以定位
-err3: EOF
-tkingo.vip/egs/goerrors-demo.TestWithStackCompare.func3
-	$ workspace/goerrors-demo/errors_test.go:113
-testing.tRunner
-	$ workspace/Go/src/testing/testing.go:1439
-runtime.goexit
-</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestWithMessagef</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#a6e22e">tests</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">struct</span> {
-		<span style="color:#a6e22e">err</span>     <span style="color:#66d9ef">error</span>
-		<span style="color:#a6e22e">message</span> <span style="color:#66d9ef">string</span>
-		<span style="color:#a6e22e">want</span>    <span style="color:#66d9ef">string</span>
-	}{
-		{<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">EOF</span>, <span style="color:#e6db74">&#34;read error&#34;</span>, <span style="color:#e6db74">&#34;read error: EOF&#34;</span>},
-		{<span style="color:#a6e22e">pkgerrors</span>.<span style="color:#a6e22e">WithMessagef</span>(<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">EOF</span>, <span style="color:#e6db74">&#34;read error without format specifier&#34;</span>), <span style="color:#e6db74">&#34;client error&#34;</span>, <span style="color:#e6db74">&#34;client error: read error without format specifier: EOF&#34;</span>},
-		{<span style="color:#a6e22e">pkgerrors</span>.<span style="color:#a6e22e">WithMessagef</span>(<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">EOF</span>, <span style="color:#e6db74">&#34;read error with %d format specifier&#34;</span>, <span style="color:#ae81ff">1</span>), <span style="color:#e6db74">&#34;client error&#34;</span>, <span style="color:#e6db74">&#34;client error: read error with 1 format specifier: EOF&#34;</span>},
-	}
-
-	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">tt</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">tests</span> {
-		<span style="color:#a6e22e">got</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pkgerrors</span>.<span style="color:#a6e22e">WithMessagef</span>(<span style="color:#a6e22e">tt</span>.<span style="color:#a6e22e">err</span>, <span style="color:#a6e22e">tt</span>.<span style="color:#a6e22e">message</span>).<span style="color:#a6e22e">Error</span>()
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">got</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">tt</span>.<span style="color:#a6e22e">want</span> {
-			<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;WithMessage(%v, %q): got: %q, want %q&#34;</span>, <span style="color:#a6e22e">tt</span>.<span style="color:#a6e22e">err</span>, <span style="color:#a6e22e">tt</span>.<span style="color:#a6e22e">message</span>, <span style="color:#a6e22e">got</span>, <span style="color:#a6e22e">tt</span>.<span style="color:#a6e22e">want</span>)
-		}
-	}
-}
-</code></pre></div><h3 id="总结">总结</h3>
-<p>pkg errors 应该能够支持错误堆栈、不同的打印格式很好的补充了go errors 的一些短板</p>
-<p>参考：</p>
-<ul>
-<li>github.com/pkg/errors</li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Berrors/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Btime/" aria-label="">
-      
-          Go开发常用第三方库之time
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-05-05T18:53:15&#43;08:00">
-        
-   5, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要介绍一个好用的时间工具库，主要功能：</p>
-<ul>
-<li>当前时间</li>
-<li>修改地区</li>
-<li>解析字符串 等</li>
-</ul>
-<h2 id="usage">Usage</h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
-<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;github.com/jinzhu/now&#34;</span>
-
-<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>() <span style="color:#75715e">// 2013-11-18 17:51:49.123456789 Mon
-</span><span style="color:#75715e"></span>
-<span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfMinute</span>()        <span style="color:#75715e">// 2013-11-18 17:51:00 Mon
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfHour</span>()          <span style="color:#75715e">// 2013-11-18 17:00:00 Mon
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfDay</span>()           <span style="color:#75715e">// 2013-11-18 00:00:00 Mon
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfWeek</span>()          <span style="color:#75715e">// 2013-11-17 00:00:00 Sun
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfMonth</span>()         <span style="color:#75715e">// 2013-11-01 00:00:00 Fri
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfQuarter</span>()       <span style="color:#75715e">// 2013-10-01 00:00:00 Tue
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfYear</span>()          <span style="color:#75715e">// 2013-01-01 00:00:00 Tue
-</span><span style="color:#75715e"></span>
-<span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfMinute</span>()              <span style="color:#75715e">// 2013-11-18 17:51:59.999999999 Mon
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfHour</span>()                <span style="color:#75715e">// 2013-11-18 17:59:59.999999999 Mon
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfDay</span>()                 <span style="color:#75715e">// 2013-11-18 23:59:59.999999999 Mon
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfWeek</span>()                <span style="color:#75715e">// 2013-11-23 23:59:59.999999999 Sat
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfMonth</span>()               <span style="color:#75715e">// 2013-11-30 23:59:59.999999999 Sat
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfQuarter</span>()             <span style="color:#75715e">// 2013-12-31 23:59:59.999999999 Tue
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfYear</span>()                <span style="color:#75715e">// 2013-12-31 23:59:59.999999999 Tue
-</span><span style="color:#75715e"></span>
-<span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">WeekStartDay</span> = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Monday</span> <span style="color:#75715e">// Set Monday as first day, default is Sunday
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfWeek</span>()                <span style="color:#75715e">// 2013-11-24 23:59:59.999999999 Sun
-</span></code></pre></div><h2 id="修改地区">修改地区</h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">location</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">LoadLocation</span>(<span style="color:#e6db74">&#34;Asia/Shanghai&#34;</span>)
-
-<span style="color:#a6e22e">myConfig</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Config</span>{
-	<span style="color:#a6e22e">WeekStartDay</span>: <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Monday</span>,
-	<span style="color:#a6e22e">TimeLocation</span>: <span style="color:#a6e22e">location</span>,
-	<span style="color:#a6e22e">TimeFormats</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;2006-01-02 15:04:05&#34;</span>},
-}
-
-<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Date</span>(<span style="color:#ae81ff">2013</span>, <span style="color:#ae81ff">11</span>, <span style="color:#ae81ff">18</span>, <span style="color:#ae81ff">17</span>, <span style="color:#ae81ff">51</span>, <span style="color:#ae81ff">49</span>, <span style="color:#ae81ff">123456789</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Location</span>()) <span style="color:#75715e">// // 2013-11-18 17:51:49.123456789 Mon
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">myConfig</span>.<span style="color:#a6e22e">With</span>(<span style="color:#a6e22e">t</span>).<span style="color:#a6e22e">BeginningOfWeek</span>()         <span style="color:#75715e">// 2013-11-18 00:00:00 Mon
-</span><span style="color:#75715e"></span>
-<span style="color:#a6e22e">myConfig</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2002-10-12 22:14:01&#34;</span>)     <span style="color:#75715e">// 2002-10-12 22:14:01
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">myConfig</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2002-10-12 22:14&#34;</span>)        <span style="color:#75715e">// returns error &#39;can&#39;t parse string as time: 2002-10-12 22:14&#39;
-</span></code></pre></div><h2 id="解析字符串">解析字符串</h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>() <span style="color:#75715e">// 2013-11-18 17:51:49.123456789 Mon
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">// Parse(string) (time.Time, error)
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2017&#34;</span>)                <span style="color:#75715e">// 2017-01-01 00:00:00, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2017-10&#34;</span>)             <span style="color:#75715e">// 2017-10-01 00:00:00, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2017-10-13&#34;</span>)          <span style="color:#75715e">// 2017-10-13 00:00:00, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;1999-12-12 12&#34;</span>)       <span style="color:#75715e">// 1999-12-12 12:00:00, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;1999-12-12 12:20&#34;</span>)    <span style="color:#75715e">// 1999-12-12 12:20:00, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;1999-12-12 12:20:21&#34;</span>) <span style="color:#75715e">// 1999-12-12 12:20:21, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;10-13&#34;</span>)               <span style="color:#75715e">// 2013-10-13 00:00:00, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;12:20&#34;</span>)               <span style="color:#75715e">// 2013-11-18 12:20:00, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;12:20:13&#34;</span>)            <span style="color:#75715e">// 2013-11-18 12:20:13, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;14&#34;</span>)                  <span style="color:#75715e">// 2013-11-18 14:00:00, nil
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;99:99&#34;</span>)               <span style="color:#75715e">// 2013-11-18 12:20:00, Can&#39;t parse string as time: 99:99`
-</span><span style="color:#75715e"></span>
-</code></pre></div><h2 id="参考">参考</h2>
-<ul>
-<li><a href="https://github.com/jinzhu/now">https://github.com/jinzhu/now</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Btime/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-              
   
     
       
@@ -862,14 +535,14 @@ Stop：停止服务</p>
   
 </article>
 
-            
-            
+          
+          
   <div class="pagination-bar">
     <ul class="pagination">
       
         
           <li class="pagination-prev">
-            <a class="btn btn--default btn--small" href="https://luckytking.github.io/categories/go/" aria-label="">
+            <a class="btn btn--default btn--small" href="https://luckytking.github.io/post/page/3/" aria-label="">
               <i class="fa fa-angle-left text-base icon-mr"></i>
               <span></span>
             </a>
@@ -882,8 +555,7 @@ Stop：停止服务</p>
   </div>
 
 
-          </section>
-        
+        </section>
         <footer id="footer" class="main-content-wrap">
   <span class="copyrights">
     &copy; 2022 jefffff. 
