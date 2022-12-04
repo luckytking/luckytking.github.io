@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e本文主要介绍Go实现浅拷贝和深拷贝，以及工具库mohae\/deepcopy。\u003c\/p\u003e\n\u003ch3 id=\u0022定义\u0022\u003e定义\u003c\/h3\u003e\n\u003cblockquote\u003e\n\u003cp\u003e浅拷贝是按位拷贝对象，它会创建一个新对象，这个对象有着原始对象属性值的一份精确拷贝。如果属性是基本类型，拷贝的就是基本类型的值；如果属性是内存地址（引用类型），拷贝的就是内存地址 ，因此如果其中一个对象改变了这个地址，就会影响到另一个对象。即默认拷贝构造函数只是对对象进行浅拷贝复制(逐个成员依次拷贝)，即只复制对象空间而不复制资源\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cblockquote\u003e\n\u003cp\u003e深拷贝是指源对象与拷贝对象互相独立，其中任何一个对象的改动都不会对另外一个对象造成影响。比较典型的就是Value（值）对象，如预定义类型Int32，Double，以及结构（struct），枚举（Enum）等\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch3 id=\u0022浅拷贝\u0022\u003e浅拷贝\u003c\/h3\u003e\n\u003cp\u003ego使用\u003cstrong\u003ecopy\u003c\/strong\u003e内置函数将源片中的元素复制到目标切片,如果拷贝的\n结构中不包含指针是没问题，否则则数据源和拷贝之间对应指针会共同指向同一块内存。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eshallowCopyReference\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e []\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{{\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Neymar\u0026#34;\u003c\/span\u003e}, {\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Messi\u0026#34;\u003c\/span\u003e}}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e make([]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e, len(\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e))\n\tcopy(\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%p, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%p, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e].\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e = \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Anthony\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%p, %v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%p, %v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n}\n\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/output\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412e0\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412f0\u003c\/span\u003e\n\u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc000041310\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412f0\u003c\/span\u003e\n\u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412e0\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eAnthony\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412f0\u003c\/span\u003e\n\u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc000041310\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eAnthony\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412f0\u003c\/span\u003e \n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e如上，修改了src（拷贝原始结构）的指针对象，dst（拷贝目标结构）的值也被改动了，显然是不行的。\u003c\/p\u003e\n\u003ch3 id=\u0022深拷贝\u0022\u003e深拷贝\u003c\/h3\u003e\n\u003ch4 id=\u0022方法一gobjson-序列化成字节序列再反序列化生成克隆对象\u0022\u003e方法一：gob、json 序列化成字节序列再反序列化生成克隆对象\u003c\/h4\u003e\n\u003cul\u003e\n\u003cli\u003egob序列化\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edeepCopyByGobExample\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eplayers\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e append([]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{}, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Neymar\u0026#34;\u003c\/span\u003e}, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Messi\u0026#34;\u003c\/span\u003e})\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTeam\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e: \u003cspan style=\u0022color:#a6e22e\u0022\u003eplayers\u003c\/span\u003e}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTeam\u003c\/span\u003e{}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edeepCopyByGob\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eErrorf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;deepcopy error:\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v,%v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;brazil\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v,%v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;argentina\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e].\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e = \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Anthony\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v, %v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;brazil\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v, %v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;argentina\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edeepCopyByGob\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003edst\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTeam\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ebuf\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ebytes\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBuffer\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egob\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewEncoder\u003c\/span\u003e(\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ebuf\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eEncode\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e); \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egob\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewDecoder\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ebytes\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewBuffer\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ebuf\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBytes\u003c\/span\u003e())).\u003cspan style=\u0022color:#a6e22e\u0022\u003eDecode\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003edst\u003c\/span\u003e)\n}\n\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/output\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e,\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc000184ff0\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e,\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc000185330\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eAnthony\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc000184ff0\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc000184ff0\u003c\/span\u003e \n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cul\u003e\n\u003cli\u003ejson序列化\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edeepcopyByJsonExample\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eplayers\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e append([]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{}, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Neymar\u0026#34;\u003c\/span\u003e}, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Messi\u0026#34;\u003c\/span\u003e})\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTeam\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e: \u003cspan style=\u0022color:#a6e22e\u0022\u003eplayers\u003c\/span\u003e}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTeam\u003c\/span\u003e{}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edeepCopyByJson\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eErrorf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;deepcopy error:\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v,%v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;brazil\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v,%v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;argentina\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e].\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e = \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Anthony\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v, %v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;brazil\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v, %v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;argentina\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edeepCopyByJson\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003edst\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTeam\u003c\/span\u003e) \u003cspan style=\u0022color:#66d9ef\u0022\u003eerror\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003etmp\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ejson\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003esrc\u003c\/span\u003e); \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e!=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t} \u003cspan style=\u0022color:#66d9ef\u0022\u003eelse\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e = \u003cspan style=\u0022color:#a6e22e\u0022\u003ejson\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eUnmarshal\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003etmp\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003edst\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eerr\u003c\/span\u003e\n\t}\n}\n\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/output\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e,\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412e0\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e,\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc000041490\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eAnthony\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412e0\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412e0\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e可以看到deepcopy出来的指针地址不一样，那么都dst的修改就不会影响到src了。\u003c\/p\u003e\n\u003ch4 id=\u0022方法二使用第三方工具库\u0022\u003e方法二：使用第三方工具库\u003c\/h4\u003e\n\u003cp\u003eDeepCopy对事物进行深度复制:未导出的字段值不会被复制。\nfeature:\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003ecopy slice\u003c\/li\u003e\n\u003cli\u003ecopy map\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edeepCopyExample\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTeam\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e: append([]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{}, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Neymar\u0026#34;\u003c\/span\u003e}, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayer\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Messi\u0026#34;\u003c\/span\u003e})}\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentinaIfc\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edeepcopy\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eCopy\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentinaIfc\u003c\/span\u003e.(\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eTeam\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v,%v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;brazil\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v,%v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;argentina\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e].\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e = \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Anthony\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v, %v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;brazil\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;%v, %v, %p\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;argentina\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e], \u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePlayers\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e])\n}\n\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/output\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e,\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412e0\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e,\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc000041330\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003ebrazil\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eAnthony\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412e0\u003c\/span\u003e\n\u003cspan style=\u0022color:#a6e22e\u0022\u003eargentina\u003c\/span\u003e, \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eNeymar\u003c\/span\u003e}, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0xc0000412e0\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022小结\u0022\u003e小结\u003c\/h3\u003e\n\u003cp\u003e浅拷贝是值的拷贝，如果属性是引用，拷贝的就是内存地址，需要使用深拷贝。深拷贝的实现原理本质上是通过反射实现。通过将源对象转换成接口，再对接口通过反射判断其类型。所以可以通过序列化成gob、json等来实现。工具库mohae\/deepcopy可以对切片、map、结构体、接口进行深拷贝，是个不错的选择。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/mohae\/deepcopy\u0022\u003emodae\/deepcopy\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/juejin.cn\/post\/7143030425839992863\u0022\u003emodae\/deepcopy实现原理分析\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/juejin.cn\/post\/7143030425839992863\u0022\u003ego深拷贝常见方式及性能\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/12\/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D\/",
+  "keywords":"[deepcopy]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="deepcopy">
+<meta name="description" content="本文主要介绍Go实现浅拷贝和深拷贝，以及工具库mohae/deepcopy。
+定义
+
+浅拷贝是按位拷贝对象，它会创建一个新对象，这个对象有着原始对象属性值的一份精确拷贝。如果属性是基本类型，拷贝的就是基本类型的值；如果属性是内存地址（引用类型），拷贝的就是内存地址 ，因此如果其中一个对象改变了这个地址，就会影响到另一个对象。即默认拷贝构造函数只是对对象进行浅拷贝复制(逐个成员依次拷贝)，即只复制对象空间而不复制资源
+
+
+深拷贝是指源对象与拷贝对象互相独立，其中任何一个对象的改动都不会对另外一个对象造成影响。比较典型的就是Value（值）对象，如预定义类型Int32，Double，以及结构（struct），枚举（Enum）等
+
+浅拷贝
+go使用copy内置函数将源片中的元素复制到目标切片,如果拷贝的
+结构中不包含指针是没问题，否则则数据源和拷贝之间对应指针会共同指向同一块内存。
+func shallowCopyReference() {
+	brazil := []*Player{{&#34;Neymar&#34;}, {&#34;Messi&#34;}}
+	argentina := make([]*Player, len(brazil))
+	copy(argentina, brazil)
+	fmt.Printf(&#34;%p, %p\n&#34;, brazil, brazil[0])
+	fmt.Printf(&#34;%p, %p\n&#34;, argentina, argentina[0])
+	brazil[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%p, %v, %p\n&#34;, brazil, brazil[0], brazil[0])
+	fmt.Printf(&#34;%p, %v, %p\n&#34;, argentina, argentina[0], brazil[0])
+}
+//output
+0xc0000412e0, 0xc0000412f0
+0xc000041310, 0xc0000412f0
+0xc0000412e0, &amp;{Anthony}, 0xc0000412f0
+0xc000041310, &amp;{Anthony}, 0xc0000412f0 
+如上，修改了src（拷贝原始结构）的指针对象，dst（拷贝目标结构）的值也被改动了，显然是不行的。
+深拷贝
+方法一：gob、json 序列化成字节序列再反序列化生成克隆对象
+
+gob序列化
+
+func deepCopyByGobExample() {
+	players := append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})
+	brazil := &amp;Team{Players: players}
+	argentina := &amp;Team{}
+	err := deepCopyByGob(brazil, argentina)
+	if err != nil {
+		fmt.Errorf(&#34;deepcopy error:&#34;, err)
+	}
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+
+func deepCopyByGob(dst, src *Team) error {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&amp;buf).Encode(src); err != nil {
+		return err
+	}
+	return gob.NewDecoder(bytes.NewBuffer(buf.Bytes())).Decode(dst)
+}
+//output
+brazil,&amp;{Neymar}, 0xc000184ff0
+argentina,&amp;{Neymar}, 0xc000185330
+brazil, &amp;{Anthony}, 0xc000184ff0
+argentina, &amp;{Neymar}, 0xc000184ff0 
+
+json序列化
+
+func deepcopyByJsonExample() {
+	players := append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})
+	brazil := &amp;Team{Players: players}
+	argentina := &amp;Team{}
+	err := deepCopyByJson(brazil, argentina)
+	if err != nil {
+		fmt.Errorf(&#34;deepcopy error:&#34;, err)
+	}
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+
+func deepCopyByJson(src, dst *Team) error {
+	if tmp, err := json.Marshal(src); err != nil {
+		return err
+	} else {
+		err = json.Unmarshal(tmp, dst)
+		return err
+	}
+}
+//output
+brazil,&amp;{Neymar}, 0xc0000412e0
+argentina,&amp;{Neymar}, 0xc000041490
+brazil, &amp;{Anthony}, 0xc0000412e0
+argentina, &amp;{Neymar}, 0xc0000412e0
+可以看到deepcopy出来的指针地址不一样，那么都dst的修改就不会影响到src了。
+方法二：使用第三方工具库
+DeepCopy对事物进行深度复制:未导出的字段值不会被复制。
+feature:
+
+copy slice
+copy map
+
+func deepCopyExample() {
+	brazil := &amp;Team{Players: append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})}
+	argentinaIfc := deepcopy.Copy(brazil)
+	argentina := argentinaIfc.(*Team)
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+//output
+brazil,&amp;{Neymar}, 0xc0000412e0
+argentina,&amp;{Neymar}, 0xc000041330
+brazil, &amp;{Anthony}, 0xc0000412e0
+argentina, &amp;{Neymar}, 0xc0000412e0
+小结
+浅拷贝是值的拷贝，如果属性是引用，拷贝的就是内存地址，需要使用深拷贝。深拷贝的实现原理本质上是通过反射实现。通过将源对象转换成接口，再对接口通过反射判断其类型。所以可以通过序列化成gob、json等来实现。工具库mohae/deepcopy可以对切片、map、结构体、接口进行深拷贝，是个不错的选择。
+参考
+
+modae/deepcopy
+modae/deepcopy实现原理分析
+go深拷贝常见方式及性能
+">
+
+
+<meta property="og:description" content="本文主要介绍Go实现浅拷贝和深拷贝，以及工具库mohae/deepcopy。
+定义
+
+浅拷贝是按位拷贝对象，它会创建一个新对象，这个对象有着原始对象属性值的一份精确拷贝。如果属性是基本类型，拷贝的就是基本类型的值；如果属性是内存地址（引用类型），拷贝的就是内存地址 ，因此如果其中一个对象改变了这个地址，就会影响到另一个对象。即默认拷贝构造函数只是对对象进行浅拷贝复制(逐个成员依次拷贝)，即只复制对象空间而不复制资源
+
+
+深拷贝是指源对象与拷贝对象互相独立，其中任何一个对象的改动都不会对另外一个对象造成影响。比较典型的就是Value（值）对象，如预定义类型Int32，Double，以及结构（struct），枚举（Enum）等
+
+浅拷贝
+go使用copy内置函数将源片中的元素复制到目标切片,如果拷贝的
+结构中不包含指针是没问题，否则则数据源和拷贝之间对应指针会共同指向同一块内存。
+func shallowCopyReference() {
+	brazil := []*Player{{&#34;Neymar&#34;}, {&#34;Messi&#34;}}
+	argentina := make([]*Player, len(brazil))
+	copy(argentina, brazil)
+	fmt.Printf(&#34;%p, %p\n&#34;, brazil, brazil[0])
+	fmt.Printf(&#34;%p, %p\n&#34;, argentina, argentina[0])
+	brazil[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%p, %v, %p\n&#34;, brazil, brazil[0], brazil[0])
+	fmt.Printf(&#34;%p, %v, %p\n&#34;, argentina, argentina[0], brazil[0])
+}
+//output
+0xc0000412e0, 0xc0000412f0
+0xc000041310, 0xc0000412f0
+0xc0000412e0, &amp;{Anthony}, 0xc0000412f0
+0xc000041310, &amp;{Anthony}, 0xc0000412f0 
+如上，修改了src（拷贝原始结构）的指针对象，dst（拷贝目标结构）的值也被改动了，显然是不行的。
+深拷贝
+方法一：gob、json 序列化成字节序列再反序列化生成克隆对象
+
+gob序列化
+
+func deepCopyByGobExample() {
+	players := append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})
+	brazil := &amp;Team{Players: players}
+	argentina := &amp;Team{}
+	err := deepCopyByGob(brazil, argentina)
+	if err != nil {
+		fmt.Errorf(&#34;deepcopy error:&#34;, err)
+	}
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+
+func deepCopyByGob(dst, src *Team) error {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&amp;buf).Encode(src); err != nil {
+		return err
+	}
+	return gob.NewDecoder(bytes.NewBuffer(buf.Bytes())).Decode(dst)
+}
+//output
+brazil,&amp;{Neymar}, 0xc000184ff0
+argentina,&amp;{Neymar}, 0xc000185330
+brazil, &amp;{Anthony}, 0xc000184ff0
+argentina, &amp;{Neymar}, 0xc000184ff0 
+
+json序列化
+
+func deepcopyByJsonExample() {
+	players := append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})
+	brazil := &amp;Team{Players: players}
+	argentina := &amp;Team{}
+	err := deepCopyByJson(brazil, argentina)
+	if err != nil {
+		fmt.Errorf(&#34;deepcopy error:&#34;, err)
+	}
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+
+func deepCopyByJson(src, dst *Team) error {
+	if tmp, err := json.Marshal(src); err != nil {
+		return err
+	} else {
+		err = json.Unmarshal(tmp, dst)
+		return err
+	}
+}
+//output
+brazil,&amp;{Neymar}, 0xc0000412e0
+argentina,&amp;{Neymar}, 0xc000041490
+brazil, &amp;{Anthony}, 0xc0000412e0
+argentina, &amp;{Neymar}, 0xc0000412e0
+可以看到deepcopy出来的指针地址不一样，那么都dst的修改就不会影响到src了。
+方法二：使用第三方工具库
+DeepCopy对事物进行深度复制:未导出的字段值不会被复制。
+feature:
+
+copy slice
+copy map
+
+func deepCopyExample() {
+	brazil := &amp;Team{Players: append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})}
+	argentinaIfc := deepcopy.Copy(brazil)
+	argentina := argentinaIfc.(*Team)
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+//output
+brazil,&amp;{Neymar}, 0xc0000412e0
+argentina,&amp;{Neymar}, 0xc000041330
+brazil, &amp;{Anthony}, 0xc0000412e0
+argentina, &amp;{Neymar}, 0xc0000412e0
+小结
+浅拷贝是值的拷贝，如果属性是引用，拷贝的就是内存地址，需要使用深拷贝。深拷贝的实现原理本质上是通过反射实现。通过将源对象转换成接口，再对接口通过反射判断其类型。所以可以通过序列化成gob、json等来实现。工具库mohae/deepcopy可以对切片、map、结构体、接口进行深拷贝，是个不错的选择。
+参考
+
+modae/deepcopy
+modae/deepcopy实现原理分析
+go深拷贝常见方式及性能
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go浅拷贝与深拷贝">
+<meta name="twitter:title" content="Go浅拷贝与深拷贝">
+<meta property="og:url" content="https://luckytking.github.io/2022/12/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/12/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="本文主要介绍Go实现浅拷贝和深拷贝，以及工具库mohae/deepcopy。
+定义
+
+浅拷贝是按位拷贝对象，它会创建一个新对象，这个对象有着原始对象属性值的一份精确拷贝。如果属性是基本类型，拷贝的就是基本类型的值；如果属性是内存地址（引用类型），拷贝的就是内存地址 ，因此如果其中一个对象改变了这个地址，就会影响到另一个对象。即默认拷贝构造函数只是对对象进行浅拷贝复制(逐个成员依次拷贝)，即只复制对象空间而不复制资源
+
+
+深拷贝是指源对象与拷贝对象互相独立，其中任何一个对象的改动都不会对另外一个对象造成影响。比较典型的就是Value（值）对象，如预定义类型Int32，Double，以及结构（struct），枚举（Enum）等
+
+浅拷贝
+go使用copy内置函数将源片中的元素复制到目标切片,如果拷贝的
+结构中不包含指针是没问题，否则则数据源和拷贝之间对应指针会共同指向同一块内存。
+func shallowCopyReference() {
+	brazil := []*Player{{&#34;Neymar&#34;}, {&#34;Messi&#34;}}
+	argentina := make([]*Player, len(brazil))
+	copy(argentina, brazil)
+	fmt.Printf(&#34;%p, %p\n&#34;, brazil, brazil[0])
+	fmt.Printf(&#34;%p, %p\n&#34;, argentina, argentina[0])
+	brazil[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%p, %v, %p\n&#34;, brazil, brazil[0], brazil[0])
+	fmt.Printf(&#34;%p, %v, %p\n&#34;, argentina, argentina[0], brazil[0])
+}
+//output
+0xc0000412e0, 0xc0000412f0
+0xc000041310, 0xc0000412f0
+0xc0000412e0, &amp;{Anthony}, 0xc0000412f0
+0xc000041310, &amp;{Anthony}, 0xc0000412f0 
+如上，修改了src（拷贝原始结构）的指针对象，dst（拷贝目标结构）的值也被改动了，显然是不行的。
+深拷贝
+方法一：gob、json 序列化成字节序列再反序列化生成克隆对象
+
+gob序列化
+
+func deepCopyByGobExample() {
+	players := append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})
+	brazil := &amp;Team{Players: players}
+	argentina := &amp;Team{}
+	err := deepCopyByGob(brazil, argentina)
+	if err != nil {
+		fmt.Errorf(&#34;deepcopy error:&#34;, err)
+	}
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+
+func deepCopyByGob(dst, src *Team) error {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&amp;buf).Encode(src); err != nil {
+		return err
+	}
+	return gob.NewDecoder(bytes.NewBuffer(buf.Bytes())).Decode(dst)
+}
+//output
+brazil,&amp;{Neymar}, 0xc000184ff0
+argentina,&amp;{Neymar}, 0xc000185330
+brazil, &amp;{Anthony}, 0xc000184ff0
+argentina, &amp;{Neymar}, 0xc000184ff0 
+
+json序列化
+
+func deepcopyByJsonExample() {
+	players := append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})
+	brazil := &amp;Team{Players: players}
+	argentina := &amp;Team{}
+	err := deepCopyByJson(brazil, argentina)
+	if err != nil {
+		fmt.Errorf(&#34;deepcopy error:&#34;, err)
+	}
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+
+func deepCopyByJson(src, dst *Team) error {
+	if tmp, err := json.Marshal(src); err != nil {
+		return err
+	} else {
+		err = json.Unmarshal(tmp, dst)
+		return err
+	}
+}
+//output
+brazil,&amp;{Neymar}, 0xc0000412e0
+argentina,&amp;{Neymar}, 0xc000041490
+brazil, &amp;{Anthony}, 0xc0000412e0
+argentina, &amp;{Neymar}, 0xc0000412e0
+可以看到deepcopy出来的指针地址不一样，那么都dst的修改就不会影响到src了。
+方法二：使用第三方工具库
+DeepCopy对事物进行深度复制:未导出的字段值不会被复制。
+feature:
+
+copy slice
+copy map
+
+func deepCopyExample() {
+	brazil := &amp;Team{Players: append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})}
+	argentinaIfc := deepcopy.Copy(brazil)
+	argentina := argentinaIfc.(*Team)
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+//output
+brazil,&amp;{Neymar}, 0xc0000412e0
+argentina,&amp;{Neymar}, 0xc000041330
+brazil, &amp;{Anthony}, 0xc0000412e0
+argentina, &amp;{Neymar}, 0xc0000412e0
+小结
+浅拷贝是值的拷贝，如果属性是引用，拷贝的就是内存地址，需要使用深拷贝。深拷贝的实现原理本质上是通过反射实现。通过将源对象转换成接口，再对接口通过反射判断其类型。所以可以通过序列化成gob、json等来实现。工具库mohae/deepcopy可以对切片、map、结构体、接口进行深拷贝，是个不错的选择。
+参考
+
+modae/deepcopy
+modae/deepcopy实现原理分析
+go深拷贝常见方式及性能
+">
+<meta name="twitter:description" content="本文主要介绍Go实现浅拷贝和深拷贝，以及工具库mohae/deepcopy。
+定义
+
+浅拷贝是按位拷贝对象，它会创建一个新对象，这个对象有着原始对象属性值的一份精确拷贝。如果属性是基本类型，拷贝的就是基本类型的值；如果属性是内存地址（引用类型），拷贝的就是内存地址 ，因此如果其中一个对象改变了这个地址，就会影响到另一个对象。即默认拷贝构造函数只是对对象进行浅拷贝复制(逐个成员依次拷贝)，即只复制对象空间而不复制资源
+
+
+深拷贝是指源对象与拷贝对象互相独立，其中任何一个对象的改动都不会对另外一个对象造成影响。比较典型的就是Value（值）对象，如预定义类型Int32，Double，以及结构（struct），枚举（Enum）等
+
+浅拷贝
+go使用copy内置函数将源片中的元素复制到目标切片,如果拷贝的
+结构中不包含指针是没问题，否则则数据源和拷贝之间对应指针会共同指向同一块内存。
+func shallowCopyReference() {
+	brazil := []*Player{{&#34;Neymar&#34;}, {&#34;Messi&#34;}}
+	argentina := make([]*Player, len(brazil))
+	copy(argentina, brazil)
+	fmt.Printf(&#34;%p, %p\n&#34;, brazil, brazil[0])
+	fmt.Printf(&#34;%p, %p\n&#34;, argentina, argentina[0])
+	brazil[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%p, %v, %p\n&#34;, brazil, brazil[0], brazil[0])
+	fmt.Printf(&#34;%p, %v, %p\n&#34;, argentina, argentina[0], brazil[0])
+}
+//output
+0xc0000412e0, 0xc0000412f0
+0xc000041310, 0xc0000412f0
+0xc0000412e0, &amp;{Anthony}, 0xc0000412f0
+0xc000041310, &amp;{Anthony}, 0xc0000412f0 
+如上，修改了src（拷贝原始结构）的指针对象，dst（拷贝目标结构）的值也被改动了，显然是不行的。
+深拷贝
+方法一：gob、json 序列化成字节序列再反序列化生成克隆对象
+
+gob序列化
+
+func deepCopyByGobExample() {
+	players := append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})
+	brazil := &amp;Team{Players: players}
+	argentina := &amp;Team{}
+	err := deepCopyByGob(brazil, argentina)
+	if err != nil {
+		fmt.Errorf(&#34;deepcopy error:&#34;, err)
+	}
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+
+func deepCopyByGob(dst, src *Team) error {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&amp;buf).Encode(src); err != nil {
+		return err
+	}
+	return gob.NewDecoder(bytes.NewBuffer(buf.Bytes())).Decode(dst)
+}
+//output
+brazil,&amp;{Neymar}, 0xc000184ff0
+argentina,&amp;{Neymar}, 0xc000185330
+brazil, &amp;{Anthony}, 0xc000184ff0
+argentina, &amp;{Neymar}, 0xc000184ff0 
+
+json序列化
+
+func deepcopyByJsonExample() {
+	players := append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})
+	brazil := &amp;Team{Players: players}
+	argentina := &amp;Team{}
+	err := deepCopyByJson(brazil, argentina)
+	if err != nil {
+		fmt.Errorf(&#34;deepcopy error:&#34;, err)
+	}
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+
+func deepCopyByJson(src, dst *Team) error {
+	if tmp, err := json.Marshal(src); err != nil {
+		return err
+	} else {
+		err = json.Unmarshal(tmp, dst)
+		return err
+	}
+}
+//output
+brazil,&amp;{Neymar}, 0xc0000412e0
+argentina,&amp;{Neymar}, 0xc000041490
+brazil, &amp;{Anthony}, 0xc0000412e0
+argentina, &amp;{Neymar}, 0xc0000412e0
+可以看到deepcopy出来的指针地址不一样，那么都dst的修改就不会影响到src了。
+方法二：使用第三方工具库
+DeepCopy对事物进行深度复制:未导出的字段值不会被复制。
+feature:
+
+copy slice
+copy map
+
+func deepCopyExample() {
+	brazil := &amp;Team{Players: append([]*Player{}, &amp;Player{Name: &#34;Neymar&#34;}, &amp;Player{Name: &#34;Messi&#34;})}
+	argentinaIfc := deepcopy.Copy(brazil)
+	argentina := argentinaIfc.(*Team)
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v,%v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], argentina.Players[0])
+	brazil.Players[0].Name = &#34;Anthony&#34;
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;brazil&#34;, brazil.Players[0], brazil.Players[0])
+	fmt.Printf(&#34;%v, %v, %p\n&#34;, &#34;argentina&#34;, argentina.Players[0], brazil.Players[0])
+}
+//output
+brazil,&amp;{Neymar}, 0xc0000412e0
+argentina,&amp;{Neymar}, 0xc000041330
+brazil, &amp;{Anthony}, 0xc0000412e0
+argentina, &amp;{Neymar}, 0xc0000412e0
+小结
+浅拷贝是值的拷贝，如果属性是引用，拷贝的就是内存地址，需要使用深拷贝。深拷贝的实现原理本质上是通过反射实现。通过将源对象转换成接口，再对接口通过反射判断其类型。所以可以通过序列化成gob、json等来实现。工具库mohae/deepcopy可以对切片、map、结构体、接口进行深拷贝，是个不错的选择。
+参考
+
+modae/deepcopy
+modae/deepcopy实现原理分析
+go深拷贝常见方式及性能
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-12-04T16:44:31">
+  
+  
+    <meta property="article:modified_time" content="2022-12-04T16:44:31">
+  
+  
+  
+    
+      <meta property="article:section" content="go">
+    
+  
+  
+    
+      <meta property="article:tag" content="go开发">
+    
+      <meta property="article:tag" content="deepcopy">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Go浅拷贝与深拷贝</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/12/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Go浅拷贝与深拷贝
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-12-04T16:44:31&#43;08:00">
+        
+   4, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>本文主要介绍Go实现浅拷贝和深拷贝，以及工具库mohae/deepcopy。</p>
+<h3 id="定义">定义</h3>
+<blockquote>
+<p>浅拷贝是按位拷贝对象，它会创建一个新对象，这个对象有着原始对象属性值的一份精确拷贝。如果属性是基本类型，拷贝的就是基本类型的值；如果属性是内存地址（引用类型），拷贝的就是内存地址 ，因此如果其中一个对象改变了这个地址，就会影响到另一个对象。即默认拷贝构造函数只是对对象进行浅拷贝复制(逐个成员依次拷贝)，即只复制对象空间而不复制资源</p>
+</blockquote>
+<blockquote>
+<p>深拷贝是指源对象与拷贝对象互相独立，其中任何一个对象的改动都不会对另外一个对象造成影响。比较典型的就是Value（值）对象，如预定义类型Int32，Double，以及结构（struct），枚举（Enum）等</p>
+</blockquote>
+<h3 id="浅拷贝">浅拷贝</h3>
+<p>go使用<strong>copy</strong>内置函数将源片中的元素复制到目标切片,如果拷贝的
+结构中不包含指针是没问题，否则则数据源和拷贝之间对应指针会共同指向同一块内存。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">shallowCopyReference</span>() {
+	<span style="color:#a6e22e">brazil</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>{{<span style="color:#e6db74">&#34;Neymar&#34;</span>}, {<span style="color:#e6db74">&#34;Messi&#34;</span>}}
+	<span style="color:#a6e22e">argentina</span> <span style="color:#f92672">:=</span> make([]<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>, len(<span style="color:#a6e22e">brazil</span>))
+	copy(<span style="color:#a6e22e">argentina</span>, <span style="color:#a6e22e">brazil</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%p, %p\n&#34;</span>, <span style="color:#a6e22e">brazil</span>, <span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%p, %p\n&#34;</span>, <span style="color:#a6e22e">argentina</span>, <span style="color:#a6e22e">argentina</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;Anthony&#34;</span>
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%p, %v, %p\n&#34;</span>, <span style="color:#a6e22e">brazil</span>, <span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%p, %v, %p\n&#34;</span>, <span style="color:#a6e22e">argentina</span>, <span style="color:#a6e22e">argentina</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>])
+}
+<span style="color:#75715e">//output
+</span><span style="color:#75715e"></span><span style="color:#ae81ff">0xc0000412e0</span>, <span style="color:#ae81ff">0xc0000412f0</span>
+<span style="color:#ae81ff">0xc000041310</span>, <span style="color:#ae81ff">0xc0000412f0</span>
+<span style="color:#ae81ff">0xc0000412e0</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc0000412f0</span>
+<span style="color:#ae81ff">0xc000041310</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc0000412f0</span> 
+</code></pre></div><p>如上，修改了src（拷贝原始结构）的指针对象，dst（拷贝目标结构）的值也被改动了，显然是不行的。</p>
+<h3 id="深拷贝">深拷贝</h3>
+<h4 id="方法一gobjson-序列化成字节序列再反序列化生成克隆对象">方法一：gob、json 序列化成字节序列再反序列化生成克隆对象</h4>
+<ul>
+<li>gob序列化</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepCopyByGobExample</span>() {
+	<span style="color:#a6e22e">players</span> <span style="color:#f92672">:=</span> append([]<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>{}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Neymar&#34;</span>}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Messi&#34;</span>})
+	<span style="color:#a6e22e">brazil</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{<span style="color:#a6e22e">Players</span>: <span style="color:#a6e22e">players</span>}
+	<span style="color:#a6e22e">argentina</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{}
+	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">deepCopyByGob</span>(<span style="color:#a6e22e">brazil</span>, <span style="color:#a6e22e">argentina</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;deepcopy error:&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;Anthony&#34;</span>
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepCopyByGob</span>(<span style="color:#a6e22e">dst</span>, <span style="color:#a6e22e">src</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Team</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">buf</span> <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Buffer</span>
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gob</span>.<span style="color:#a6e22e">NewEncoder</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">buf</span>).<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">src</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">gob</span>.<span style="color:#a6e22e">NewDecoder</span>(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBuffer</span>(<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">Bytes</span>())).<span style="color:#a6e22e">Decode</span>(<span style="color:#a6e22e">dst</span>)
+}
+<span style="color:#75715e">//output
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">brazil</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000184ff0</span>
+<span style="color:#a6e22e">argentina</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000185330</span>
+<span style="color:#a6e22e">brazil</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc000184ff0</span>
+<span style="color:#a6e22e">argentina</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000184ff0</span> 
+</code></pre></div><ul>
+<li>json序列化</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepcopyByJsonExample</span>() {
+	<span style="color:#a6e22e">players</span> <span style="color:#f92672">:=</span> append([]<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>{}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Neymar&#34;</span>}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Messi&#34;</span>})
+	<span style="color:#a6e22e">brazil</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{<span style="color:#a6e22e">Players</span>: <span style="color:#a6e22e">players</span>}
+	<span style="color:#a6e22e">argentina</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{}
+	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">deepCopyByJson</span>(<span style="color:#a6e22e">brazil</span>, <span style="color:#a6e22e">argentina</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;deepcopy error:&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;Anthony&#34;</span>
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepCopyByJson</span>(<span style="color:#a6e22e">src</span>, <span style="color:#a6e22e">dst</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Team</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tmp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">src</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	} <span style="color:#66d9ef">else</span> {
+		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">tmp</span>, <span style="color:#a6e22e">dst</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+}
+<span style="color:#75715e">//output
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">brazil</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
+<span style="color:#a6e22e">argentina</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000041490</span>
+<span style="color:#a6e22e">brazil</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
+<span style="color:#a6e22e">argentina</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
+</code></pre></div><p>可以看到deepcopy出来的指针地址不一样，那么都dst的修改就不会影响到src了。</p>
+<h4 id="方法二使用第三方工具库">方法二：使用第三方工具库</h4>
+<p>DeepCopy对事物进行深度复制:未导出的字段值不会被复制。
+feature:</p>
+<ul>
+<li>copy slice</li>
+<li>copy map</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepCopyExample</span>() {
+	<span style="color:#a6e22e">brazil</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{<span style="color:#a6e22e">Players</span>: append([]<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>{}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Neymar&#34;</span>}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Messi&#34;</span>})}
+	<span style="color:#a6e22e">argentinaIfc</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">deepcopy</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#a6e22e">brazil</span>)
+	<span style="color:#a6e22e">argentina</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">argentinaIfc</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">Team</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;Anthony&#34;</span>
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
+}
+<span style="color:#75715e">//output
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">brazil</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
+<span style="color:#a6e22e">argentina</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000041330</span>
+<span style="color:#a6e22e">brazil</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
+<span style="color:#a6e22e">argentina</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
+</code></pre></div><h3 id="小结">小结</h3>
+<p>浅拷贝是值的拷贝，如果属性是引用，拷贝的就是内存地址，需要使用深拷贝。深拷贝的实现原理本质上是通过反射实现。通过将源对象转换成接口，再对接口通过反射判断其类型。所以可以通过序列化成gob、json等来实现。工具库mohae/deepcopy可以对切片、map、结构体、接口进行深拷贝，是个不错的选择。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://github.com/mohae/deepcopy">modae/deepcopy</a></li>
+<li><a href="https://juejin.cn/post/7143030425839992863">modae/deepcopy实现原理分析</a></li>
+<li><a href="https://juejin.cn/post/7143030425839992863">go深拷贝常见方式及性能</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/go%E5%BC%80%E5%8F%91/">go开发</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/deepcopy/">deepcopy</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/11/go%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B7%A5%E5%85%B7-%E7%BB%98%E5%88%B6%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%E5%92%8C%E4%BE%9D%E8%B5%96/" data-tooltip="Go可视化工具 绘制项目代码结构和依赖" aria-label=": Go可视化工具 绘制项目代码结构和依赖">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/11/go%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B7%A5%E5%85%B7-%E7%BB%98%E5%88%B6%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%E5%92%8C%E4%BE%9D%E8%B5%96/" data-tooltip="Go可视化工具 绘制项目代码结构和依赖" aria-label=": Go可视化工具 绘制项目代码结构和依赖">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+
