@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e本文主要介绍ssh免密访问Ubuntu。\u003c\/p\u003e\n\u003ch3 id=\u0022前言\u0022\u003e前言\u003c\/h3\u003e\n\u003cp\u003eWhat is SSH:\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003eSSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003eSSH广泛使用的协议，用于安全的访问Linux服务器。\u003c\/p\u003e\n\u003cp\u003e今天我们主要介绍ssh免密访问Ubuntu，其中：\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e客户端（mac）\u003c\/li\u003e\n\u003cli\u003e服务器（Ubuntu）\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e实现步骤大致如下：\u003c\/p\u003e\n\u003col\u003e\n\u003cli\u003e安装ssh服务\u003c\/li\u003e\n\u003cli\u003essh客户端生成生成公钥和私钥\u003c\/li\u003e\n\u003cli\u003e上传公钥到服务器\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003ch3 id=\u0022安装ssh的服务端\u0022\u003e安装ssh的服务端\u003c\/h3\u003e\n\u003cp\u003e在Ubuntu安装ssh服务（这里我使用的是vm默认安装）：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003esudo apt-get install openssh-server\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e重启服务\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eservice ssh restart\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003ch3 id=\u0022ssh生成密钥\u0022\u003essh生成密钥\u003c\/h3\u003e\n\u003cp\u003e在Mac，生成密钥的命令：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003essh-keygen\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e生成的密钥路径: $HOME\/.ssh\n查看是否生成成功：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003ecd $HOME\/.ssh\r\nls\r\nid_rsa      id_rsa.pub\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e说明生成成功，其中id_rsa为私钥、id_rsa.pub为公钥。公钥将上传到你要连接的服务器，而私钥则存储在你将用来建立连接的计算机上。接着，将公钥钥上传到Ubuntu：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003essh-copy-id userName@ServerIp\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003eEg:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003essh-copy-id jefffff@192.168.1.88\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e接着，查看是否上传成功， 密钥会增加到Ubuntu，路径为$HOME\/.ssh\/authorized_key\u003c\/p\u003e\n\u003ch3 id=\u0022免密访问\u0022\u003e免密访问\u003c\/h3\u003e\n\u003cp\u003e接着就可以ssh免密访问服务器了：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003essh -i ~\/.ssh\/id_rsa -p 22 -l userName ServerIp\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003eEg：：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e [master] ssh -i ~\/.ssh\/id_rsa -p 22 -l jefffff 192.168.1.88\r\nWelcome to Ubuntu 20.04.2 LTS (GNU\/Linux 5.4.0-131-generic x86_64)\r\n... 省略一些\r\n\r\n*** System restart required ***\r\nLast login: Sat Dec  9 09:21:34 2022 from 192.168.1.33\r\njeffffff@ubuntu1~$\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e说明，登入成功。\u003c\/p\u003e\n\u003ch3 id=\u0022iterm2配置\u0022\u003eiterm2配置\u003c\/h3\u003e\n\u003cp\u003e为了更方便的访问，可以在iterm2（mac）配置\n\u003cimg src=\u0022\/images\/ssh-iterm2.png\u0022 alt=\u0022\u0022\u003e\u003c\/p\u003e\n\u003ch3 id=\u0022小结\u0022\u003e小结\u003c\/h3\u003e\n\u003cp\u003e使用SSH的访问Linux方式有密码和密钥两种方式，使用密钥相对于默认的密码方式优点有：\n其一，密码更容易被暴力破解，密钥访问更安全。\n其二，亦可通过修改sshd_config配置，来开闭用户对服务器的访问。\n文中还通过一个Mac密钥登入Ubuntu的例子，来演示免密访问过程。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/www.ssh.com\/academy\/ssh\u0022\u003essh介绍\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/baike.baidu.com\/item\/ssh\/10407?fr=aladdin\u0022\u003e百度百科: 什么是SSH\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/jingwei.link\/2018\/12\/08\/ssh-login-style.html\u0022\u003eubuntu-ssh用户名密码登录与证书免密登录\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/www.myfreax.com\/how-to-set-up-ssh-keys-on-ubuntu-20-04\/\u0022\u003e如何在Ubuntu 20.04配置SSH密钥免密码登录\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/iterm2.com\/\u0022\u003eiterm2.com\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2022\/12\/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu\/",
+  "keywords":"[ssh]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="ssh">
+<meta name="description" content="本文主要介绍ssh免密访问Ubuntu。
+前言
+What is SSH:
+
+SSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题
+
+SSH广泛使用的协议，用于安全的访问Linux服务器。
+今天我们主要介绍ssh免密访问Ubuntu，其中：
+
+客户端（mac）
+服务器（Ubuntu）
+
+实现步骤大致如下：
+
+安装ssh服务
+ssh客户端生成生成公钥和私钥
+上传公钥到服务器
+
+安装ssh的服务端
+在Ubuntu安装ssh服务（这里我使用的是vm默认安装）：
+sudo apt-get install openssh-server
+重启服务
+service ssh restart
+ssh生成密钥
+在Mac，生成密钥的命令：
+ssh-keygen
+生成的密钥路径: $HOME/.ssh
+查看是否生成成功：
+cd $HOME/.ssh
+ls
+id_rsa      id_rsa.pub
+说明生成成功，其中id_rsa为私钥、id_rsa.pub为公钥。公钥将上传到你要连接的服务器，而私钥则存储在你将用来建立连接的计算机上。接着，将公钥钥上传到Ubuntu：
+ssh-copy-id userName@ServerIp
+Eg:
+ssh-copy-id jefffff@192.168.1.88
+接着，查看是否上传成功， 密钥会增加到Ubuntu，路径为$HOME/.ssh/authorized_key
+免密访问
+接着就可以ssh免密访问服务器了：
+ssh -i ~/.ssh/id_rsa -p 22 -l userName ServerIp
+Eg：：
+ [master] ssh -i ~/.ssh/id_rsa -p 22 -l jefffff 192.168.1.88
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-131-generic x86_64)
+... 省略一些
+
+*** System restart required ***
+Last login: Sat Dec  9 09:21:34 2022 from 192.168.1.33
+jeffffff@ubuntu1~$
+说明，登入成功。
+iterm2配置
+为了更方便的访问，可以在iterm2（mac）配置
+
+小结
+使用SSH的访问Linux方式有密码和密钥两种方式，使用密钥相对于默认的密码方式优点有：
+其一，密码更容易被暴力破解，密钥访问更安全。
+其二，亦可通过修改sshd_config配置，来开闭用户对服务器的访问。
+文中还通过一个Mac密钥登入Ubuntu的例子，来演示免密访问过程。
+参考
+
+ssh介绍
+百度百科: 什么是SSH
+ubuntu-ssh用户名密码登录与证书免密登录
+如何在Ubuntu 20.04配置SSH密钥免密码登录
+iterm2.com
+">
+
+
+<meta property="og:description" content="本文主要介绍ssh免密访问Ubuntu。
+前言
+What is SSH:
+
+SSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题
+
+SSH广泛使用的协议，用于安全的访问Linux服务器。
+今天我们主要介绍ssh免密访问Ubuntu，其中：
+
+客户端（mac）
+服务器（Ubuntu）
+
+实现步骤大致如下：
+
+安装ssh服务
+ssh客户端生成生成公钥和私钥
+上传公钥到服务器
+
+安装ssh的服务端
+在Ubuntu安装ssh服务（这里我使用的是vm默认安装）：
+sudo apt-get install openssh-server
+重启服务
+service ssh restart
+ssh生成密钥
+在Mac，生成密钥的命令：
+ssh-keygen
+生成的密钥路径: $HOME/.ssh
+查看是否生成成功：
+cd $HOME/.ssh
+ls
+id_rsa      id_rsa.pub
+说明生成成功，其中id_rsa为私钥、id_rsa.pub为公钥。公钥将上传到你要连接的服务器，而私钥则存储在你将用来建立连接的计算机上。接着，将公钥钥上传到Ubuntu：
+ssh-copy-id userName@ServerIp
+Eg:
+ssh-copy-id jefffff@192.168.1.88
+接着，查看是否上传成功， 密钥会增加到Ubuntu，路径为$HOME/.ssh/authorized_key
+免密访问
+接着就可以ssh免密访问服务器了：
+ssh -i ~/.ssh/id_rsa -p 22 -l userName ServerIp
+Eg：：
+ [master] ssh -i ~/.ssh/id_rsa -p 22 -l jefffff 192.168.1.88
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-131-generic x86_64)
+... 省略一些
+
+*** System restart required ***
+Last login: Sat Dec  9 09:21:34 2022 from 192.168.1.33
+jeffffff@ubuntu1~$
+说明，登入成功。
+iterm2配置
+为了更方便的访问，可以在iterm2（mac）配置
+
+小结
+使用SSH的访问Linux方式有密码和密钥两种方式，使用密钥相对于默认的密码方式优点有：
+其一，密码更容易被暴力破解，密钥访问更安全。
+其二，亦可通过修改sshd_config配置，来开闭用户对服务器的访问。
+文中还通过一个Mac密钥登入Ubuntu的例子，来演示免密访问过程。
+参考
+
+ssh介绍
+百度百科: 什么是SSH
+ubuntu-ssh用户名密码登录与证书免密登录
+如何在Ubuntu 20.04配置SSH密钥免密码登录
+iterm2.com
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SSH免密登入Ubuntu">
+<meta name="twitter:title" content="SSH免密登入Ubuntu">
+<meta property="og:url" content="https://luckytking.github.io/2022/12/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu/">
+<meta property="twitter:url" content="https://luckytking.github.io/2022/12/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="本文主要介绍ssh免密访问Ubuntu。
+前言
+What is SSH:
+
+SSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题
+
+SSH广泛使用的协议，用于安全的访问Linux服务器。
+今天我们主要介绍ssh免密访问Ubuntu，其中：
+
+客户端（mac）
+服务器（Ubuntu）
+
+实现步骤大致如下：
+
+安装ssh服务
+ssh客户端生成生成公钥和私钥
+上传公钥到服务器
+
+安装ssh的服务端
+在Ubuntu安装ssh服务（这里我使用的是vm默认安装）：
+sudo apt-get install openssh-server
+重启服务
+service ssh restart
+ssh生成密钥
+在Mac，生成密钥的命令：
+ssh-keygen
+生成的密钥路径: $HOME/.ssh
+查看是否生成成功：
+cd $HOME/.ssh
+ls
+id_rsa      id_rsa.pub
+说明生成成功，其中id_rsa为私钥、id_rsa.pub为公钥。公钥将上传到你要连接的服务器，而私钥则存储在你将用来建立连接的计算机上。接着，将公钥钥上传到Ubuntu：
+ssh-copy-id userName@ServerIp
+Eg:
+ssh-copy-id jefffff@192.168.1.88
+接着，查看是否上传成功， 密钥会增加到Ubuntu，路径为$HOME/.ssh/authorized_key
+免密访问
+接着就可以ssh免密访问服务器了：
+ssh -i ~/.ssh/id_rsa -p 22 -l userName ServerIp
+Eg：：
+ [master] ssh -i ~/.ssh/id_rsa -p 22 -l jefffff 192.168.1.88
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-131-generic x86_64)
+... 省略一些
+
+*** System restart required ***
+Last login: Sat Dec  9 09:21:34 2022 from 192.168.1.33
+jeffffff@ubuntu1~$
+说明，登入成功。
+iterm2配置
+为了更方便的访问，可以在iterm2（mac）配置
+
+小结
+使用SSH的访问Linux方式有密码和密钥两种方式，使用密钥相对于默认的密码方式优点有：
+其一，密码更容易被暴力破解，密钥访问更安全。
+其二，亦可通过修改sshd_config配置，来开闭用户对服务器的访问。
+文中还通过一个Mac密钥登入Ubuntu的例子，来演示免密访问过程。
+参考
+
+ssh介绍
+百度百科: 什么是SSH
+ubuntu-ssh用户名密码登录与证书免密登录
+如何在Ubuntu 20.04配置SSH密钥免密码登录
+iterm2.com
+">
+<meta name="twitter:description" content="本文主要介绍ssh免密访问Ubuntu。
+前言
+What is SSH:
+
+SSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题
+
+SSH广泛使用的协议，用于安全的访问Linux服务器。
+今天我们主要介绍ssh免密访问Ubuntu，其中：
+
+客户端（mac）
+服务器（Ubuntu）
+
+实现步骤大致如下：
+
+安装ssh服务
+ssh客户端生成生成公钥和私钥
+上传公钥到服务器
+
+安装ssh的服务端
+在Ubuntu安装ssh服务（这里我使用的是vm默认安装）：
+sudo apt-get install openssh-server
+重启服务
+service ssh restart
+ssh生成密钥
+在Mac，生成密钥的命令：
+ssh-keygen
+生成的密钥路径: $HOME/.ssh
+查看是否生成成功：
+cd $HOME/.ssh
+ls
+id_rsa      id_rsa.pub
+说明生成成功，其中id_rsa为私钥、id_rsa.pub为公钥。公钥将上传到你要连接的服务器，而私钥则存储在你将用来建立连接的计算机上。接着，将公钥钥上传到Ubuntu：
+ssh-copy-id userName@ServerIp
+Eg:
+ssh-copy-id jefffff@192.168.1.88
+接着，查看是否上传成功， 密钥会增加到Ubuntu，路径为$HOME/.ssh/authorized_key
+免密访问
+接着就可以ssh免密访问服务器了：
+ssh -i ~/.ssh/id_rsa -p 22 -l userName ServerIp
+Eg：：
+ [master] ssh -i ~/.ssh/id_rsa -p 22 -l jefffff 192.168.1.88
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-131-generic x86_64)
+... 省略一些
+
+*** System restart required ***
+Last login: Sat Dec  9 09:21:34 2022 from 192.168.1.33
+jeffffff@ubuntu1~$
+说明，登入成功。
+iterm2配置
+为了更方便的访问，可以在iterm2（mac）配置
+
+小结
+使用SSH的访问Linux方式有密码和密钥两种方式，使用密钥相对于默认的密码方式优点有：
+其一，密码更容易被暴力破解，密钥访问更安全。
+其二，亦可通过修改sshd_config配置，来开闭用户对服务器的访问。
+文中还通过一个Mac密钥登入Ubuntu的例子，来演示免密访问过程。
+参考
+
+ssh介绍
+百度百科: 什么是SSH
+ubuntu-ssh用户名密码登录与证书免密登录
+如何在Ubuntu 20.04配置SSH密钥免密码登录
+iterm2.com
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2022-12-10T17:15:17">
+  
+  
+    <meta property="article:modified_time" content="2022-12-10T17:15:17">
+  
+  
+  
+    
+      <meta property="article:section" content="DevOps">
+    
+  
+  
+    
+      <meta property="article:tag" content="deployment">
+    
+      <meta property="article:tag" content="ssh">
+    
+      <meta property="article:tag" content="ubuntu">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>SSH免密登入Ubuntu</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2022/12/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      SSH免密登入Ubuntu
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-12-10T17:15:17&#43;08:00">
+        
+   10, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/devops">DevOps</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>本文主要介绍ssh免密访问Ubuntu。</p>
+<h3 id="前言">前言</h3>
+<p>What is SSH:</p>
+<blockquote>
+<p>SSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题</p>
+</blockquote>
+<p>SSH广泛使用的协议，用于安全的访问Linux服务器。</p>
+<p>今天我们主要介绍ssh免密访问Ubuntu，其中：</p>
+<ul>
+<li>客户端（mac）</li>
+<li>服务器（Ubuntu）</li>
+</ul>
+<p>实现步骤大致如下：</p>
+<ol>
+<li>安装ssh服务</li>
+<li>ssh客户端生成生成公钥和私钥</li>
+<li>上传公钥到服务器</li>
+</ol>
+<h3 id="安装ssh的服务端">安装ssh的服务端</h3>
+<p>在Ubuntu安装ssh服务（这里我使用的是vm默认安装）：</p>
+<pre tabindex="0"><code>sudo apt-get install openssh-server
+</code></pre><p>重启服务</p>
+<pre tabindex="0"><code>service ssh restart
+</code></pre><h3 id="ssh生成密钥">ssh生成密钥</h3>
+<p>在Mac，生成密钥的命令：</p>
+<pre tabindex="0"><code>ssh-keygen
+</code></pre><p>生成的密钥路径: $HOME/.ssh
+查看是否生成成功：</p>
+<pre tabindex="0"><code>cd $HOME/.ssh
+ls
+id_rsa      id_rsa.pub
+</code></pre><p>说明生成成功，其中id_rsa为私钥、id_rsa.pub为公钥。公钥将上传到你要连接的服务器，而私钥则存储在你将用来建立连接的计算机上。接着，将公钥钥上传到Ubuntu：</p>
+<pre tabindex="0"><code>ssh-copy-id userName@ServerIp
+</code></pre><p>Eg:</p>
+<pre tabindex="0"><code>ssh-copy-id jefffff@192.168.1.88
+</code></pre><p>接着，查看是否上传成功， 密钥会增加到Ubuntu，路径为$HOME/.ssh/authorized_key</p>
+<h3 id="免密访问">免密访问</h3>
+<p>接着就可以ssh免密访问服务器了：</p>
+<pre tabindex="0"><code>ssh -i ~/.ssh/id_rsa -p 22 -l userName ServerIp
+</code></pre><p>Eg：：</p>
+<pre tabindex="0"><code> [master] ssh -i ~/.ssh/id_rsa -p 22 -l jefffff 192.168.1.88
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-131-generic x86_64)
+... 省略一些
+
+*** System restart required ***
+Last login: Sat Dec  9 09:21:34 2022 from 192.168.1.33
+jeffffff@ubuntu1~$
+</code></pre><p>说明，登入成功。</p>
+<h3 id="iterm2配置">iterm2配置</h3>
+<p>为了更方便的访问，可以在iterm2（mac）配置
+<img src="https://luckytking.github.io/images/ssh-iterm2.png" alt=""></p>
+<h3 id="小结">小结</h3>
+<p>使用SSH的访问Linux方式有密码和密钥两种方式，使用密钥相对于默认的密码方式优点有：
+其一，密码更容易被暴力破解，密钥访问更安全。
+其二，亦可通过修改sshd_config配置，来开闭用户对服务器的访问。
+文中还通过一个Mac密钥登入Ubuntu的例子，来演示免密访问过程。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://www.ssh.com/academy/ssh">ssh介绍</a></li>
+<li><a href="https://baike.baidu.com/item/ssh/10407?fr=aladdin">百度百科: 什么是SSH</a></li>
+<li><a href="https://jingwei.link/2018/12/08/ssh-login-style.html">ubuntu-ssh用户名密码登录与证书免密登录</a></li>
+<li><a href="https://www.myfreax.com/how-to-set-up-ssh-keys-on-ubuntu-20-04/">如何在Ubuntu 20.04配置SSH密钥免密码登录</a></li>
+<li><a href="https://iterm2.com/">iterm2.com</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/deployment/">deployment</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/ssh/">ssh</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/ubuntu/">ubuntu</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/12/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D/" data-tooltip="Go浅拷贝与深拷贝" aria-label=": Go浅拷贝与深拷贝">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2022/12/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D/" data-tooltip="Go浅拷贝与深拷贝" aria-label=": Go浅拷贝与深拷贝">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

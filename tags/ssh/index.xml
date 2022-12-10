@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ssh on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/ssh/</link>
+    <description>Recent content in ssh on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 10 Dec 2022 17:15:17 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/ssh/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>SSH免密登入Ubuntu</title>
+      <link>https://luckytking.github.io/2022/12/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu/</link>
+      <pubDate>Sat, 10 Dec 2022 17:15:17 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/12/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu/</guid>
+      <description>&lt;p&gt;本文主要介绍ssh免密访问Ubuntu。&lt;/p&gt;
+&lt;h3 id=&#34;前言&#34;&gt;前言&lt;/h3&gt;
+&lt;p&gt;What is SSH:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;SSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;SSH广泛使用的协议，用于安全的访问Linux服务器。&lt;/p&gt;
+&lt;p&gt;今天我们主要介绍ssh免密访问Ubuntu，其中：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;客户端（mac）&lt;/li&gt;
+&lt;li&gt;服务器（Ubuntu）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;实现步骤大致如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;安装ssh服务&lt;/li&gt;
+&lt;li&gt;ssh客户端生成生成公钥和私钥&lt;/li&gt;
+&lt;li&gt;上传公钥到服务器&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;安装ssh的服务端&#34;&gt;安装ssh的服务端&lt;/h3&gt;
+&lt;p&gt;在Ubuntu安装ssh服务（这里我使用的是vm默认安装）：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;sudo apt-get install openssh-server
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;重启服务&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;service ssh restart
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;ssh生成密钥&#34;&gt;ssh生成密钥&lt;/h3&gt;
+&lt;p&gt;在Mac，生成密钥的命令：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ssh-keygen
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;生成的密钥路径: $HOME/.ssh
+查看是否生成成功：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;cd $HOME/.ssh
+ls
+id_rsa      id_rsa.pub
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;说明生成成功，其中id_rsa为私钥、id_rsa.pub为公钥。公钥将上传到你要连接的服务器，而私钥则存储在你将用来建立连接的计算机上。接着，将公钥钥上传到Ubuntu：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ssh-copy-id userName@ServerIp
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Eg:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ssh-copy-id jefffff@192.168.1.88
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;接着，查看是否上传成功， 密钥会增加到Ubuntu，路径为$HOME/.ssh/authorized_key&lt;/p&gt;
+&lt;h3 id=&#34;免密访问&#34;&gt;免密访问&lt;/h3&gt;
+&lt;p&gt;接着就可以ssh免密访问服务器了：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;ssh -i ~/.ssh/id_rsa -p 22 -l userName ServerIp
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Eg：：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt; [master] ssh -i ~/.ssh/id_rsa -p 22 -l jefffff 192.168.1.88
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-131-generic x86_64)
+... 省略一些
+
+*** System restart required ***
+Last login: Sat Dec  9 09:21:34 2022 from 192.168.1.33
+jeffffff@ubuntu1~$
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;说明，登入成功。&lt;/p&gt;
+&lt;h3 id=&#34;iterm2配置&#34;&gt;iterm2配置&lt;/h3&gt;
+&lt;p&gt;为了更方便的访问，可以在iterm2（mac）配置
+&lt;img src=&#34;https://luckytking.github.io/images/ssh-iterm2.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;使用SSH的访问Linux方式有密码和密钥两种方式，使用密钥相对于默认的密码方式优点有：
+其一，密码更容易被暴力破解，密钥访问更安全。
+其二，亦可通过修改sshd_config配置，来开闭用户对服务器的访问。
+文中还通过一个Mac密钥登入Ubuntu的例子，来演示免密访问过程。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.ssh.com/academy/ssh&#34;&gt;ssh介绍&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://baike.baidu.com/item/ssh/10407?fr=aladdin&#34;&gt;百度百科: 什么是SSH&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://jingwei.link/2018/12/08/ssh-login-style.html&#34;&gt;ubuntu-ssh用户名密码登录与证书免密登录&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.myfreax.com/how-to-set-up-ssh-keys-on-ubuntu-20-04/&#34;&gt;如何在Ubuntu 20.04配置SSH密钥免密码登录&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://iterm2.com/&#34;&gt;iterm2.com&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

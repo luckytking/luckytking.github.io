@@ -240,6 +240,129 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/12/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu/" aria-label="">
+      
+          SSH免密登入Ubuntu
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-12-10T17:15:17&#43;08:00">
+        
+   10, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/devops">DevOps</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>本文主要介绍ssh免密访问Ubuntu。</p>
+<h3 id="前言">前言</h3>
+<p>What is SSH:</p>
+<blockquote>
+<p>SSH 为 Secure Shell 的缩写，由 IETF 的网络小组（Network Working Group）所制定；SSH 为建立在应用层基础上的安全协议。SSH 是较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用 SSH 协议可以有效防止远程管理过程中的信息泄露问题</p>
+</blockquote>
+<p>SSH广泛使用的协议，用于安全的访问Linux服务器。</p>
+<p>今天我们主要介绍ssh免密访问Ubuntu，其中：</p>
+<ul>
+<li>客户端（mac）</li>
+<li>服务器（Ubuntu）</li>
+</ul>
+<p>实现步骤大致如下：</p>
+<ol>
+<li>安装ssh服务</li>
+<li>ssh客户端生成生成公钥和私钥</li>
+<li>上传公钥到服务器</li>
+</ol>
+<h3 id="安装ssh的服务端">安装ssh的服务端</h3>
+<p>在Ubuntu安装ssh服务（这里我使用的是vm默认安装）：</p>
+<pre tabindex="0"><code>sudo apt-get install openssh-server
+</code></pre><p>重启服务</p>
+<pre tabindex="0"><code>service ssh restart
+</code></pre><h3 id="ssh生成密钥">ssh生成密钥</h3>
+<p>在Mac，生成密钥的命令：</p>
+<pre tabindex="0"><code>ssh-keygen
+</code></pre><p>生成的密钥路径: $HOME/.ssh
+查看是否生成成功：</p>
+<pre tabindex="0"><code>cd $HOME/.ssh
+ls
+id_rsa      id_rsa.pub
+</code></pre><p>说明生成成功，其中id_rsa为私钥、id_rsa.pub为公钥。公钥将上传到你要连接的服务器，而私钥则存储在你将用来建立连接的计算机上。接着，将公钥钥上传到Ubuntu：</p>
+<pre tabindex="0"><code>ssh-copy-id userName@ServerIp
+</code></pre><p>Eg:</p>
+<pre tabindex="0"><code>ssh-copy-id jefffff@192.168.1.88
+</code></pre><p>接着，查看是否上传成功， 密钥会增加到Ubuntu，路径为$HOME/.ssh/authorized_key</p>
+<h3 id="免密访问">免密访问</h3>
+<p>接着就可以ssh免密访问服务器了：</p>
+<pre tabindex="0"><code>ssh -i ~/.ssh/id_rsa -p 22 -l userName ServerIp
+</code></pre><p>Eg：：</p>
+<pre tabindex="0"><code> [master] ssh -i ~/.ssh/id_rsa -p 22 -l jefffff 192.168.1.88
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-131-generic x86_64)
+... 省略一些
+
+*** System restart required ***
+Last login: Sat Dec  9 09:21:34 2022 from 192.168.1.33
+jeffffff@ubuntu1~$
+</code></pre><p>说明，登入成功。</p>
+<h3 id="iterm2配置">iterm2配置</h3>
+<p>为了更方便的访问，可以在iterm2（mac）配置
+<img src="https://luckytking.github.io/images/ssh-iterm2.png" alt=""></p>
+<h3 id="小结">小结</h3>
+<p>使用SSH的访问Linux方式有密码和密钥两种方式，使用密钥相对于默认的密码方式优点有：
+其一，密码更容易被暴力破解，密钥访问更安全。
+其二，亦可通过修改sshd_config配置，来开闭用户对服务器的访问。
+文中还通过一个Mac密钥登入Ubuntu的例子，来演示免密访问过程。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://www.ssh.com/academy/ssh">ssh介绍</a></li>
+<li><a href="https://baike.baidu.com/item/ssh/10407?fr=aladdin">百度百科: 什么是SSH</a></li>
+<li><a href="https://jingwei.link/2018/12/08/ssh-login-style.html">ubuntu-ssh用户名密码登录与证书免密登录</a></li>
+<li><a href="https://www.myfreax.com/how-to-set-up-ssh-keys-on-ubuntu-20-04/">如何在Ubuntu 20.04配置SSH密钥免密码登录</a></li>
+<li><a href="https://iterm2.com/">iterm2.com</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/12/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/09/docker-gitlab%E8%BF%81%E7%A7%BB%E4%B8%8E%E5%8D%87%E7%BA%A7/" aria-label="">
       
           Docker GitLab迁移与升级

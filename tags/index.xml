@@ -6,7 +6,34 @@
     <description>Recent content in Tags on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 04 Dec 2022 16:44:31 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 10 Dec 2022 17:15:17 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>deployment</title>
+      <link>https://luckytking.github.io/tags/deployment/</link>
+      <pubDate>Sat, 10 Dec 2022 17:15:17 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/deployment/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ssh</title>
+      <link>https://luckytking.github.io/tags/ssh/</link>
+      <pubDate>Sat, 10 Dec 2022 17:15:17 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/ssh/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ubuntu</title>
+      <link>https://luckytking.github.io/tags/ubuntu/</link>
+      <pubDate>Sat, 10 Dec 2022 17:15:17 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/ubuntu/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>deepcopy</title>
       <link>https://luckytking.github.io/tags/deepcopy/</link>
@@ -175,15 +202,6 @@
       <pubDate>Sun, 02 Oct 2022 17:25:55 +0800</pubDate>
       
       <guid>https://luckytking.github.io/tags/kratos/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>deployment</title>
-      <link>https://luckytking.github.io/tags/deployment/</link>
-      <pubDate>Fri, 16 Sep 2022 21:32:33 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/tags/deployment/</guid>
       <description></description>
     </item>
     
