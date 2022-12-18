@@ -240,6 +240,190 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/12/golang-linters%E8%81%9A%E5%90%88%E5%99%A8golangci-lint/" aria-label="">
+      
+          Golang Linters聚合器golangci Lint
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-12-18T17:23:05&#43;08:00">
+        
+   18, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>本文简要介绍go实现lint和golangci-lint使用。</p>
+<h3 id="what">what</h3>
+<p>linter为静态代码检查、分析工具，golang常见的有govet\golint\errcheck 等。通过工具其一，可以提前发现一些语法问题，比如变量作用域问题、数组下标越界、内存泄露等；其二可以根据团队规范定制lint规则，提升可读性，可维护性。</p>
+<p>golang的linters比较多，比如 <a href="https://github.com/golangci/awesome-go-linters">awesome-go-linters</a>中 golint检查变量、函数名、注释等。errcheck为未检查错误等。golangci-lint是一个 Go linters 聚合器，通过配置来选择需要的linters。其特征如下：</p>
+<ul>
+<li>⚡非常快:并行运行linters，重用Go构建缓存和缓存分析结果。</li>
+<li>⚙️基于yaml的配置</li>
+<li>🖥集成VS Code, Sublime Text, GoLand, GNU Emacs, Vim, Atom, GitHub动作。</li>
+<li>🥇包含了很多linters，不需要安装它们。</li>
+<li>📈由于调优的默认设置导致的最小误报数。</li>
+<li>🔥漂亮的输出颜色，源代码行和标记的标识符。</li>
+</ul>
+<h3 id="install">install</h3>
+<h4 id="mac">mac</h4>
+<p>macOS你可以使用brew在macOS上安装二进制版本:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">brew install golangci-lint
+brew upgrade golangci-lint
+</code></pre></div><h4 id="install-from-source">Install from Source</h4>
+<p>源码安装:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">&gt; go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
+</code></pre></div><p>查看安装是否成功：</p>
+<pre tabindex="0"><code>&gt;golangci-lint --version
+&gt;golangci-lint has version v1.50.1 built from (unknown, mod sum: &quot;h1:C829clMcZXEORakZlwpk7M4iDw2XiwxxKaG504SZ9zY=&quot;) on (unknown)
+</code></pre><h3 id="how">how</h3>
+<p>GolangCI-Lint 可以零配置使用。默认情况下启用以下 linters</p>
+<pre tabindex="0"><code>&gt;golangci-lint help linters
+&gt;Enabled by default linters:
+errcheck: Errcheck is a program for checking for unchecked errors in go programs. These unchecked errors can be critical bugs in some cases [fast: false, auto-fix: false]
+gosimple (megacheck): Linter for Go source code that specializes in simplifying code [fast: false, auto-fix: false]
+govet (vet, vetshadow): Vet examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not align with the format string [fast: false, auto-fix: false]
+ineffassign: Detects when assignments to existing variables are not used [fast: true, auto-fix: false]
+staticcheck (megacheck): It's a set of rules from staticcheck. It's not the same thing as the staticcheck binary. The author of staticcheck doesn't support or approve the use of staticcheck as a library inside golangci-lint. [fast: false, auto-fix: false]
+typecheck: Like the front-end of a Go compiler, parses and type-checks Go code [fast: false, auto-fix: false]
+unused (megacheck): Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
+</code></pre><p>如何执行golangci-lint呢？在需要执行的项目目录下：</p>
+<pre tabindex="0"><code>golangci-lint run
+</code></pre><p>这相当于执行</p>
+<pre tabindex="0"><code>golangci-lint run ./...
+</code></pre><p>您可以选择要分析的目录和文件:</p>
+<pre tabindex="0"><code>golangci-lint run dir1 dir2/... dir3/file1.go
+</code></pre><p>接着，我们创建一个Example代码：linter_example.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">People</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Name</span> <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">People</span>) <span style="color:#a6e22e">String</span>() <span style="color:#66d9ef">string</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;print: %v&#34;</span>, <span style="color:#a6e22e">p</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">People</span>{}
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">String</span>()
+}
+
+
+</code></pre></div><p>执行lint，如果没有相关的配置文件，会走默认的lint配置</p>
+<pre tabindex="0"><code>&gt; golangci-lint run
+level=warning msg=&quot;[runner] The linter 'golint' is deprecated (since v1.41.0) due to: The repository of the linter has been archived b
+y the owner.  Replaced by revive.&quot;
+linter_example.go:5:6: exported type `People` should have comment or be unexported (golint)
+type People struct {
+     ^
+linter_example.go:10:9: printf: fmt.Sprintf format %v with arg p causes recursive (*demos/linter-demo.People).String method call (gove
+t)
+        return fmt.Sprintf(&quot;print: %v&quot;, p)
+               ^
+linter_example.go:15:10: unusedresult: result of (*demos/linter-demo.People).String call not used (govet)
+        p.String()
+                ^
+
+</code></pre><p>我们可以根据lint提示修改</p>
+<pre tabindex="0"><code> printf: fmt。Sprintf格式%v与arg p导致递归( demos/ lininter -demo. people)。字符串方法调用(govet)。
+</code></pre><p>在使⽤  fmt 包中的打印⽅法时，如果类型实现了这个接⼝，会直接调⽤。⽽中打印  p 的时候会直接调⽤  p 实现的  String() ⽅法，然后就产⽣了循环调⽤。</p>
+<h4 id="custom-configuration">Custom Configuration</h4>
+<p>GolangCI-Lint  通过当前工作目录的以下路径中增加配置文件：</p>
+<ul>
+<li>.golangci.yml</li>
+<li>.golangci.yaml</li>
+<li>.golangci.toml</li>
+<li>.golangci.json</li>
+</ul>
+<p>来实现自定义linters</p>
+<p>例如我们添加了.golangci.yml</p>
+<pre tabindex="0"><code>run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  disable-all: true
+  enable: # 下面是开启的lint列表
+    - errcheck
+    - goimports
+    - golint
+   # - govet 为了测试是否生效，关闭
+    - staticcheck
+
+linters-settings:
+  golint:
+    # minimal confidence for issues, default is 0.8
+    min-confidence: 0.8
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+</code></pre><p>这里我们把govet 关闭了，在执行run</p>
+<pre tabindex="0"><code>golangci-lint run
+level=warning msg=&quot;[runner] The linter 'golint' is deprecated (since v1.41.0) due to: The repository of the linter has been archived b
+y the owner.  Replaced by revive.&quot;
+linter_example.go:5:6: exported type `People` should have comment or be unexported (golint)
+type People struct {
+     ^
+</code></pre><p>可见关闭govet生效了。</p>
+<h3 id="reference">reference</h3>
+<ul>
+<li>golangci-lint  <a href="https://github.com/golangci/golangci-lint">https://github.com/golangci/golangci-lint</a></li>
+<li>golangci-lint doc <a href="https://golangci-lint.run/">https://golangci-lint.run/</a></li>
+<li>lint  <a href="https://github.com/golang/lint">https://github.com/golang/lint</a></li>
+<li>awesome-go-linters <a href="https://github.com/golangci/awesome-go-linters">https://github.com/golangci/awesome-go-linters</a></li>
+<li>bolg gocn  <a href="https://mp.weixin.qq.com/s/kNh0TP59fCFJhbmr-YMz4Q">https://mp.weixin.qq.com/s/kNh0TP59fCFJhbmr-YMz4Q</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/12/golang-linters%E8%81%9A%E5%90%88%E5%99%A8golangci-lint/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/12/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D/" aria-label="">
       
           Go浅拷贝与深拷贝
@@ -1984,182 +2168,6 @@ count:  5 now: 1658053648
       <p>
         
           <a href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/" aria-label="">
-      
-          Go Copier简介
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-05-22T16:44:15&#43;08:00">
-        
-   22, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要介绍 jinzhu/copier 的使用和常用场景</p>
-<h2 id="简介">简介</h2>
-<p>在go后端项目开发中，内部rpc服务返回的字段跟api服务相差无几，一个个赋值比较费事儿。那么就需要Object、List、HashMap 等进行值拷贝。jinzhu/copier即提供了这些场景的支持。</p>
-<p><strong>copier 特性</strong>：</p>
-<ul>
-<li>从方法复制到具有相同名称的字段</li>
-<li>从字段复制到具有相同名称的方法</li>
-<li>从一个切片复制到另一个切片</li>
-<li>从结构体复制到切片</li>
-<li>从map复制到map</li>
-<li>强制复制带有标记的字段</li>
-<li>忽略带有标记的字段</li>
-<li>深拷贝</li>
-</ul>
-<h2 id="usage">Usage</h2>
-<h3 id="copy-from-struct">Copy from struct</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;github.com/jinzhu/copier&#34;</span>
-	<span style="color:#e6db74">&#34;testing&#34;</span>
-)
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">User</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">Name</span>         <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">Role</span>         <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">Age</span>          <span style="color:#66d9ef">int32</span>
-	<span style="color:#a6e22e">EmployeeCode</span> <span style="color:#66d9ef">int64</span> <span style="color:#e6db74">`copier:&#34;EmployeeNum&#34;`</span> <span style="color:#75715e">// specify field name
-</span><span style="color:#75715e"></span>
-	<span style="color:#75715e">// Explicitly ignored in the destination struct.
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Salary</span> <span style="color:#66d9ef">int</span>
-}
-
-<span style="color:#75715e">//目标结构体中的标签提供了copy指令。复制忽略
-</span><span style="color:#75715e">//或强制复制，如果字段没有被复制则惊慌或返回错误。
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Employee</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#75715e">//告诉copier。如果没有复制此字段，则复制到panic。
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Name</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`copier:&#34;must&#34;`</span>
-
-	<span style="color:#75715e">//告诉copier。 如果没有复制此字段，则返回错误。
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Age</span> <span style="color:#66d9ef">int32</span> <span style="color:#e6db74">`copier:&#34;must,nopanic&#34;`</span>
-
-	<span style="color:#75715e">// 告诉copier。 显式忽略复制此字段。
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Salary</span> <span style="color:#66d9ef">int</span> <span style="color:#e6db74">`copier:&#34;-&#34;`</span>
-
-	<span style="color:#a6e22e">DoubleAge</span>  <span style="color:#66d9ef">int32</span>
-	<span style="color:#a6e22e">EmployeeId</span> <span style="color:#66d9ef">int64</span> <span style="color:#e6db74">`copier:&#34;EmployeeNum&#34;`</span> <span style="color:#75715e">// 指定字段名
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">SuperRole</span>  <span style="color:#66d9ef">string</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestCopyStruct</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#66d9ef">var</span> (
-		<span style="color:#a6e22e">user</span>     = <span style="color:#a6e22e">User</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Jinzhu&#34;</span>, <span style="color:#a6e22e">Age</span>: <span style="color:#ae81ff">18</span>, <span style="color:#a6e22e">Role</span>: <span style="color:#e6db74">&#34;Admin&#34;</span>, <span style="color:#a6e22e">Salary</span>: <span style="color:#ae81ff">200000</span>}
-		<span style="color:#a6e22e">employee</span> = <span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">Salary</span>: <span style="color:#ae81ff">150000</span>}
-	)
-	<span style="color:#a6e22e">copier</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">employee</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">user</span>)
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Logf</span>(<span style="color:#e6db74">&#34;%#v \n&#34;</span>, <span style="color:#a6e22e">employee</span>)
-}
-</code></pre></div><p>output：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">copier_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">47</span>: <span style="color:#a6e22e">main</span>.<span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">Name</span>:<span style="color:#e6db74">&#34;Jinzhu&#34;</span>, <span style="color:#a6e22e">Age</span>:<span style="color:#ae81ff">18</span>, <span style="color:#a6e22e">Salary</span>:<span style="color:#ae81ff">150000</span>, <span style="color:#a6e22e">DoubleAge</span>:<span style="color:#ae81ff">36</span>, <span style="color:#a6e22e">EmployeeId</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">SuperRole</span>:<span style="color:#e6db74">&#34;Super Admin&#34;</span>} 
-
-</code></pre></div><h3 id="copy-from-slice-to-slice">Copy from slice to slice</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestCopySlice</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#66d9ef">var</span> (
-		<span style="color:#a6e22e">users</span>     = []<span style="color:#a6e22e">User</span>{{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Jinzhu&#34;</span>, <span style="color:#a6e22e">Age</span>: <span style="color:#ae81ff">18</span>, <span style="color:#a6e22e">Role</span>: <span style="color:#e6db74">&#34;Admin&#34;</span>, <span style="color:#a6e22e">Salary</span>: <span style="color:#ae81ff">100000</span>}, {<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;jinzhu 2&#34;</span>, <span style="color:#a6e22e">Age</span>: <span style="color:#ae81ff">30</span>, <span style="color:#a6e22e">Role</span>: <span style="color:#e6db74">&#34;Dev&#34;</span>, <span style="color:#a6e22e">Salary</span>: <span style="color:#ae81ff">60000</span>}}
-		<span style="color:#a6e22e">employees</span> = []<span style="color:#a6e22e">Employee</span>{}
-	)
-	<span style="color:#a6e22e">employees</span> = []<span style="color:#a6e22e">Employee</span>{}
-	<span style="color:#a6e22e">copier</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">employees</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">users</span>)
-
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Logf</span>(<span style="color:#e6db74">&#34;%#v \n&#34;</span>, <span style="color:#a6e22e">employees</span>)
-}<span style="color:#960050;background-color:#1e0010">`</span>
-
-</code></pre></div><p>output :</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">copier_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">57</span>: []<span style="color:#a6e22e">main</span>.<span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">main</span>.<span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">Name</span>:<span style="color:#e6db74">&#34;Jinzhu&#34;</span>, <span style="color:#a6e22e">Age</span>:<span style="color:#ae81ff">18</span>, <span style="color:#a6e22e">Salary</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">DoubleAge</span>:<span style="color:#ae81ff">36</span>, <span style="color:#a6e22e">EmployeeId</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">SuperRole</span>:<span style="color:#e6db74">&#34;Super Admin&#34;</span>}, <span style="color:#a6e22e">main</span>.<span style="color:#a6e22e">Employee</span>{<span style="color:#a6e22e">Name</span>:<span style="color:#e6db74">&#34;jinzhu 2&#34;</span>, <span style="color:#a6e22e">Age</span>:<span style="color:#ae81ff">30</span>, <span style="color:#a6e22e">Salary</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">DoubleAge</span>:<span style="color:#ae81ff">60</span>, <span style="color:#a6e22e">EmployeeId</span>:<span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">SuperRole</span>:<span style="color:#e6db74">&#34;Super Dev&#34;</span>}} 
-
-</code></pre></div><h3 id="copy-from-map-to-map">Copy from Map to Map</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestCopyMap</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
-	<span style="color:#75715e">// Copy map to map
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">map1</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#66d9ef">int</span>{<span style="color:#ae81ff">3</span>: <span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">4</span>: <span style="color:#ae81ff">8</span>}
-	<span style="color:#a6e22e">map2</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int32</span>]<span style="color:#66d9ef">int8</span>{}
-	<span style="color:#a6e22e">copier</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">map2</span>, <span style="color:#a6e22e">map1</span>)
-
-	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Logf</span>(<span style="color:#e6db74">&#34;%#v \n&#34;</span>, <span style="color:#a6e22e">map2</span>)
-}
-</code></pre></div><p>output :</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">    <span style="color:#a6e22e">copier_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">66</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int32</span>]<span style="color:#66d9ef">int8</span>{<span style="color:#ae81ff">3</span>:<span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">4</span>:<span style="color:#ae81ff">8</span>} 
-</code></pre></div><h2 id="场景-1rpcapi">场景 1（rpc&amp;api）</h2>
-<p>实际开发中，免不了服务间通讯，比较前文所说的场景，一个内部的rpc服务返回的参数和api服务差不多，那么就可以使用copier。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//伪代码如下
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ApiLogin</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>,<span style="color:#a6e22e">request</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LoginRequest</span>)(<span style="color:#a6e22e">reply</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LogingReply</span>,<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)  {
-	<span style="color:#a6e22e">grpcClient</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">NewGameGrpcClient</span>(<span style="color:#a6e22e">ctx</span>)
-	<span style="color:#a6e22e">reply</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Login</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">grpc</span>.<span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LoginRequest</span>{ 
-					})
-	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LogingReply</span>.<span style="color:#a6e22e">User</span>{}
- 	<span style="color:#a6e22e">copier</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">user</span>, <span style="color:#a6e22e">reply</span>.<span style="color:#a6e22e">User</span>())
-<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">api</span>.<span style="color:#a6e22e">LoginReply</span>{
-	<span style="color:#a6e22e">User</span>:<span style="color:#a6e22e">user</span>,
-},<span style="color:#a6e22e">err</span>
-
-</code></pre></div><h2 id="场景-2-model-objectaggregate">场景 2 (model-object/aggregate)</h2>
-<p>实际开发中，不管是mvc\ddd 都会有从model到object/aggreate的repository,那么就可以使用copier。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">UserRepo</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">uid</span> <span style="color:#66d9ef">int64</span>) (<span style="color:#a6e22e">u</span> <span style="color:#a6e22e">User</span>,<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
-	<span style="color:#a6e22e">model</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">User</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">uid</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span>
-	}
-	<span style="color:#a6e22e">obj</span><span style="color:#f92672">:=</span> <span style="color:#a6e22e">User</span>{}
-	copy(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>,<span style="color:#a6e22e">model</span>)
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>,<span style="color:#66d9ef">nil</span>
-}
-</code></pre></div><h2 id="小结">小结</h2>
-<p>copier提供不同类型之间相同的字段名，使用tag或者方法支持不同的字段名的赋值。减少一些重复的工作量,小巧实用。</p>
-<h2 id="参考">参考</h2>
-<ul>
-<li><a href="https://github.com/jinzhu/copier">https://github.com/jinzhu/copier</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/05/go-copier%E7%AE%80%E4%BB%8B/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

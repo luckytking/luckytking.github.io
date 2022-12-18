@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>golangci-lint on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/golangci-lint/</link>
+    <description>Recent content in golangci-lint on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 18 Dec 2022 17:23:05 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/golangci-lint/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Golang Linters聚合器golangci Lint</title>
+      <link>https://luckytking.github.io/2022/12/golang-linters%E8%81%9A%E5%90%88%E5%99%A8golangci-lint/</link>
+      <pubDate>Sun, 18 Dec 2022 17:23:05 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2022/12/golang-linters%E8%81%9A%E5%90%88%E5%99%A8golangci-lint/</guid>
+      <description>&lt;p&gt;本文简要介绍go实现lint和golangci-lint使用。&lt;/p&gt;
+&lt;h3 id=&#34;what&#34;&gt;what&lt;/h3&gt;
+&lt;p&gt;linter为静态代码检查、分析工具，golang常见的有govet\golint\errcheck 等。通过工具其一，可以提前发现一些语法问题，比如变量作用域问题、数组下标越界、内存泄露等；其二可以根据团队规范定制lint规则，提升可读性，可维护性。&lt;/p&gt;
+&lt;p&gt;golang的linters比较多，比如 &lt;a href=&#34;https://github.com/golangci/awesome-go-linters&#34;&gt;awesome-go-linters&lt;/a&gt;中 golint检查变量、函数名、注释等。errcheck为未检查错误等。golangci-lint是一个 Go linters 聚合器，通过配置来选择需要的linters。其特征如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;⚡非常快:并行运行linters，重用Go构建缓存和缓存分析结果。&lt;/li&gt;
+&lt;li&gt;⚙️基于yaml的配置&lt;/li&gt;
+&lt;li&gt;🖥集成VS Code, Sublime Text, GoLand, GNU Emacs, Vim, Atom, GitHub动作。&lt;/li&gt;
+&lt;li&gt;🥇包含了很多linters，不需要安装它们。&lt;/li&gt;
+&lt;li&gt;📈由于调优的默认设置导致的最小误报数。&lt;/li&gt;
+&lt;li&gt;🔥漂亮的输出颜色，源代码行和标记的标识符。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;install&#34;&gt;install&lt;/h3&gt;
+&lt;h4 id=&#34;mac&#34;&gt;mac&lt;/h4&gt;
+&lt;p&gt;macOS你可以使用brew在macOS上安装二进制版本:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;brew install golangci-lint
+brew upgrade golangci-lint
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;install-from-source&#34;&gt;Install from Source&lt;/h4&gt;
+&lt;p&gt;源码安装:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&amp;gt; go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看安装是否成功：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;&amp;gt;golangci-lint --version
+&amp;gt;golangci-lint has version v1.50.1 built from (unknown, mod sum: &amp;quot;h1:C829clMcZXEORakZlwpk7M4iDw2XiwxxKaG504SZ9zY=&amp;quot;) on (unknown)
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;how&#34;&gt;how&lt;/h3&gt;
+&lt;p&gt;GolangCI-Lint 可以零配置使用。默认情况下启用以下 linters&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;&amp;gt;golangci-lint help linters
+&amp;gt;Enabled by default linters:
+errcheck: Errcheck is a program for checking for unchecked errors in go programs. These unchecked errors can be critical bugs in some cases [fast: false, auto-fix: false]
+gosimple (megacheck): Linter for Go source code that specializes in simplifying code [fast: false, auto-fix: false]
+govet (vet, vetshadow): Vet examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not align with the format string [fast: false, auto-fix: false]
+ineffassign: Detects when assignments to existing variables are not used [fast: true, auto-fix: false]
+staticcheck (megacheck): It&#39;s a set of rules from staticcheck. It&#39;s not the same thing as the staticcheck binary. The author of staticcheck doesn&#39;t support or approve the use of staticcheck as a library inside golangci-lint. [fast: false, auto-fix: false]
+typecheck: Like the front-end of a Go compiler, parses and type-checks Go code [fast: false, auto-fix: false]
+unused (megacheck): Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;如何执行golangci-lint呢？在需要执行的项目目录下：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;golangci-lint run
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这相当于执行&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;golangci-lint run ./...
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;您可以选择要分析的目录和文件:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;golangci-lint run dir1 dir2/... dir3/file1.go
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;接着，我们创建一个Example代码：linter_example.go&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;People&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;p&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;People&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;String&lt;/span&gt;() &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Sprintf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;print: %v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;p&lt;/span&gt;)
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;p&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;People&lt;/span&gt;{}
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;p&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;String&lt;/span&gt;()
+}
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行lint，如果没有相关的配置文件，会走默认的lint配置&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;&amp;gt; golangci-lint run
+level=warning msg=&amp;quot;[runner] The linter &#39;golint&#39; is deprecated (since v1.41.0) due to: The repository of the linter has been archived b
+y the owner.  Replaced by revive.&amp;quot;
+linter_example.go:5:6: exported type `People` should have comment or be unexported (golint)
+type People struct {
+     ^
+linter_example.go:10:9: printf: fmt.Sprintf format %v with arg p causes recursive (*demos/linter-demo.People).String method call (gove
+t)
+        return fmt.Sprintf(&amp;quot;print: %v&amp;quot;, p)
+               ^
+linter_example.go:15:10: unusedresult: result of (*demos/linter-demo.People).String call not used (govet)
+        p.String()
+                ^
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;我们可以根据lint提示修改&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt; printf: fmt。Sprintf格式%v与arg p导致递归( demos/ lininter -demo. people)。字符串方法调用(govet)。
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在使⽤  fmt 包中的打印⽅法时，如果类型实现了这个接⼝，会直接调⽤。⽽中打印  p 的时候会直接调⽤  p 实现的  String() ⽅法，然后就产⽣了循环调⽤。&lt;/p&gt;
+&lt;h4 id=&#34;custom-configuration&#34;&gt;Custom Configuration&lt;/h4&gt;
+&lt;p&gt;GolangCI-Lint  通过当前工作目录的以下路径中增加配置文件：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;.golangci.yml&lt;/li&gt;
+&lt;li&gt;.golangci.yaml&lt;/li&gt;
+&lt;li&gt;.golangci.toml&lt;/li&gt;
+&lt;li&gt;.golangci.json&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;来实现自定义linters&lt;/p&gt;
+&lt;p&gt;例如我们添加了.golangci.yml&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  disable-all: true
+  enable: # 下面是开启的lint列表
+    - errcheck
+    - goimports
+    - golint
+   # - govet 为了测试是否生效，关闭
+    - staticcheck
+
+linters-settings:
+  golint:
+    # minimal confidence for issues, default is 0.8
+    min-confidence: 0.8
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这里我们把govet 关闭了，在执行run&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;golangci-lint run
+level=warning msg=&amp;quot;[runner] The linter &#39;golint&#39; is deprecated (since v1.41.0) due to: The repository of the linter has been archived b
+y the owner.  Replaced by revive.&amp;quot;
+linter_example.go:5:6: exported type `People` should have comment or be unexported (golint)
+type People struct {
+     ^
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可见关闭govet生效了。&lt;/p&gt;
+&lt;h3 id=&#34;reference&#34;&gt;reference&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;golangci-lint  &lt;a href=&#34;https://github.com/golangci/golangci-lint&#34;&gt;https://github.com/golangci/golangci-lint&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;golangci-lint doc &lt;a href=&#34;https://golangci-lint.run/&#34;&gt;https://golangci-lint.run/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;lint  &lt;a href=&#34;https://github.com/golang/lint&#34;&gt;https://github.com/golang/lint&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;awesome-go-linters &lt;a href=&#34;https://github.com/golangci/awesome-go-linters&#34;&gt;https://github.com/golangci/awesome-go-linters&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;bolg gocn  &lt;a href=&#34;https://mp.weixin.qq.com/s/kNh0TP59fCFJhbmr-YMz4Q&#34;&gt;https://mp.weixin.qq.com/s/kNh0TP59fCFJhbmr-YMz4Q&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
