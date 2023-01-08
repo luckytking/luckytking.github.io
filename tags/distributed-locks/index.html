@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"",
+  "url":"https:\/\/luckytking.github.io\/tags\/distributed-locks\/",
+  "keywords":"[]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="">
+<meta name="description" content="">
+
+
+<meta property="og:description" content="">
+<meta property="og:type" content="website">
+<meta property="og:title" content="distributed-locks">
+<meta name="twitter:title" content="distributed-locks">
+<meta property="og:url" content="https://luckytking.github.io/tags/distributed-locks/">
+<meta property="twitter:url" content="https://luckytking.github.io/tags/distributed-locks/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="">
+<meta name="twitter:description" content="">
+<meta property="og:locale" content="en">
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>distributed-locks</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/tags/distributed-locks/index.xml">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/tags/distributed-locks/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="2">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="2">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+        
+
+      
+      <div id="main" data-behavior="2"
+        class="
+               hasCoverMetaIn
+               ">
+        
+          <section class="postShorten-group main-content-wrap">
+            
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/01/go%E5%9F%BA%E4%BA%8Eredis%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" aria-label="">
+      
+          Go基于Redis实现分布式锁
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-01-08T16:00:30&#43;08:00">
+        
+   8, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <h3 id="写在前面">写在前面</h3>
+<p>随着分布式系统的快速发展和广泛应用，如何处理共享资源的互斥访问场景呢？即分布式锁，常见采用有开源的 MySQL，Redis，ZooKeeper，Etcd 等三方组件来实现。今天主要介绍Golang基于Redis实现分布式互斥锁。</p>
+<h3 id="分布式锁特性">分布式锁特性</h3>
+<p>那么分布式锁需要处理哪些问题场景呢，或者说特性有哪些？
+这是redis.io的原文：</p>
+<blockquote>
+<p>安全和活力保证：</p>
+<ol>
+<li>安全特性：互斥。在任何给定时刻，只有一个客户端可以持有一把锁。</li>
+<li>活性属性 A：无死锁。最终总是有可能获得锁，即使锁定资源的客户端崩溃或分区。</li>
+<li>活性属性 B：容错性。只要大多数 Redis 节点正常运行，客户端就可以获取和释放锁</li>
+</ol>
+</blockquote>
+<p>结合实际场景，翻译一下：</p>
+<ol>
+<li>互斥性。锁的基础特性，只能被第一个持有者持有；</li>
+<li>防死锁。在持有方发生异常时，设置锁的超时释放机制，规避死锁风险</li>
+<li>高可用、高性能。</li>
+</ol>
+<h3 id="go-redsyn">go-redsyn</h3>
+<p>Redsync 为 Go 提供了基于 Redis 的分布式互斥锁实现
+安装：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ go get github.com/go-redsync/redsync/v4
+</code></pre></div><p>例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#a6e22e">goredislib</span> <span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-redsync/redsync/v4&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-redsync/redsync/v4/redis/goredis/v8&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#75715e">//使用go-redis(或redigo)创建一个池，该池是redisync will
+</span><span style="color:#75715e">//在与Redis通信时使用这也可以是任何一个池子
+</span><span style="color:#75715e">//实现&#39; redis. properties &#39;池的接口。
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">goredislib</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">goredislib</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Addr</span>: <span style="color:#e6db74">&#34;localhost:6379&#34;</span>,
+	})
+    
+    <span style="color:#75715e">//redis集群
+</span><span style="color:#75715e">//client := goredislib.NewClusterClient(&amp;goredislib.ClusterOptions{        //Addr: []string{&#34;localhost:6379&#34;},    })
+</span><span style="color:#75715e"></span>
+	<span style="color:#a6e22e">pool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">goredis</span>.<span style="color:#a6e22e">NewPool</span>(<span style="color:#a6e22e">client</span>) <span style="color:#75715e">// or, pool := redigo.NewPool(...)
+</span><span style="color:#75715e"></span>
+	<span style="color:#75715e">//创建redisync实例，用于获得互斥锁。
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rs</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redsync</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">pool</span>)
+
+	<span style="color:#75715e">//为所有需要互斥对象的实例使用相同的名称来获取一个新的互斥对象
+</span><span style="color:#75715e">//相同的锁。
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">mutexname</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;my-global-mutex&#34;</span>
+	<span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rs</span>.<span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">mutexname</span>)
+
+	<span style="color:#75715e">//获取互斥锁在这个成功之后，没有其他人
+</span><span style="color:#75715e">//可以获得相同的锁(相同的互斥锁名)，直到我们解锁它。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">//做你需要锁的工作。
+</span><span style="color:#75715e"></span>    
+<span style="color:#75715e">//释放锁，以便其他进程或线程可以获得锁。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Unlock</span>(); !<span style="color:#a6e22e">ok</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#e6db74">&#34;unlock failed&#34;</span>)
+	}
+}
+</code></pre></div><h3 id="实现原理">实现原理</h3>
+<h4 id="加锁">加锁</h4>
+<p>在New一个互斥锁mutex后，通过mutex.Lock()加锁，查看源码实现：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Mutex</span>) <span style="color:#a6e22e">acquire</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">pool</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Pool</span>, <span style="color:#a6e22e">value</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">bool</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">conn</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pool</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">Close</span>()
+	<span style="color:#a6e22e">reply</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">SetNX</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">value</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">expiry</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reply</span>, <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div><p>可见，是通过Redis命令Setnx操作来实现。</p>
+<p><strong>Redis Setnx（SET if Not eXists） 命令在指定的 key 不存在时，为 key 设置指定的值。设置成功，返回 1 。 设置失败，返回 0 。相对于Set，Setnx具有原子性。</strong></p>
+<h4 id="释放锁">释放锁</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Mutex</span>) <span style="color:#a6e22e">release</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">pool</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Pool</span>, <span style="color:#a6e22e">value</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">bool</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">conn</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pool</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">Close</span>()
+	<span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">Eval</span>(<span style="color:#a6e22e">deleteScript</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">value</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">!=</span> int64(<span style="color:#ae81ff">0</span>), <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">deleteScript</span> = <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewScript</span>(<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">`
+</span><span style="color:#e6db74">	if redis.call(&#34;GET&#34;, KEYS[1]) == ARGV[1] then
+</span><span style="color:#e6db74">		return redis.call(&#34;DEL&#34;, KEYS[1])
+</span><span style="color:#e6db74">	else
+</span><span style="color:#e6db74">		return 0
+</span><span style="color:#e6db74">	end
+</span><span style="color:#e6db74">`</span>)
+</code></pre></div><p>可见，Redis使用Lua脚本命令来Delete Key操作。</p>
+<p><strong>这里需要关注到Del的时候，需要传入value，value是在加锁时设置的随机唯一值。在删除前进行校验value是否一致，防止误删</strong>。</p>
+<h4 id="锁超时-防死锁">锁超时-防死锁</h4>
+<p>如果持有锁的系统宕机、异常了导致没法release锁，那么其他方就无法活动该锁，导致死锁。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// NewMutex returns a new distributed mutex with given name.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Redsync</span>) <span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">options</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">Option</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Mutex</span> {
+	<span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Mutex</span>{
+		<span style="color:#a6e22e">name</span>:   <span style="color:#a6e22e">name</span>,
+		<span style="color:#a6e22e">expiry</span>: <span style="color:#ae81ff">8</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>,
+		<span style="color:#a6e22e">tries</span>:  <span style="color:#ae81ff">32</span>,
+		<span style="color:#a6e22e">delayFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">tries</span> <span style="color:#66d9ef">int</span>) <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#a6e22e">maxRetryDelayMilliSec</span><span style="color:#f92672">-</span><span style="color:#a6e22e">minRetryDelayMilliSec</span>)<span style="color:#f92672">+</span><span style="color:#a6e22e">minRetryDelayMilliSec</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>
+		},
+		<span style="color:#a6e22e">genValueFunc</span>:  <span style="color:#a6e22e">genValue</span>,
+		<span style="color:#a6e22e">driftFactor</span>:   <span style="color:#ae81ff">0.01</span>,
+		<span style="color:#a6e22e">timeoutFactor</span>: <span style="color:#ae81ff">0.05</span>,
+		<span style="color:#a6e22e">quorum</span>:        len(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">pools</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>,
+		<span style="color:#a6e22e">pools</span>:         <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">pools</span>,
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">o</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">options</span> {
+		<span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">Apply</span>(<span style="color:#a6e22e">m</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">m</span>
+}
+</code></pre></div><p>可见，Mutex.expiy 设置了超时时间，默认为8秒，可以通过Option修改超时时间</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// WithExpiry can be used to set the expiry of a mutex to the given value.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">WithExpiry</span>(<span style="color:#a6e22e">expiry</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>) <span style="color:#a6e22e">Option</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">OptionFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Mutex</span>) {
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">expiry</span> = <span style="color:#a6e22e">expiry</span>
+	})
+}
+</code></pre></div><p>Example（设置超时时间、重复加锁）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//设置锁超时3秒
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rs</span>.<span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">mutexname</span>,<span style="color:#a6e22e">redsync</span>.<span style="color:#a6e22e">WithExpiry</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#ae81ff">3</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+    <span style="color:#75715e">//重复加锁
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+<span style="color:#a6e22e">OutPut</span><span style="color:#960050;background-color:#1e0010">：</span>
+
+<span style="color:#a6e22e">panic</span>: <span style="color:#a6e22e">lock</span> <span style="color:#a6e22e">already</span> <span style="color:#a6e22e">taken</span>, <span style="color:#a6e22e">locked</span> <span style="color:#a6e22e">nodes</span>: [<span style="color:#ae81ff">0</span>]
+</code></pre></div><p>Example（设置超时时间、超时释放锁）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//设置锁超时10秒
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rs</span>.<span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">mutexname</span>,<span style="color:#a6e22e">redsync</span>.<span style="color:#a6e22e">WithExpiry</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#ae81ff">10</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+    <span style="color:#75715e">//11秒后锁超时，释放
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">11</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+    <span style="color:#75715e">//重复加锁但已释放、无异常
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+<span style="color:#a6e22e">OutPut</span><span style="color:#960050;background-color:#1e0010">：</span>
+</code></pre></div><h3 id="总结">总结</h3>
+<p>本文主要介绍分布式锁的基础概念、特性互斥性、防死锁、高可用高性能。以及golang基于redis，使用go-redsync库实现分布式锁。通过例子简单介绍go-redsync的入门使用，以及通过源码阅读来刨析简介实现原理： 1.利用Redis Setnx原子性实现互斥性 ，2.利用Redis执行lua脚本、检查value值避免误删操作， 3.通过设置ExpiryOption设置超时时间，实现锁超时、避免死锁。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://redis.io/docs/manual/patterns/distributed-locks/">redis.io/docs 使用 Redis 的分布式锁</a></li>
+<li><a href="https://github.com/go-redsync/redsync">redsync</a></li>
+<li><a href="https://www.modb.pro/db/531964/">redsync源码介绍</a></li>
+<li><a href="https://mp.weixin.qq.com/s/k_dX2HF8hTf6XseeeXYivg">redis go实现方式</a></li>
+<li><a href="https://xiaorui.cc/archives/3028">峰云 -redigo实现</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/01/go%E5%9F%BA%E4%BA%8Eredis%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+            
+
+          </section>
+        
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

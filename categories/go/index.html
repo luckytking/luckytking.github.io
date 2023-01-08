@@ -240,6 +240,242 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/01/go%E5%9F%BA%E4%BA%8Eredis%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" aria-label="">
+      
+          Go基于Redis实现分布式锁
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-01-08T16:00:30&#43;08:00">
+        
+   8, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <h3 id="写在前面">写在前面</h3>
+<p>随着分布式系统的快速发展和广泛应用，如何处理共享资源的互斥访问场景呢？即分布式锁，常见采用有开源的 MySQL，Redis，ZooKeeper，Etcd 等三方组件来实现。今天主要介绍Golang基于Redis实现分布式互斥锁。</p>
+<h3 id="分布式锁特性">分布式锁特性</h3>
+<p>那么分布式锁需要处理哪些问题场景呢，或者说特性有哪些？
+这是redis.io的原文：</p>
+<blockquote>
+<p>安全和活力保证：</p>
+<ol>
+<li>安全特性：互斥。在任何给定时刻，只有一个客户端可以持有一把锁。</li>
+<li>活性属性 A：无死锁。最终总是有可能获得锁，即使锁定资源的客户端崩溃或分区。</li>
+<li>活性属性 B：容错性。只要大多数 Redis 节点正常运行，客户端就可以获取和释放锁</li>
+</ol>
+</blockquote>
+<p>结合实际场景，翻译一下：</p>
+<ol>
+<li>互斥性。锁的基础特性，只能被第一个持有者持有；</li>
+<li>防死锁。在持有方发生异常时，设置锁的超时释放机制，规避死锁风险</li>
+<li>高可用、高性能。</li>
+</ol>
+<h3 id="go-redsyn">go-redsyn</h3>
+<p>Redsync 为 Go 提供了基于 Redis 的分布式互斥锁实现
+安装：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ go get github.com/go-redsync/redsync/v4
+</code></pre></div><p>例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#a6e22e">goredislib</span> <span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-redsync/redsync/v4&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-redsync/redsync/v4/redis/goredis/v8&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#75715e">//使用go-redis(或redigo)创建一个池，该池是redisync will
+</span><span style="color:#75715e">//在与Redis通信时使用这也可以是任何一个池子
+</span><span style="color:#75715e">//实现&#39; redis. properties &#39;池的接口。
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">goredislib</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">goredislib</span>.<span style="color:#a6e22e">Options</span>{
+		<span style="color:#a6e22e">Addr</span>: <span style="color:#e6db74">&#34;localhost:6379&#34;</span>,
+	})
+    
+    <span style="color:#75715e">//redis集群
+</span><span style="color:#75715e">//client := goredislib.NewClusterClient(&amp;goredislib.ClusterOptions{        //Addr: []string{&#34;localhost:6379&#34;},    })
+</span><span style="color:#75715e"></span>
+	<span style="color:#a6e22e">pool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">goredis</span>.<span style="color:#a6e22e">NewPool</span>(<span style="color:#a6e22e">client</span>) <span style="color:#75715e">// or, pool := redigo.NewPool(...)
+</span><span style="color:#75715e"></span>
+	<span style="color:#75715e">//创建redisync实例，用于获得互斥锁。
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">rs</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redsync</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">pool</span>)
+
+	<span style="color:#75715e">//为所有需要互斥对象的实例使用相同的名称来获取一个新的互斥对象
+</span><span style="color:#75715e">//相同的锁。
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">mutexname</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;my-global-mutex&#34;</span>
+	<span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rs</span>.<span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">mutexname</span>)
+
+	<span style="color:#75715e">//获取互斥锁在这个成功之后，没有其他人
+</span><span style="color:#75715e">//可以获得相同的锁(相同的互斥锁名)，直到我们解锁它。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#75715e">//做你需要锁的工作。
+</span><span style="color:#75715e"></span>    
+<span style="color:#75715e">//释放锁，以便其他进程或线程可以获得锁。
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Unlock</span>(); !<span style="color:#a6e22e">ok</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#e6db74">&#34;unlock failed&#34;</span>)
+	}
+}
+</code></pre></div><h3 id="实现原理">实现原理</h3>
+<h4 id="加锁">加锁</h4>
+<p>在New一个互斥锁mutex后，通过mutex.Lock()加锁，查看源码实现：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Mutex</span>) <span style="color:#a6e22e">acquire</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">pool</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Pool</span>, <span style="color:#a6e22e">value</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">bool</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">conn</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pool</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">Close</span>()
+	<span style="color:#a6e22e">reply</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">SetNX</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">value</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">expiry</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">reply</span>, <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div><p>可见，是通过Redis命令Setnx操作来实现。</p>
+<p><strong>Redis Setnx（SET if Not eXists） 命令在指定的 key 不存在时，为 key 设置指定的值。设置成功，返回 1 。 设置失败，返回 0 。相对于Set，Setnx具有原子性。</strong></p>
+<h4 id="释放锁">释放锁</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Mutex</span>) <span style="color:#a6e22e">release</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">pool</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Pool</span>, <span style="color:#a6e22e">value</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">bool</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">conn</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pool</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">Close</span>()
+	<span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">Eval</span>(<span style="color:#a6e22e">deleteScript</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">value</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">!=</span> int64(<span style="color:#ae81ff">0</span>), <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">deleteScript</span> = <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewScript</span>(<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">`
+</span><span style="color:#e6db74">	if redis.call(&#34;GET&#34;, KEYS[1]) == ARGV[1] then
+</span><span style="color:#e6db74">		return redis.call(&#34;DEL&#34;, KEYS[1])
+</span><span style="color:#e6db74">	else
+</span><span style="color:#e6db74">		return 0
+</span><span style="color:#e6db74">	end
+</span><span style="color:#e6db74">`</span>)
+</code></pre></div><p>可见，Redis使用Lua脚本命令来Delete Key操作。</p>
+<p><strong>这里需要关注到Del的时候，需要传入value，value是在加锁时设置的随机唯一值。在删除前进行校验value是否一致，防止误删</strong>。</p>
+<h4 id="锁超时-防死锁">锁超时-防死锁</h4>
+<p>如果持有锁的系统宕机、异常了导致没法release锁，那么其他方就无法活动该锁，导致死锁。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// NewMutex returns a new distributed mutex with given name.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Redsync</span>) <span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">options</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">Option</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Mutex</span> {
+	<span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Mutex</span>{
+		<span style="color:#a6e22e">name</span>:   <span style="color:#a6e22e">name</span>,
+		<span style="color:#a6e22e">expiry</span>: <span style="color:#ae81ff">8</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>,
+		<span style="color:#a6e22e">tries</span>:  <span style="color:#ae81ff">32</span>,
+		<span style="color:#a6e22e">delayFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">tries</span> <span style="color:#66d9ef">int</span>) <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#a6e22e">maxRetryDelayMilliSec</span><span style="color:#f92672">-</span><span style="color:#a6e22e">minRetryDelayMilliSec</span>)<span style="color:#f92672">+</span><span style="color:#a6e22e">minRetryDelayMilliSec</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>
+		},
+		<span style="color:#a6e22e">genValueFunc</span>:  <span style="color:#a6e22e">genValue</span>,
+		<span style="color:#a6e22e">driftFactor</span>:   <span style="color:#ae81ff">0.01</span>,
+		<span style="color:#a6e22e">timeoutFactor</span>: <span style="color:#ae81ff">0.05</span>,
+		<span style="color:#a6e22e">quorum</span>:        len(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">pools</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>,
+		<span style="color:#a6e22e">pools</span>:         <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">pools</span>,
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">o</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">options</span> {
+		<span style="color:#a6e22e">o</span>.<span style="color:#a6e22e">Apply</span>(<span style="color:#a6e22e">m</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">m</span>
+}
+</code></pre></div><p>可见，Mutex.expiy 设置了超时时间，默认为8秒，可以通过Option修改超时时间</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// WithExpiry can be used to set the expiry of a mutex to the given value.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">WithExpiry</span>(<span style="color:#a6e22e">expiry</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>) <span style="color:#a6e22e">Option</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">OptionFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Mutex</span>) {
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">expiry</span> = <span style="color:#a6e22e">expiry</span>
+	})
+}
+</code></pre></div><p>Example（设置超时时间、重复加锁）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//设置锁超时3秒
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rs</span>.<span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">mutexname</span>,<span style="color:#a6e22e">redsync</span>.<span style="color:#a6e22e">WithExpiry</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#ae81ff">3</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+    <span style="color:#75715e">//重复加锁
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+<span style="color:#a6e22e">OutPut</span><span style="color:#960050;background-color:#1e0010">：</span>
+
+<span style="color:#a6e22e">panic</span>: <span style="color:#a6e22e">lock</span> <span style="color:#a6e22e">already</span> <span style="color:#a6e22e">taken</span>, <span style="color:#a6e22e">locked</span> <span style="color:#a6e22e">nodes</span>: [<span style="color:#ae81ff">0</span>]
+</code></pre></div><p>Example（设置超时时间、超时释放锁）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//设置锁超时10秒
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">mutex</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rs</span>.<span style="color:#a6e22e">NewMutex</span>(<span style="color:#a6e22e">mutexname</span>,<span style="color:#a6e22e">redsync</span>.<span style="color:#a6e22e">WithExpiry</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span><span style="color:#f92672">*</span><span style="color:#ae81ff">10</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+    <span style="color:#75715e">//11秒后锁超时，释放
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">11</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+    <span style="color:#75715e">//重复加锁但已释放、无异常
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mutex</span>.<span style="color:#a6e22e">Lock</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+<span style="color:#a6e22e">OutPut</span><span style="color:#960050;background-color:#1e0010">：</span>
+</code></pre></div><h3 id="总结">总结</h3>
+<p>本文主要介绍分布式锁的基础概念、特性互斥性、防死锁、高可用高性能。以及golang基于redis，使用go-redsync库实现分布式锁。通过例子简单介绍go-redsync的入门使用，以及通过源码阅读来刨析简介实现原理： 1.利用Redis Setnx原子性实现互斥性 ，2.利用Redis执行lua脚本、检查value值避免误删操作， 3.通过设置ExpiryOption设置超时时间，实现锁超时、避免死锁。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://redis.io/docs/manual/patterns/distributed-locks/">redis.io/docs 使用 Redis 的分布式锁</a></li>
+<li><a href="https://github.com/go-redsync/redsync">redsync</a></li>
+<li><a href="https://www.modb.pro/db/531964/">redsync源码介绍</a></li>
+<li><a href="https://mp.weixin.qq.com/s/k_dX2HF8hTf6XseeeXYivg">redis go实现方式</a></li>
+<li><a href="https://xiaorui.cc/archives/3028">峰云 -redigo实现</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/01/go%E5%9F%BA%E4%BA%8Eredis%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/12/golang-linters%E8%81%9A%E5%90%88%E5%99%A8golangci-lint/" aria-label="">
       
           Golang Linters聚合器golangci Lint
@@ -2031,152 +2267,6 @@ count:  5 now: 1658053648
 </article>
 
             
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" aria-label="">
-      
-          Redis实现对象存储和列表分页
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-06-05T16:23:04&#43;08:00">
-        
-   5, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <h2 id="场景">场景</h2>
-<p>在项目开发中，需要用到缓存和对一个列表数据分页查询，但由于redis是key-value的存储方式，我们期望的使用类似postgresql的offset和limit，不至于需要一个个key遍历过去。</p>
-<h2 id="设计">设计</h2>
-<p>分析一下我们需求，那么需求需要实现的接口大概是：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">FindByPage</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">page</span>, <span style="color:#a6e22e">size</span> <span style="color:#66d9ef">int</span>) ([]<span style="color:#a6e22e">Object</span>, <span style="color:#66d9ef">error</span>)
-</code></pre></div><p>大致我们需要解决两个问题:</p>
-<ul>
-<li>存储对象</li>
-<li>列表分页快速查找</li>
-</ul>
-<h3 id="对象存储">对象存储</h3>
-<blockquote>
-<p>Redis hash 是一个 string 类型的 field（字段） 和 value（值） 的映射表，hash 特别适合用于存储对象。</p>
-<ul>
-<li>HDEL key field1 [field2]删除一个或多个哈希表字段</li>
-<li>HEXISTS key field查看哈希表 key 中，指定的字段是否存在。</li>
-<li>HGET key field获取存储在哈希表中指定字段的值。</li>
-<li>HGETALL key获取在哈希表中指定 key 的所有字段和值</li>
-</ul>
-</blockquote>
-<p>如此，我们可以 redis hash 和 json.Encoding 来存储。
-获得一个Object</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//【ObjectID】= &#34;{&#34;foo&#34;: &#34;123&#34;, &#34;bar&#34;:&#34;456&#34;}&#34;
-</span><span style="color:#75715e"></span>
-<span style="color:#f92672">import</span>  <span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
-
-<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HGet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">String</span>()).<span style="color:#a6e22e">Result</span>()
-<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-     <span style="color:#66d9ef">return</span>
-}
-<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">obj</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">YourObject</span>{}
-<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>([]byte(<span style="color:#a6e22e">result</span>), <span style="color:#a6e22e">obj</span>)
-<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-     <span style="color:#66d9ef">return</span>
-}
-</code></pre></div><p>增加一个Object：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">ob</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">Object</span>{}<span style="color:#960050;background-color:#1e0010">）</span>) 
-	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">repo</span>.<span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HSet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">ob</span>.<span style="color:#a6e22e">ID</span>, <span style="color:#a6e22e">ob</span>).<span style="color:#a6e22e">Err</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	}
-</code></pre></div><h3 id="分页">分页</h3>
-<p>我们的需求中，ObjectID是一个唯一的int，那么可以使用 zset</p>
-<blockquote>
-<p>ZXyy redis 有序集合的基本命令。</p>
-<ul>
-<li>ZADD key score1 member1 [score2 member2]向有序集合添加一个或多个成员，或者更新已存在成员的分数</li>
-<li>ZCARD key获取有序集合的成员数</li>
-<li>ZRANGE key start stop [WITHSCORES]通过索引区间返回有序集合指定区间内的成员</li>
-</ul>
-</blockquote>
-<p>那么可以把 zset 的key 和 value 都设置为 ObjectID
-增加一个Object的代码：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Z</span>{
-     <span style="color:#a6e22e">Score</span>:  float64(<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">ID</span>),
-     <span style="color:#a6e22e">Member</span>: <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">ID</span>)),
-}).<span style="color:#a6e22e">Err</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-     <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-}
-</code></pre></div><p>获取X分页的代码：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> (
-     <span style="color:#a6e22e">start</span> = int64((<span style="color:#a6e22e">page</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">size</span>)
-     <span style="color:#a6e22e">end</span>   = <span style="color:#a6e22e">start</span> <span style="color:#f92672">+</span> int64(<span style="color:#a6e22e">size</span>)
-)
-<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
-<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-     <span style="color:#66d9ef">return</span>
-}
-</code></pre></div><h3 id="测试">测试</h3>
-<p>我们增加N个Object：</p>
-<pre tabindex="0"><code>[1 a]
-[2 b]
-[3 c]
-[11 aa]
-[12 bb]
-[13 cc]
-[21 aaaa]
-</code></pre><p>每页的长度为4，获取第一页</p>
-<pre tabindex="0"><code>[1 2 3 11]
-</code></pre><p>第二页：</p>
-<pre tabindex="0"><code>[12 13 21]
-</code></pre><p>第三页：</p>
-<pre tabindex="0"><code>[ ]
-</code></pre><h4 id="参考">参考</h4>
-<ul>
-<li><a href="https://cloud.tencent.com/developer/article/1802288">https://cloud.tencent.com/developer/article/1802288</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
             
   <div class="pagination-bar">
     <ul class="pagination">
@@ -2200,7 +2290,7 @@ count:  5 now: 1658053648
         
         <footer id="footer" class="main-content-wrap">
   <span class="copyrights">
-    &copy; 2022 jefffff. 
+    &copy; 2023 jefffff. 
   </span>
 </footer>
 
