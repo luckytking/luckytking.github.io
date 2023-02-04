@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003egorilla\/mux一个良好质量的Http路由器和Url匹配器，很好补充net\/http包HTTP协议复杂的路由请求。本文主要记录gorilla的基础使用、和常用功能提取网址参数、路径前缀和子路由器、中间件。\u003c\/p\u003e\n\u003ch3 id=\u0022基础使用\u0022\u003e基础使用\u003c\/h3\u003e\n\u003ch4 id=\u0022安装\u0022\u003e安装\u003c\/h4\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-shell\u0022 data-lang=\u0022shell\u0022\u003ego get -u github.com\/gorilla\/mux\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch4 id=\u0022创建路由器\u0022\u003e创建路由器\u003c\/h4\u003e\n\u003cp\u003e通过 mux.NewRouter() 创建路由器，稍后将作为参数传递给服务器。它将接收所有 HTTP 连接并将其传递给您将在其上注册的请求处理程序。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;fmt\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/gorilla\/mux\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;net\/http\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/创建一个新的路由器\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emux\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewRouter\u003c\/span\u003e()\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/等效于http.HandleFunc()工作原理\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandleFunc\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/foo\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResponseWriter\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRequest\u003c\/span\u003e) {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFprintf\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;foo\u0026#34;\u003c\/span\u003e)\n\t})\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/等效于http.Handler()工作原理\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ehandler\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandler\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandlerFunc\u003c\/span\u003e(\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResponseWriter\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRequest\u003c\/span\u003e) {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;bar\u0026#34;\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFprintf\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;bar\u0026#34;\u003c\/span\u003e)\n\t}))\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandle\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/foo\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ehandler\u003c\/span\u003e)\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/作为服务参数传入\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e   \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eListenAndServe\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;:80\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e) \n  }  \n  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/请求http:\/\/yourip:80\/foo  http:\/\/yourip:80\/bar \n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/output\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e  \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/foo bar \n\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022网址参数\u0022\u003e网址参数\u003c\/h3\u003e\n\u003cp\u003egorilla\/mux的优势之一是：从url中提前参数，例如一个restful api：\/country\/{country}\/oneHander\/{oneHander} ，从request参数\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eoneHander\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResponseWriter\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRequest\u003c\/span\u003e) {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003evars\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emux\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eVars\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003evars\u003c\/span\u003e[\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;country\u0026#34;\u003c\/span\u003e]\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ep\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003evars\u003c\/span\u003e[\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;province\u0026#34;\u003c\/span\u003e]\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Welcome to  %s %s\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ep\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFprintf\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Welcome to  %s %s\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ep\u003c\/span\u003e)\n\t}\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/请求 http:\/\/yourip\/country\/china\/province\/fujian   \n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/output\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/Welcome to china fujian\n\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022路径前缀和子路由器\u0022\u003e路径前缀和子路由器\u003c\/h3\u003e\n\u003cp\u003e有些场景将请求处理程序限制为特定路径前缀，比如api、admin、cheat 或 v1、v2、v3 或 beta 、prod。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eallHanler\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResponseWriter\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRequest\u003c\/span\u003e) {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003evars\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emux\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eVars\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e)\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003evars\u003c\/span\u003e[\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;country\u0026#34;\u003c\/span\u003e]\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ep\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003evars\u003c\/span\u003e[\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;province\u0026#34;\u003c\/span\u003e]\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eFprintf\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Welcome to %s %s\\n\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ec\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ep\u003c\/span\u003e)\n\t}\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/路径前缀和子路由器\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ecountryRouter\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePathPrefix\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/country\u0026#34;\u003c\/span\u003e).\u003cspan style=\u0022color:#a6e22e\u0022\u003eSubrouter\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ecountryRouter\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandleFunc\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eallHanler\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ecountryRouter\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandleFunc\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/{province}\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eoneHander\u003c\/span\u003e)\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/请求 http:\/\/yourip\/country\/china  \n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/output\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/Welcome to china\n\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022中间件\u0022\u003e中间件\u003c\/h3\u003e\n\u003cp\u003eMux 支持向Router添加中间件，如果找到匹配项，中间件将按照添加的顺序执行，包括其子路由器。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eMiddleware1\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003emux\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRouter\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003emux\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMiddlewareFunc\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003enext\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandler\u003c\/span\u003e) \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandler\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandlerFunc\u003c\/span\u003e(\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResponseWriter\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ereq\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRequest\u003c\/span\u003e) {\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;do something before handler\u0026#34;\u003c\/span\u003e)\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003enext\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eServeHTTP\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ereq\u003c\/span\u003e)\n\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003efmt\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ePrintln\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;do something after handler\u0026#34;\u003c\/span\u003e)\n\t\t})\n\t}\n}\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/中间件\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003emiddleware1\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eMiddleware1\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003er\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eUse\u003c\/span\u003e([]\u003cspan style=\u0022color:#a6e22e\u0022\u003emux\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eMiddlewareFunc\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003emiddleware1\u003c\/span\u003e}\u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e)\n    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/请求 http:\/\/yourip\/country\/china\/province\/fujian   \n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/output\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/do something before handler\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/Welcome to  china fujian\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e    \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/do something after handler\n\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/gorilla\/mux\u0022\u003ehttps:\/\/github.com\/gorilla\/mux\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/gowebexamples.com\/routes-using-gorilla-mux\/\u0022\u003ehttps:\/\/gowebexamples.com\/routes-using-gorilla-mux\/\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2023\/02\/gorilla-mux%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD\/",
+  "keywords":"[gorilla\/mux]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="gorilla/mux">
+<meta name="description" content="gorilla/mux一个良好质量的Http路由器和Url匹配器，很好补充net/http包HTTP协议复杂的路由请求。本文主要记录gorilla的基础使用、和常用功能提取网址参数、路径前缀和子路由器、中间件。
+基础使用
+安装
+go get -u github.com/gorilla/mux
+创建路由器
+通过 mux.NewRouter() 创建路由器，稍后将作为参数传递给服务器。它将接收所有 HTTP 连接并将其传递给您将在其上注册的请求处理程序。
+package main
+
+import (
+	&#34;fmt&#34;
+	&#34;github.com/gorilla/mux&#34;
+	&#34;net/http&#34;
+)
+
+func main() {
+	//创建一个新的路由器
+	r := mux.NewRouter()
+
+	//等效于http.HandleFunc()工作原理
+	r.HandleFunc(&#34;/foo&#34;, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, &#34;foo&#34;)
+	})
+	//等效于http.Handler()工作原理
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(&#34;bar&#34;)
+		fmt.Fprintf(w, &#34;bar&#34;)
+	}))
+	r.Handle(&#34;/foo&#34;, handler)
+    //作为服务参数传入
+   http.ListenAndServe(&#34;:80&#34;, r) 
+  }  
+  //请求http://yourip:80/foo  http://yourip:80/bar 
+  //output
+  //foo bar 
+网址参数
+gorilla/mux的优势之一是：从url中提前参数，例如一个restful api：/country/{country}/oneHander/{oneHander} ，从request参数
+oneHander := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		c := vars[&#34;country&#34;]
+		p := vars[&#34;province&#34;]
+		fmt.Printf(&#34;Welcome to  %s %s\n&#34;, c, p)
+		fmt.Fprintf(w, &#34;Welcome to  %s %s\n&#34;, c, p)
+	}
+    //请求 http://yourip/country/china/province/fujian   
+    //output
+    //Welcome to china fujian
+路径前缀和子路由器
+有些场景将请求处理程序限制为特定路径前缀，比如api、admin、cheat 或 v1、v2、v3 或 beta 、prod。
+	allHanler := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		c := vars[&#34;country&#34;]
+		p := vars[&#34;province&#34;]
+		fmt.Fprintf(w, &#34;Welcome to %s %s\n&#34;, c, p)
+	}
+	//路径前缀和子路由器
+	countryRouter := r.PathPrefix(&#34;/country&#34;).Subrouter()
+	countryRouter.HandleFunc(&#34;/&#34;, allHanler)
+	countryRouter.HandleFunc(&#34;/{province}&#34;, oneHander)
+    //请求 http://yourip/country/china  
+    //output
+    //Welcome to china
+中间件
+Mux 支持向Router添加中间件，如果找到匹配项，中间件将按照添加的顺序执行，包括其子路由器。
+func Middleware1(r *mux.Router) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			fmt.Println(&#34;do something before handler&#34;)
+			next.ServeHTTP(w, req)
+			fmt.Println(&#34;do something after handler&#34;)
+		})
+	}
+}
+
+	//中间件
+	middleware1 := Middleware1(r)
+	r.Use([]mux.MiddlewareFunc{middleware1}...)
+    //请求 http://yourip/country/china/province/fujian   
+    //output
+    //do something before handler
+    //Welcome to  china fujian
+    //do something after handler
+参考
+
+https://github.com/gorilla/mux
+https://gowebexamples.com/routes-using-gorilla-mux/
+">
+
+
+<meta property="og:description" content="gorilla/mux一个良好质量的Http路由器和Url匹配器，很好补充net/http包HTTP协议复杂的路由请求。本文主要记录gorilla的基础使用、和常用功能提取网址参数、路径前缀和子路由器、中间件。
+基础使用
+安装
+go get -u github.com/gorilla/mux
+创建路由器
+通过 mux.NewRouter() 创建路由器，稍后将作为参数传递给服务器。它将接收所有 HTTP 连接并将其传递给您将在其上注册的请求处理程序。
+package main
+
+import (
+	&#34;fmt&#34;
+	&#34;github.com/gorilla/mux&#34;
+	&#34;net/http&#34;
+)
+
+func main() {
+	//创建一个新的路由器
+	r := mux.NewRouter()
+
+	//等效于http.HandleFunc()工作原理
+	r.HandleFunc(&#34;/foo&#34;, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, &#34;foo&#34;)
+	})
+	//等效于http.Handler()工作原理
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(&#34;bar&#34;)
+		fmt.Fprintf(w, &#34;bar&#34;)
+	}))
+	r.Handle(&#34;/foo&#34;, handler)
+    //作为服务参数传入
+   http.ListenAndServe(&#34;:80&#34;, r) 
+  }  
+  //请求http://yourip:80/foo  http://yourip:80/bar 
+  //output
+  //foo bar 
+网址参数
+gorilla/mux的优势之一是：从url中提前参数，例如一个restful api：/country/{country}/oneHander/{oneHander} ，从request参数
+oneHander := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		c := vars[&#34;country&#34;]
+		p := vars[&#34;province&#34;]
+		fmt.Printf(&#34;Welcome to  %s %s\n&#34;, c, p)
+		fmt.Fprintf(w, &#34;Welcome to  %s %s\n&#34;, c, p)
+	}
+    //请求 http://yourip/country/china/province/fujian   
+    //output
+    //Welcome to china fujian
+路径前缀和子路由器
+有些场景将请求处理程序限制为特定路径前缀，比如api、admin、cheat 或 v1、v2、v3 或 beta 、prod。
+	allHanler := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		c := vars[&#34;country&#34;]
+		p := vars[&#34;province&#34;]
+		fmt.Fprintf(w, &#34;Welcome to %s %s\n&#34;, c, p)
+	}
+	//路径前缀和子路由器
+	countryRouter := r.PathPrefix(&#34;/country&#34;).Subrouter()
+	countryRouter.HandleFunc(&#34;/&#34;, allHanler)
+	countryRouter.HandleFunc(&#34;/{province}&#34;, oneHander)
+    //请求 http://yourip/country/china  
+    //output
+    //Welcome to china
+中间件
+Mux 支持向Router添加中间件，如果找到匹配项，中间件将按照添加的顺序执行，包括其子路由器。
+func Middleware1(r *mux.Router) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			fmt.Println(&#34;do something before handler&#34;)
+			next.ServeHTTP(w, req)
+			fmt.Println(&#34;do something after handler&#34;)
+		})
+	}
+}
+
+	//中间件
+	middleware1 := Middleware1(r)
+	r.Use([]mux.MiddlewareFunc{middleware1}...)
+    //请求 http://yourip/country/china/province/fujian   
+    //output
+    //do something before handler
+    //Welcome to  china fujian
+    //do something after handler
+参考
+
+https://github.com/gorilla/mux
+https://gowebexamples.com/routes-using-gorilla-mux/
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gorilla Mux的基础使用和常用功能">
+<meta name="twitter:title" content="Gorilla Mux的基础使用和常用功能">
+<meta property="og:url" content="https://luckytking.github.io/2023/02/gorilla-mux%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD/">
+<meta property="twitter:url" content="https://luckytking.github.io/2023/02/gorilla-mux%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="gorilla/mux一个良好质量的Http路由器和Url匹配器，很好补充net/http包HTTP协议复杂的路由请求。本文主要记录gorilla的基础使用、和常用功能提取网址参数、路径前缀和子路由器、中间件。
+基础使用
+安装
+go get -u github.com/gorilla/mux
+创建路由器
+通过 mux.NewRouter() 创建路由器，稍后将作为参数传递给服务器。它将接收所有 HTTP 连接并将其传递给您将在其上注册的请求处理程序。
+package main
+
+import (
+	&#34;fmt&#34;
+	&#34;github.com/gorilla/mux&#34;
+	&#34;net/http&#34;
+)
+
+func main() {
+	//创建一个新的路由器
+	r := mux.NewRouter()
+
+	//等效于http.HandleFunc()工作原理
+	r.HandleFunc(&#34;/foo&#34;, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, &#34;foo&#34;)
+	})
+	//等效于http.Handler()工作原理
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(&#34;bar&#34;)
+		fmt.Fprintf(w, &#34;bar&#34;)
+	}))
+	r.Handle(&#34;/foo&#34;, handler)
+    //作为服务参数传入
+   http.ListenAndServe(&#34;:80&#34;, r) 
+  }  
+  //请求http://yourip:80/foo  http://yourip:80/bar 
+  //output
+  //foo bar 
+网址参数
+gorilla/mux的优势之一是：从url中提前参数，例如一个restful api：/country/{country}/oneHander/{oneHander} ，从request参数
+oneHander := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		c := vars[&#34;country&#34;]
+		p := vars[&#34;province&#34;]
+		fmt.Printf(&#34;Welcome to  %s %s\n&#34;, c, p)
+		fmt.Fprintf(w, &#34;Welcome to  %s %s\n&#34;, c, p)
+	}
+    //请求 http://yourip/country/china/province/fujian   
+    //output
+    //Welcome to china fujian
+路径前缀和子路由器
+有些场景将请求处理程序限制为特定路径前缀，比如api、admin、cheat 或 v1、v2、v3 或 beta 、prod。
+	allHanler := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		c := vars[&#34;country&#34;]
+		p := vars[&#34;province&#34;]
+		fmt.Fprintf(w, &#34;Welcome to %s %s\n&#34;, c, p)
+	}
+	//路径前缀和子路由器
+	countryRouter := r.PathPrefix(&#34;/country&#34;).Subrouter()
+	countryRouter.HandleFunc(&#34;/&#34;, allHanler)
+	countryRouter.HandleFunc(&#34;/{province}&#34;, oneHander)
+    //请求 http://yourip/country/china  
+    //output
+    //Welcome to china
+中间件
+Mux 支持向Router添加中间件，如果找到匹配项，中间件将按照添加的顺序执行，包括其子路由器。
+func Middleware1(r *mux.Router) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			fmt.Println(&#34;do something before handler&#34;)
+			next.ServeHTTP(w, req)
+			fmt.Println(&#34;do something after handler&#34;)
+		})
+	}
+}
+
+	//中间件
+	middleware1 := Middleware1(r)
+	r.Use([]mux.MiddlewareFunc{middleware1}...)
+    //请求 http://yourip/country/china/province/fujian   
+    //output
+    //do something before handler
+    //Welcome to  china fujian
+    //do something after handler
+参考
+
+https://github.com/gorilla/mux
+https://gowebexamples.com/routes-using-gorilla-mux/
+">
+<meta name="twitter:description" content="gorilla/mux一个良好质量的Http路由器和Url匹配器，很好补充net/http包HTTP协议复杂的路由请求。本文主要记录gorilla的基础使用、和常用功能提取网址参数、路径前缀和子路由器、中间件。
+基础使用
+安装
+go get -u github.com/gorilla/mux
+创建路由器
+通过 mux.NewRouter() 创建路由器，稍后将作为参数传递给服务器。它将接收所有 HTTP 连接并将其传递给您将在其上注册的请求处理程序。
+package main
+
+import (
+	&#34;fmt&#34;
+	&#34;github.com/gorilla/mux&#34;
+	&#34;net/http&#34;
+)
+
+func main() {
+	//创建一个新的路由器
+	r := mux.NewRouter()
+
+	//等效于http.HandleFunc()工作原理
+	r.HandleFunc(&#34;/foo&#34;, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, &#34;foo&#34;)
+	})
+	//等效于http.Handler()工作原理
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(&#34;bar&#34;)
+		fmt.Fprintf(w, &#34;bar&#34;)
+	}))
+	r.Handle(&#34;/foo&#34;, handler)
+    //作为服务参数传入
+   http.ListenAndServe(&#34;:80&#34;, r) 
+  }  
+  //请求http://yourip:80/foo  http://yourip:80/bar 
+  //output
+  //foo bar 
+网址参数
+gorilla/mux的优势之一是：从url中提前参数，例如一个restful api：/country/{country}/oneHander/{oneHander} ，从request参数
+oneHander := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		c := vars[&#34;country&#34;]
+		p := vars[&#34;province&#34;]
+		fmt.Printf(&#34;Welcome to  %s %s\n&#34;, c, p)
+		fmt.Fprintf(w, &#34;Welcome to  %s %s\n&#34;, c, p)
+	}
+    //请求 http://yourip/country/china/province/fujian   
+    //output
+    //Welcome to china fujian
+路径前缀和子路由器
+有些场景将请求处理程序限制为特定路径前缀，比如api、admin、cheat 或 v1、v2、v3 或 beta 、prod。
+	allHanler := func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		c := vars[&#34;country&#34;]
+		p := vars[&#34;province&#34;]
+		fmt.Fprintf(w, &#34;Welcome to %s %s\n&#34;, c, p)
+	}
+	//路径前缀和子路由器
+	countryRouter := r.PathPrefix(&#34;/country&#34;).Subrouter()
+	countryRouter.HandleFunc(&#34;/&#34;, allHanler)
+	countryRouter.HandleFunc(&#34;/{province}&#34;, oneHander)
+    //请求 http://yourip/country/china  
+    //output
+    //Welcome to china
+中间件
+Mux 支持向Router添加中间件，如果找到匹配项，中间件将按照添加的顺序执行，包括其子路由器。
+func Middleware1(r *mux.Router) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			fmt.Println(&#34;do something before handler&#34;)
+			next.ServeHTTP(w, req)
+			fmt.Println(&#34;do something after handler&#34;)
+		})
+	}
+}
+
+	//中间件
+	middleware1 := Middleware1(r)
+	r.Use([]mux.MiddlewareFunc{middleware1}...)
+    //请求 http://yourip/country/china/province/fujian   
+    //output
+    //do something before handler
+    //Welcome to  china fujian
+    //do something after handler
+参考
+
+https://github.com/gorilla/mux
+https://gowebexamples.com/routes-using-gorilla-mux/
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2023-02-04T21:28:28">
+  
+  
+    <meta property="article:modified_time" content="2023-02-04T21:28:28">
+  
+  
+  
+    
+      <meta property="article:section" content="go">
+    
+  
+  
+    
+      <meta property="article:tag" content="gorilla/mux">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Gorilla Mux的基础使用和常用功能</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2023/02/gorilla-mux%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Gorilla Mux的基础使用和常用功能
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-02-04T21:28:28&#43;08:00">
+        
+   4, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>gorilla/mux一个良好质量的Http路由器和Url匹配器，很好补充net/http包HTTP协议复杂的路由请求。本文主要记录gorilla的基础使用、和常用功能提取网址参数、路径前缀和子路由器、中间件。</p>
+<h3 id="基础使用">基础使用</h3>
+<h4 id="安装">安装</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">go get -u github.com/gorilla/mux
+</code></pre></div><h4 id="创建路由器">创建路由器</h4>
+<p>通过 mux.NewRouter() 创建路由器，稍后将作为参数传递给服务器。它将接收所有 HTTP 连接并将其传递给您将在其上注册的请求处理程序。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/gorilla/mux&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#75715e">//创建一个新的路由器
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
+
+	<span style="color:#75715e">//等效于http.HandleFunc()工作原理
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/foo&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;foo&#34;</span>)
+	})
+	<span style="color:#75715e">//等效于http.Handler()工作原理
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;bar&#34;</span>)
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;bar&#34;</span>)
+	}))
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Handle</span>(<span style="color:#e6db74">&#34;/foo&#34;</span>, <span style="color:#a6e22e">handler</span>)
+    <span style="color:#75715e">//作为服务参数传入
+</span><span style="color:#75715e"></span>   <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;:80&#34;</span>, <span style="color:#a6e22e">r</span>) 
+  }  
+  <span style="color:#75715e">//请求http://yourip:80/foo  http://yourip:80/bar 
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">//output
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">//foo bar 
+</span></code></pre></div><h3 id="网址参数">网址参数</h3>
+<p>gorilla/mux的优势之一是：从url中提前参数，例如一个restful api：/country/{country}/oneHander/{oneHander} ，从request参数</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">oneHander</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">vars</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Vars</span>(<span style="color:#a6e22e">r</span>)
+		<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;country&#34;</span>]
+		<span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;province&#34;</span>]
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Welcome to  %s %s\n&#34;</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">p</span>)
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;Welcome to  %s %s\n&#34;</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">p</span>)
+	}
+    <span style="color:#75715e">//请求 http://yourip/country/china/province/fujian   
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//output
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//Welcome to china fujian
+</span></code></pre></div><h3 id="路径前缀和子路由器">路径前缀和子路由器</h3>
+<p>有些场景将请求处理程序限制为特定路径前缀，比如api、admin、cheat 或 v1、v2、v3 或 beta 、prod。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">allHanler</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">vars</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Vars</span>(<span style="color:#a6e22e">r</span>)
+		<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;country&#34;</span>]
+		<span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;province&#34;</span>]
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;Welcome to %s %s\n&#34;</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">p</span>)
+	}
+	<span style="color:#75715e">//路径前缀和子路由器
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">countryRouter</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/country&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
+	<span style="color:#a6e22e">countryRouter</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">allHanler</span>)
+	<span style="color:#a6e22e">countryRouter</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/{province}&#34;</span>, <span style="color:#a6e22e">oneHander</span>)
+    <span style="color:#75715e">//请求 http://yourip/country/china  
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//output
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//Welcome to china
+</span></code></pre></div><h3 id="中间件">中间件</h3>
+<p>Mux 支持向Router添加中间件，如果找到匹配项，中间件将按照添加的顺序执行，包括其子路由器。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Middleware1</span>(<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Router</span>) <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">MiddlewareFunc</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;do something before handler&#34;</span>)
+			<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">req</span>)
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;do something after handler&#34;</span>)
+		})
+	}
+}
+
+	<span style="color:#75715e">//中间件
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">middleware1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Middleware1</span>(<span style="color:#a6e22e">r</span>)
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Use</span>([]<span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">MiddlewareFunc</span>{<span style="color:#a6e22e">middleware1</span>}<span style="color:#f92672">...</span>)
+    <span style="color:#75715e">//请求 http://yourip/country/china/province/fujian   
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//output
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//do something before handler
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//Welcome to  china fujian
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//do something after handler
+</span></code></pre></div><h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://github.com/gorilla/mux">https://github.com/gorilla/mux</a></li>
+<li><a href="https://gowebexamples.com/routes-using-gorilla-mux/">https://gowebexamples.com/routes-using-gorilla-mux/</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/gorilla/mux/">gorilla/mux</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/01/go%E5%9F%BA%E4%BA%8Eredis%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" data-tooltip="Go基于Redis实现分布式锁" aria-label=": Go基于Redis实现分布式锁">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/01/go%E5%9F%BA%E4%BA%8Eredis%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" data-tooltip="Go基于Redis实现分布式锁" aria-label=": Go基于Redis实现分布式锁">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

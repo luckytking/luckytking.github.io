@@ -238,6 +238,151 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/02/gorilla-mux%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD/" aria-label="">
+      
+          Gorilla Mux的基础使用和常用功能
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-02-04T21:28:28&#43;08:00">
+        
+   4, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>gorilla/mux一个良好质量的Http路由器和Url匹配器，很好补充net/http包HTTP协议复杂的路由请求。本文主要记录gorilla的基础使用、和常用功能提取网址参数、路径前缀和子路由器、中间件。</p>
+<h3 id="基础使用">基础使用</h3>
+<h4 id="安装">安装</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">go get -u github.com/gorilla/mux
+</code></pre></div><h4 id="创建路由器">创建路由器</h4>
+<p>通过 mux.NewRouter() 创建路由器，稍后将作为参数传递给服务器。它将接收所有 HTTP 连接并将其传递给您将在其上注册的请求处理程序。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/gorilla/mux&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#75715e">//创建一个新的路由器
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
+
+	<span style="color:#75715e">//等效于http.HandleFunc()工作原理
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/foo&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;foo&#34;</span>)
+	})
+	<span style="color:#75715e">//等效于http.Handler()工作原理
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;bar&#34;</span>)
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;bar&#34;</span>)
+	}))
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Handle</span>(<span style="color:#e6db74">&#34;/foo&#34;</span>, <span style="color:#a6e22e">handler</span>)
+    <span style="color:#75715e">//作为服务参数传入
+</span><span style="color:#75715e"></span>   <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;:80&#34;</span>, <span style="color:#a6e22e">r</span>) 
+  }  
+  <span style="color:#75715e">//请求http://yourip:80/foo  http://yourip:80/bar 
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">//output
+</span><span style="color:#75715e"></span>  <span style="color:#75715e">//foo bar 
+</span></code></pre></div><h3 id="网址参数">网址参数</h3>
+<p>gorilla/mux的优势之一是：从url中提前参数，例如一个restful api：/country/{country}/oneHander/{oneHander} ，从request参数</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">oneHander</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">vars</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Vars</span>(<span style="color:#a6e22e">r</span>)
+		<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;country&#34;</span>]
+		<span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;province&#34;</span>]
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Welcome to  %s %s\n&#34;</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">p</span>)
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;Welcome to  %s %s\n&#34;</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">p</span>)
+	}
+    <span style="color:#75715e">//请求 http://yourip/country/china/province/fujian   
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//output
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//Welcome to china fujian
+</span></code></pre></div><h3 id="路径前缀和子路由器">路径前缀和子路由器</h3>
+<p>有些场景将请求处理程序限制为特定路径前缀，比如api、admin、cheat 或 v1、v2、v3 或 beta 、prod。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">allHanler</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">vars</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Vars</span>(<span style="color:#a6e22e">r</span>)
+		<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;country&#34;</span>]
+		<span style="color:#a6e22e">p</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;province&#34;</span>]
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;Welcome to %s %s\n&#34;</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">p</span>)
+	}
+	<span style="color:#75715e">//路径前缀和子路由器
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">countryRouter</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/country&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
+	<span style="color:#a6e22e">countryRouter</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">allHanler</span>)
+	<span style="color:#a6e22e">countryRouter</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/{province}&#34;</span>, <span style="color:#a6e22e">oneHander</span>)
+    <span style="color:#75715e">//请求 http://yourip/country/china  
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//output
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//Welcome to china
+</span></code></pre></div><h3 id="中间件">中间件</h3>
+<p>Mux 支持向Router添加中间件，如果找到匹配项，中间件将按照添加的顺序执行，包括其子路由器。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Middleware1</span>(<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Router</span>) <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">MiddlewareFunc</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;do something before handler&#34;</span>)
+			<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">req</span>)
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;do something after handler&#34;</span>)
+		})
+	}
+}
+
+	<span style="color:#75715e">//中间件
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">middleware1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Middleware1</span>(<span style="color:#a6e22e">r</span>)
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Use</span>([]<span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">MiddlewareFunc</span>{<span style="color:#a6e22e">middleware1</span>}<span style="color:#f92672">...</span>)
+    <span style="color:#75715e">//请求 http://yourip/country/china/province/fujian   
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//output
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//do something before handler
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//Welcome to  china fujian
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//do something after handler
+</span></code></pre></div><h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://github.com/gorilla/mux">https://github.com/gorilla/mux</a></li>
+<li><a href="https://gowebexamples.com/routes-using-gorilla-mux/">https://gowebexamples.com/routes-using-gorilla-mux/</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/02/gorilla-mux%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/01/go%E5%9F%BA%E4%BA%8Eredis%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" aria-label="">
       
           Go基于Redis实现分布式锁
@@ -1871,269 +2016,6 @@ INFO ts=2022-11-12T21:37:34+08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8
       <p>
         
           <a href="https://luckytking.github.io/2022/10/golang%E4%BD%BF%E7%94%A8redissortsets%E5%AE%9E%E7%8E%B0%E6%8E%92%E8%A1%8C%E6%A6%9C/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/10/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Bants/" aria-label="">
-      
-          Go开发常用第三方库之ants
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-10-21T23:17:35&#43;08:00">
-        
-   21, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>go语言提供非常方便的创建轻量级的协程goroutine来并发处理任务，但是 协程过多影响程序性能，所以，这时goroutine池就登场了。本文简要介绍ants goroutine 池的基本的使用方法。</p>
-<h3 id="简介">简介</h3>
-<p>ants是一个高性能的 goroutine 池，实现了对大规模 goroutine 的调度管理、goroutine 复用，允许使用者在开发并发程序的时候限制 goroutine 数量，复用资源，达到更高效执行任务的效果。 ants就是一个很多大厂广泛使用的goroute池。</p>
-<p>官网地址</p>
-<blockquote>
-<p><a href="https://github.com/panjf2000/ants">https://github.com/panjf2000/ants</a></p>
-</blockquote>
-<h3 id="功能">功能</h3>
-<ul>
-<li>自动调度海量的 goroutines，复用 goroutines</li>
-<li>定期清理过期的 goroutines，进一步节省资源</li>
-<li>提供了大量有用的接口：任务提交、获取运行中的 goroutine 数量、动态调整 Pool 大小、释放 Pool、重启 Pool</li>
-<li>优雅处理 panic，防止程序崩溃</li>
-<li>资源复用，极大节省内存使用量；在大规模批量并发任务场景下比原生 goroutine 并发具有更高的性能</li>
-<li>非阻塞机制</li>
-</ul>
-<h3 id="quick-start">quick start</h3>
-<p>使用 ants v1 版本:</p>
-<blockquote>
-<p>go get -u github.com/panjf2000/ants</p>
-</blockquote>
-<p>使用 ants v2 版本 (开启 GO111MODULE=on):</p>
-<blockquote>
-<p>go get -u github.com/panjf2000/ants/v2</p>
-</blockquote>
-<p>接下来看一下官方demo：实现一个计算大量整数和的程序</p>
-<h3 id="newpool">NewPool</h3>
-<p>NewPool生成ants池实例。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;sync&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-
-	<span style="color:#e6db74">&#34;github.com/panjf2000/ants/v2&#34;</span>
-)
-
-<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sum</span> <span style="color:#66d9ef">int32</span>
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">demoFunc</span>() {
-	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">10</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Hello World!&#34;</span>)
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">ants</span>.<span style="color:#a6e22e">Release</span>()
-
-	<span style="color:#a6e22e">runTimes</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1000</span>
-
-	<span style="color:#75715e">//使用公共池。
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
-	<span style="color:#a6e22e">syncCalculateSum</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>() {
-		<span style="color:#a6e22e">demoFunc</span>()
-		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
-	}
-	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">runTimes</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
-		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>)
-		<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">ants</span>.<span style="color:#a6e22e">Submit</span>(<span style="color:#a6e22e">syncCalculateSum</span>)
-	}
-	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;running goroutines: %d\n&#34;</span>, <span style="color:#a6e22e">ants</span>.<span style="color:#a6e22e">Running</span>())
-    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;finish all tasks.\n&#34;</span>)
- }
-</code></pre></div><p>其中：</p>
-<p>生成一个具有特定函数的ants池实例</p>
-<ul>
-<li>NewPool(size int,  options 
-&hellip;Option) (*PoolWithFunc, error)</li>
-</ul>
-<blockquote>
-<p>args.size  即池容量，即池中最多有 10 个 goroutine。
-arg.Option  定制化 goroutine pool.</p>
-</blockquote>
-<ul>
-<li>p.Submit向此池提交任务。</li>
-<li>ants.Release关闭此池并释放工作队列。</li>
-<li>defaultAntsPool 导入ants时初始化实例池。</li>
-</ul>
-<h3 id="newpoolwithfunc">NewPoolWithFunc</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/panjf2000/ants/v2&#34;</span>
-	<span style="color:#e6db74">&#34;sync&#34;</span>
-	<span style="color:#e6db74">&#34;sync/atomic&#34;</span>
-)
-
-<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">sum</span> <span style="color:#66d9ef">int32</span>
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">myFunc</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">interface</span>{}) {
-	<span style="color:#a6e22e">n</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">i</span>.(<span style="color:#66d9ef">int32</span>)
-	<span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">AddInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sum</span>, <span style="color:#a6e22e">n</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;run with %d\n&#34;</span>, <span style="color:#a6e22e">n</span>)
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">ants</span>.<span style="color:#a6e22e">Release</span>()
-	<span style="color:#a6e22e">runTimes</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1000</span>
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
-	<span style="color:#75715e">//使用带有函数的池
-</span><span style="color:#75715e">//设置goroutine池的容量为10，过期时间为1秒。
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ants</span>.<span style="color:#a6e22e">NewPoolWithFunc</span>(<span style="color:#ae81ff">10</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">interface</span>{}) {
-		<span style="color:#a6e22e">myFunc</span>(<span style="color:#a6e22e">i</span>)
-		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
-	})
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Release</span>()
-	<span style="color:#75715e">//逐个提交任务。
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">runTimes</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
-		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>)
-		<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Invoke</span>(int32(<span style="color:#a6e22e">i</span>))
-	}
-	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;running goroutines: %d\n&#34;</span>, <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Running</span>())
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;finish all tasks, result is %d\n&#34;</span>, <span style="color:#a6e22e">sum</span>)
-}
-</code></pre></div><p>OutPut:</p>
-<pre tabindex="0"><code class="language-shelll" data-lang="shelll">run with 1
-run with 5
-run with 11
-run with 12
-run with 13
-run with 14
-run with 7
-...
-run with 789
-run with 809
-running goroutines: 10
-finish all tasks, result is 499500
-</code></pre><p>其中：</p>
-<p>生成一个具有特定函数的ants池实例</p>
-<ul>
-<li>NewPoolWithFunc(size int, pf func(interface{}), options 
-&hellip;Option) (*PoolWithFunc, error)</li>
-</ul>
-<blockquote>
-<p>args.pf  即为执行任务的函数</p>
-</blockquote>
-<h3 id="优雅处理-panic">优雅处理 panic</h3>
-<p>测试一些当任务触发panic的情况</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">myFunc</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">interface</span>{}) {
-	<span style="color:#a6e22e">n</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">i</span>.(<span style="color:#66d9ef">int32</span>)
-	<span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">AddInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sum</span>, <span style="color:#a6e22e">n</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">n</span><span style="color:#f92672">%</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
-		panic(<span style="color:#a6e22e">any</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;panic from task:%d&#34;</span>, <span style="color:#a6e22e">n</span>)))
-	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;run with %d\n&#34;</span>, <span style="color:#a6e22e">n</span>)
-}
-</code></pre></div><p>output：</p>
-<pre tabindex="0"><code>run with 3
-run with 13
-...
-run with 999
-2022/10/21 21:41:05 worker with func exits from a panic: panic from task:6
-2022/10/21 21:41:05 worker with func exits from a panic: panic from task:0
-2022/10/21 21:41:07 worker with func exits from panic: goroutine 14 [running]:
-</code></pre><p>可以看到，main routine 没有因此受影响。</p>
-<h3 id="options">Options</h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Options包含实例化ants池时将应用的所有选项。
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Options</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#75715e">// ExpiryDuration is a period for the scavenger goroutine to clean up those expired workers,
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// the scavenger scans all workers every `ExpiryDuration` and clean up those workers that haven&#39;t been
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// used for more than `ExpiryDuration`.
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ExpiryDuration</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
-
-	<span style="color:#75715e">// PreAlloc indicates whether to make memory pre-allocation when initializing Pool.
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">PreAlloc</span> <span style="color:#66d9ef">bool</span>
-
-	<span style="color:#75715e">// Max number of goroutine blocking on pool.Submit.
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// 0 (default value) means no such limit.
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">MaxBlockingTasks</span> <span style="color:#66d9ef">int</span>
-
-	<span style="color:#75715e">// When Nonblocking is true, Pool.Submit will never be blocked.
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// ErrPoolOverload will be returned when Pool.Submit cannot be done at once.
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// When Nonblocking is true, MaxBlockingTasks is inoperative.
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Nonblocking</span> <span style="color:#66d9ef">bool</span>
-
-	<span style="color:#75715e">// PanicHandler is used to handle panics from each worker goroutine.
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// if nil, panics will be thrown out again from worker goroutines.
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">PanicHandler</span> <span style="color:#66d9ef">func</span>(<span style="color:#66d9ef">interface</span>{})
-
-	<span style="color:#75715e">// Logger is the customized logger for logging info, if it is not set,
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// default standard logger from log package is used.
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Logger</span> <span style="color:#a6e22e">Logger</span>
-}
-</code></pre></div><p>比如 PanicHandler 遇到 panic会调用这里设置的处理函数,以上例中，我们遇到偶数会触发panic，修改NewPool函数</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ants</span>.<span style="color:#a6e22e">NewPoolWithFunc</span>(<span style="color:#ae81ff">10</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">interface</span>{}) {
-		<span style="color:#a6e22e">myFunc</span>(<span style="color:#a6e22e">i</span>)
-		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
-	}, <span style="color:#a6e22e">ants</span>.<span style="color:#a6e22e">WithPanicHandler</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">interface</span>{}) {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;panic recover %v&#34;</span>, <span style="color:#a6e22e">i</span>)
-	}))
-</code></pre></div><p>out：</p>
-<pre tabindex="0"><code>panic recover panic from i:992run with 880
-panic recover panic from i:880run with 972
-panic recover panic from i:972run with 994
-run with 991
-</code></pre><p>还有更多关于 Benchmarks 性能报告，可参考https://github.com/panjf2000/ants</p>
-<h3 id="参考">参考：</h3>
-<ul>
-<li><a href="https://github.com/panjf2000/ants">https://github.com/panjf2000/ants</a></li>
-<li><a href="https://darjun.github.io/2021/06/03/godailylib/ants/">https://darjun.github.io/2021/06/03/godailylib/ants/</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/10/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Bants/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
