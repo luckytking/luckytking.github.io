@@ -301,7 +301,7 @@
 </span><span style="color:#75715e"></span>  <span style="color:#75715e">//output
 </span><span style="color:#75715e"></span>  <span style="color:#75715e">//foo bar 
 </span></code></pre></div><h3 id="网址参数">网址参数</h3>
-<p>gorilla/mux的优势之一是：从url中提前参数，例如一个restful api：/country/{country}/oneHander/{oneHander} ，从request参数</p>
+<p>gorilla/mux的优势之一是：从url中提前参数，例如一个restful api：/country/{country}/province/{province} ，从request参数</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">oneHander</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
 		<span style="color:#a6e22e">vars</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Vars</span>(<span style="color:#a6e22e">r</span>)
 		<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">vars</span>[<span style="color:#e6db74">&#34;country&#34;</span>]
@@ -309,6 +309,8 @@
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Welcome to  %s %s\n&#34;</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">p</span>)
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;Welcome to  %s %s\n&#34;</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">p</span>)
 	}
+	<span style="color:#75715e">//URL 中提取段/变量
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/country/{country}/province/{province}&#34;</span>, <span style="color:#a6e22e">oneHander</span>)
     <span style="color:#75715e">//请求 http://yourip/country/china/province/fujian   
 </span><span style="color:#75715e"></span>    <span style="color:#75715e">//output
 </span><span style="color:#75715e"></span>    <span style="color:#75715e">//Welcome to china fujian
