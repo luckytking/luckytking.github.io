@@ -240,6 +240,221 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/02/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3kratosmiddlewar%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" aria-label="">
+      
+          深入了解KratosMiddlewar的实现原理
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-02-12T16:10:45&#43;08:00">
+        
+   12, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>Kratos Middleware是Kratos的核心一个中间件层，它是Kratos架构的核心部分，负责处理所有微服务间的通信和数据流。本文将深入了解Kratos Middleware的工作原理，更好地理解和使用Kratos。</p>
+<h3 id="使用示例">使用示例</h3>
+<p>Kratos 内置了一系列的 middleware（中间件）用于处理 logging、 metrics 等通用场景,
+您也可以通过实现 Middleware 接口，开发自定义 middleware，进行通用的业务处理，比如用户登录鉴权等。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// http
+</span><span style="color:#75715e">// 定义opts
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">opts</span> = []<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ServerOption</span>{
+    <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Middleware</span>(
+        <span style="color:#a6e22e">recovery</span>.<span style="color:#a6e22e">Recovery</span>(), <span style="color:#75715e">// 把middleware按照需要的顺序加入
+</span><span style="color:#75715e"></span>        <span style="color:#a6e22e">tracing</span>.<span style="color:#a6e22e">Server</span>(),
+        <span style="color:#a6e22e">logging</span>.<span style="color:#a6e22e">Server</span>(),
+    ),
+}
+<span style="color:#75715e">// 创建server
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewServer</span>(<span style="color:#a6e22e">opts</span><span style="color:#f92672">...</span>)
+</code></pre></div><p>自定义中间件的例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Middleware1</span>() <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Middleware</span> {
+    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">handler</span> <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Handler</span> {
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#a6e22e">reply</span> <span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tr</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">transport</span>.<span style="color:#a6e22e">FromServerContext</span>(<span style="color:#a6e22e">ctx</span>); <span style="color:#a6e22e">ok</span> {
+                <span style="color:#75715e">// Do something on entering
+</span><span style="color:#75715e"></span>                <span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>() {
+                <span style="color:#75715e">// Do something on exiting
+</span><span style="color:#75715e"></span>                 }()
+            }
+            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">handler</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">req</span>)
+        }
+    }
+}
+</code></pre></div><h3 id="链式调用">链式调用</h3>
+<p>Kratos Middleware是通过链式结构实现的，其中每一个中间件都代表一个独立的处理单元，可以在请求的生命周期中的不同阶段执行不同的操作，如请求前的预处理、请求后的后处理等。</p>
+<p>每一个中间件都是一个函数，具有相同的签名：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Handler定义中间件调用的处理程序
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Handler</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>)
+</code></pre></div><p>再看看/go-kratos/kratos/blob/main/middleware/middleware包中Middleware和Chain的实现，Middleware 是HTTP/gRPC传输中间件。 Chain返回一个中间件，它指定endpoint.的链式处理程序。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Middleware</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">Handler</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Chain</span>(<span style="color:#a6e22e">m</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">Middleware</span>) <span style="color:#a6e22e">Middleware</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">Handler</span> {
+		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> len(<span style="color:#a6e22e">m</span>) <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">--</span> {
+			<span style="color:#a6e22e">next</span> = <span style="color:#a6e22e">m</span>[<span style="color:#a6e22e">i</span>](<span style="color:#a6e22e">next</span>)
+		}
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">next</span>
+	}
+}
+</code></pre></div><p>Example,以https://github.com/go-kratos/kratos/blob/main/middleware/middleware_test.go为例:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestChain</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+	<span style="color:#a6e22e">next</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">req</span>)
+		<span style="color:#a6e22e">i</span> <span style="color:#f92672">+=</span> <span style="color:#ae81ff">10</span>
+		<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;reply&#34;</span>, <span style="color:#66d9ef">nil</span>
+	}
+
+	<span style="color:#a6e22e">got</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Chain</span>(<span style="color:#a6e22e">test1Middleware</span>, <span style="color:#a6e22e">test2Middleware</span>, <span style="color:#a6e22e">test3Middleware</span>)(<span style="color:#a6e22e">next</span>)(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#e6db74">&#34;hello kratos!&#34;</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;expect %v, got %v&#34;</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>)
+        }
+  }
+  
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">test1Middleware</span>(<span style="color:#a6e22e">handler</span> <span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">Handler</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#a6e22e">reply</span> <span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;test1 before&#34;</span>)
+		<span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>
+		<span style="color:#a6e22e">reply</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">handler</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">req</span>)
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;test1 after&#34;</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+}  
+<span style="color:#f92672">...</span> <span style="color:#a6e22e">篇幅限制</span><span style="color:#960050;background-color:#1e0010">，</span><span style="color:#a6e22e">省略部分代码</span>
+<span style="color:#a6e22e">OutPut</span><span style="color:#960050;background-color:#1e0010">：</span>
+<span style="color:#a6e22e">test1</span> <span style="color:#a6e22e">before</span>
+<span style="color:#a6e22e">test2</span> <span style="color:#a6e22e">before</span>
+<span style="color:#a6e22e">test3</span> <span style="color:#a6e22e">before</span>
+    <span style="color:#a6e22e">middleware_test</span>.<span style="color:#66d9ef">go</span>:<span style="color:#ae81ff">14</span>: <span style="color:#a6e22e">hello</span> <span style="color:#a6e22e">kratos</span>!
+<span style="color:#a6e22e">test3</span> <span style="color:#a6e22e">after</span>
+<span style="color:#a6e22e">test2</span> <span style="color:#a6e22e">after</span>
+<span style="color:#a6e22e">test1</span> <span style="color:#a6e22e">after</span>
+</code></pre></div><h3 id="调用过程">调用过程</h3>
+<p>对链式调用的使用有所了解后，接着来看Middleware 调用组织过程，大致归纳为：</p>
+<ol>
+<li>option方式配置中间件</li>
+<li>url路由匹配中间件</li>
+<li>组装中间件添加到调用链</li>
+<li>注册到gorilla，其中gorilla实现net.hander，设置为服务路由中间件</li>
+</ol>
+<p>以Transport.Server Http服务为例，重点关注middleware和router 。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Server is an HTTP server wrapper.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Server</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Server</span>
+	<span style="color:#a6e22e">middleware</span>  <span style="color:#a6e22e">matcher</span>.<span style="color:#a6e22e">Matcher</span>
+	<span style="color:#a6e22e">router</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Router</span>
+	<span style="color:#f92672">...</span>
+}
+<span style="color:#75715e">// Matcher is a middleware matcher.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Matcher</span> <span style="color:#66d9ef">interface</span> {
+	<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">ms</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Middleware</span>)
+	<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">selector</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">ms</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Middleware</span>)
+	<span style="color:#a6e22e">Match</span>(<span style="color:#a6e22e">operation</span> <span style="color:#66d9ef">string</span>) []<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Middleware</span>
+}
+</code></pre></div><ul>
+<li>Matcher是一个中间件匹配器，operation 为path，实现路由查找。</li>
+<li>router 为gorilla.Mux, Http路由器和Url匹配器</li>
+</ul>
+<p>一个完成的调用api-service:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">_Greeter_SayHello0_HTTP_Handler</span>(<span style="color:#a6e22e">srv</span> <span style="color:#a6e22e">GreeterHTTPServer</span>) <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span> {
+		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">in</span> <span style="color:#a6e22e">HelloRequest</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">BindQuery</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">in</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+		}
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">BindVars</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">in</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+		}
+		<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">SetOperation</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;/helloworld.v1.Greeter/SayHello&#34;</span>)
+		<span style="color:#a6e22e">h</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Middleware</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">SayHello</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">req</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">HelloRequest</span>))
+		})
+		<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">h</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">in</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+		}
+		<span style="color:#a6e22e">reply</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">out</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">HelloReply</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Result</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">reply</span>)
+	}
+}
+</code></pre></div><p>其中ctx.Middleware的实现是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">wrapper</span>) <span style="color:#a6e22e">Middleware</span>(<span style="color:#a6e22e">h</span> <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Handler</span> {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tr</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">transport</span>.<span style="color:#a6e22e">FromServerContext</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Context</span>()); <span style="color:#a6e22e">ok</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Chain</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Match</span>(<span style="color:#a6e22e">tr</span>.<span style="color:#a6e22e">Operation</span>())<span style="color:#f92672">...</span>)(<span style="color:#a6e22e">h</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Chain</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Match</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>)<span style="color:#f92672">...</span>)(<span style="color:#a6e22e">h</span>)
+} 
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">matcher</span>) <span style="color:#a6e22e">Match</span>(<span style="color:#a6e22e">operation</span> <span style="color:#66d9ef">string</span>) []<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Middleware</span> {
+	<span style="color:#a6e22e">ms</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Middleware</span>, <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">defaults</span>))
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">defaults</span>) &gt; <span style="color:#ae81ff">0</span> {
+		<span style="color:#a6e22e">ms</span> = append(<span style="color:#a6e22e">ms</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">defaults</span><span style="color:#f92672">...</span>)
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">next</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">matchs</span>[<span style="color:#a6e22e">operation</span>]; <span style="color:#a6e22e">ok</span> {
+		<span style="color:#66d9ef">return</span> append(<span style="color:#a6e22e">ms</span>, <span style="color:#a6e22e">next</span><span style="color:#f92672">...</span>)
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">prefix</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">prefix</span> {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">HasPrefix</span>(<span style="color:#a6e22e">operation</span>, <span style="color:#a6e22e">prefix</span>) {
+			<span style="color:#66d9ef">return</span> append(<span style="color:#a6e22e">ms</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">matchs</span>[<span style="color:#a6e22e">prefix</span>]<span style="color:#f92672">...</span>)
+		}
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ms</span>
+}
+</code></pre></div><p>以optionnal方式定义的中间件存储m.defaults,通过matcher.Match给不同的路由匹配不同的中间件。最终加入到 middleware.Chain的调用链实现链式调用。</p>
+<h3 id="小结">小结</h3>
+<p>文本记录深入理解Kratos框架和Kratos Middleware，核心使用middleware.Chain的链式调用具有相同的签名的中间件函数。框架通过option的方式提供设置中间件， Matcher中间件匹配器匹配不同路由规则的中间件，来实现链式调用。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>kratos doc <a href="https://go-kratos.dev/docs/component/middleware/overview">https://go-kratos.dev/docs/component/middleware/overview</a></li>
+<li>kratos middleware pkg  <a href="https://github.com/go-kratos/kratos/blob/main/middleware/middleware.go">https://github.com/go-kratos/kratos/blob/main/middleware/middleware.go</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/02/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3kratosmiddlewar%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/02/gorilla-mux%E7%9A%84%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8%E5%92%8C%E5%B8%B8%E7%94%A8%E5%8A%9F%E8%83%BD/" aria-label="">
       
           Gorilla Mux的基础使用和常用功能
@@ -2077,206 +2292,6 @@ Server battle-svc
       <p>
         
           <a href="https://luckytking.github.io/2022/08/go%E8%AF%BB%E5%86%99csv%E6%96%87%E4%BB%B6/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/07/go%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" aria-label="">
-      
-          Go原子操作
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-07-23T22:51:37&#43;08:00">
-        
-   23, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <h3 id="原子操作">原子操作</h3>
-<blockquote>
-<p>原子操作即执行过程不能被中断的操作。在针对某个值的原子操作执行过程当值，cpu绝不会再去执行其他针对该值的操作，无论这些其他操作是否为原子操作。</p>
-</blockquote>
-<h3 id="go-atomic">go-atomic</h3>
-<p>查看Mutex、RWMutex的源码，底层是通过atomic包中的一些原子操作来实现。</p>
-<p>Go标准库 sync/atomic 提供了对基础类型 int32、int64、uint32、uint64、uintptr、Pointer（Add 方法不支持） 的原子级内存操作。其中包括：</p>
-<ul>
-<li>Add （给第一个参数地址中的值增加一个 delta 值）</li>
-<li>CompareAndSwap（判断相等即替换)）</li>
-<li>Swap（不需要比较旧值，直接替换，返回旧值）</li>
-<li>Load（方法会取出 addr 地址中的值）</li>
-<li>Store（ 方法会把一个值存入到指定的 addr 地址中）</li>
-</ul>
-<p>我们通过一个例子可以快速了解atomic封装的这些api</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;sync/atomic&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">x</span> <span style="color:#66d9ef">int32</span> = <span style="color:#ae81ff">0</span>
-
-	<span style="color:#75715e">//func AddInt32(addr *int32, delta int32) (new int32)
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">y</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">AddInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, int32(<span style="color:#ae81ff">1</span>))
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;x=%d,y=%d \n&#34;</span>, <span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>)
-	<span style="color:#75715e">//OutPut: x=1,y=1
-</span><span style="color:#75715e"></span>
-	<span style="color:#75715e">// func CompareAndSwapInt32(addr *int32, old, new int32) (swapped bool)
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">// addr 地址里的值是不是 old，如果不等于 old，就返回 false；如果等于 old，就把此地址的值替换成 new 值，返回 true
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">isCompare</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">CompareAndSwapInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, int32(<span style="color:#ae81ff">0</span>), int32(<span style="color:#ae81ff">2</span>))
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;isCompare=%v,x=%d  \n&#34;</span>, <span style="color:#a6e22e">isCompare</span>, <span style="color:#a6e22e">x</span>)
-	<span style="color:#75715e">//OutPut: isCompare=false,x=1
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">//不相等，故x还是1
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">isCompare2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">CompareAndSwapInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, int32(<span style="color:#ae81ff">1</span>), int32(<span style="color:#ae81ff">2</span>))
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;isCompare=%v,x=%d  \n&#34;</span>, <span style="color:#a6e22e">isCompare2</span>, <span style="color:#a6e22e">x</span>)
-	<span style="color:#75715e">//OutPut: isCompare=true,x=2
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">//相等，故x还是2
-</span><span style="color:#75715e"></span>
-	<span style="color:#75715e">//func SwapInt32(addr *int32, new int32) (old int32)
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">xOld</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">SwapInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, int32(<span style="color:#ae81ff">3</span>))
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;xOld=%d,x=%d  \n&#34;</span>, <span style="color:#a6e22e">xOld</span>, <span style="color:#a6e22e">x</span>)
-	<span style="color:#75715e">//OutPut: xOld=2,x=3
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">//不比较，故x替换3
-</span><span style="color:#75715e"></span>
-	<span style="color:#75715e">//func LoadInt32(addr *int32) (val int32)
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">vValue</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">LoadInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;vValue=%d \n&#34;</span>, <span style="color:#a6e22e">vValue</span>)
-	<span style="color:#75715e">//OutPut: xOld=2,x=3
-</span><span style="color:#75715e"></span>	<span style="color:#75715e">//获取x的值3
-</span><span style="color:#75715e"></span>
-	<span style="color:#75715e">//func StoreInt32(addr *int32, val int32)
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">StoreInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, <span style="color:#ae81ff">8</span>)
-	<span style="color:#a6e22e">vValue2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">LoadInt32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;vValue2=%d \n&#34;</span>, <span style="color:#a6e22e">vValue2</span>)
-	<span style="color:#75715e">//OutPut:vValue2=8 
-</span><span style="color:#75715e"></span>}
-</code></pre></div><h3 id="小试牛刀">小试牛刀</h3>
-<p>atomic 比较常见的类型 还提供了一个特殊的类型：Value，但是只支持  load、store。
-这里模拟一个场景：当配置变更后，期待其他goroutine可以收到通知和变更。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;sync&#34;</span>
-	<span style="color:#e6db74">&#34;sync/atomic&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-)
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Config</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">Network</span>      <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">Addr</span>         <span style="color:#66d9ef">string</span>
-	<span style="color:#a6e22e">ReadTimeout</span>  <span style="color:#66d9ef">int32</span>
-	<span style="color:#a6e22e">WriteTimeout</span> <span style="color:#66d9ef">int32</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">loadConfig</span>() <span style="color:#a6e22e">Config</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Config</span>{
-		<span style="color:#a6e22e">Network</span>:      <span style="color:#e6db74">&#34;redis&#34;</span>,
-		<span style="color:#a6e22e">Addr</span>:         <span style="color:#e6db74">&#34;127.0.0.1:6379&#34;</span>,
-		<span style="color:#a6e22e">ReadTimeout</span>:  <span style="color:#ae81ff">60</span>,
-		<span style="color:#a6e22e">WriteTimeout</span>: <span style="color:#ae81ff">60</span>,
-	}
-}
-
-<span style="color:#66d9ef">var</span> (
-	<span style="color:#a6e22e">done</span>   <span style="color:#66d9ef">bool</span>
-	<span style="color:#a6e22e">config</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">Value</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">loadConfig</span>())
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">cond</span> = <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">NewCond</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>{})
-	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">waitForLoad</span>(<span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">cond</span>)
-	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">waitForLoad</span>(<span style="color:#ae81ff">2</span>, <span style="color:#a6e22e">cond</span>)
-	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">beginLoad</span>(<span style="color:#a6e22e">cond</span>)
-	<span style="color:#66d9ef">select</span> {}
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">beginLoad</span>(<span style="color:#a6e22e">cond</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Cond</span>) {
-	<span style="color:#66d9ef">for</span> {
-		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">3</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
-		<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#a6e22e">loadConfig</span>())
-		<span style="color:#a6e22e">cond</span>.<span style="color:#a6e22e">Broadcast</span>()
-	}
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">waitForLoad</span>(<span style="color:#a6e22e">node</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">cond</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Cond</span>) {
-	<span style="color:#a6e22e">cond</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Lock</span>()
-	<span style="color:#66d9ef">for</span> {
-		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">done</span> {
-			<span style="color:#a6e22e">cond</span>.<span style="color:#a6e22e">Wait</span>()
-		}
-		<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Load</span>().(<span style="color:#a6e22e">Config</span>)
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;node: %d - redis config: %+v\n&#34;</span>, <span style="color:#a6e22e">node</span>, <span style="color:#a6e22e">c</span>)
-
-	}
-	<span style="color:#a6e22e">cond</span>.<span style="color:#a6e22e">L</span>.<span style="color:#a6e22e">Unlock</span>()
-}
-
-</code></pre></div><p>OutPut：</p>
-<pre tabindex="0"><code>node: 2 - redis config: {Network:redis Addr:127.0.0.1:6379 ReadTimeout:60 WriteTimeout:60}
-node: 1 - redis config: {Network:redis Addr:127.0.0.1:6379 ReadTimeout:60 WriteTimeout:60}
-</code></pre><h3 id="uber-goatomic">uber-go/atomic</h3>
-<p>uber-go/atomic对标准库进行进一步封装，采用面向对象的使用方式。
-这些类型包括 Bool、Duration、Error、Float64、Int32、Int64、String、Uint32、Uint64 等
-举个例子uint32的减法你可能是这么写的</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">AddUint32</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">x</span>, ^(<span style="color:#a6e22e">delta</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>))
-</code></pre></div><p>利用计算机补码的规则，把减法变成加法 。uber-go对它进行了封装</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">atom</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">Uint32</span>
-<span style="color:#a6e22e">atom</span>.<span style="color:#a6e22e">Store</span>(<span style="color:#ae81ff">10</span>)
-<span style="color:#a6e22e">atom</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#ae81ff">2</span>)
-<span style="color:#a6e22e">atom</span>.<span style="color:#a6e22e">CAS</span>(<span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">1</span>)
-</code></pre></div><h3 id="小结">小结</h3>
-<p>本文简要介绍原子操作和go-atomic，使用场景，以及第三库uber-go/atomic。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://github.com/uber-go/atomic">https://github.com/uber-go/atomic</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/07/go%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

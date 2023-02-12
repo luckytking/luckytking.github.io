@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>kratos middleware on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/kratos-middleware/</link>
+    <description>Recent content in kratos middleware on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 12 Feb 2023 16:10:45 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/kratos-middleware/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>深入了解KratosMiddlewar的实现原理</title>
+      <link>https://luckytking.github.io/2023/02/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3kratosmiddlewar%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</link>
+      <pubDate>Sun, 12 Feb 2023 16:10:45 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/02/%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3kratosmiddlewar%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</guid>
+      <description>&lt;p&gt;Kratos Middleware是Kratos的核心一个中间件层，它是Kratos架构的核心部分，负责处理所有微服务间的通信和数据流。本文将深入了解Kratos Middleware的工作原理，更好地理解和使用Kratos。&lt;/p&gt;
+&lt;h3 id=&#34;使用示例&#34;&gt;使用示例&lt;/h3&gt;
+&lt;p&gt;Kratos 内置了一系列的 middleware（中间件）用于处理 logging、 metrics 等通用场景,
+您也可以通过实现 Middleware 接口，开发自定义 middleware，进行通用的业务处理，比如用户登录鉴权等。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// http
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// 定义opts
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;opts&lt;/span&gt; = []&lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;ServerOption&lt;/span&gt;{
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt;(
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;recovery&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Recovery&lt;/span&gt;(), &lt;span style=&#34;color:#75715e&#34;&gt;// 把middleware按照需要的顺序加入
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#a6e22e&#34;&gt;tracing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Server&lt;/span&gt;(),
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;logging&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Server&lt;/span&gt;(),
+    ),
+}
+&lt;span style=&#34;color:#75715e&#34;&gt;// 创建server
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewServer&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;opts&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;自定义中间件的例子：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware1&lt;/span&gt;() &lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt; {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;handler&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}) (&lt;span style=&#34;color:#a6e22e&#34;&gt;reply&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;) {
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tr&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;ok&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;transport&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;FromServerContext&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;); &lt;span style=&#34;color:#a6e22e&#34;&gt;ok&lt;/span&gt; {
+                &lt;span style=&#34;color:#75715e&#34;&gt;// Do something on entering
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                &lt;span style=&#34;color:#66d9ef&#34;&gt;defer&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;() {
+                &lt;span style=&#34;color:#75715e&#34;&gt;// Do something on exiting
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                 }()
+            }
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;handler&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;)
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;链式调用&#34;&gt;链式调用&lt;/h3&gt;
+&lt;p&gt;Kratos Middleware是通过链式结构实现的，其中每一个中间件都代表一个独立的处理单元，可以在请求的生命周期中的不同阶段执行不同的操作，如请求前的预处理、请求后的后处理等。&lt;/p&gt;
+&lt;p&gt;每一个中间件都是一个函数，具有相同的签名：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Handler定义中间件调用的处理程序
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}) (&lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}, &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;再看看/go-kratos/kratos/blob/main/middleware/middleware包中Middleware和Chain的实现，Middleware 是HTTP/gRPC传输中间件。 Chain返回一个中间件，它指定endpoint.的链式处理程序。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Chain&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; len(&lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; &lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;--&lt;/span&gt; {
+			&lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;](&lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;)
+		}
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Example,以https://github.com/go-kratos/kratos/blob/main/middleware/middleware_test.go为例:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TestChain&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}) (&lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}, &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Log&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;reply&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt;
+	}
+
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;got&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Chain&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;test1Middleware&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;test2Middleware&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;test3Middleware&lt;/span&gt;)(&lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;)(&lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Background&lt;/span&gt;(), &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello kratos!&amp;#34;&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Errorf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;expect %v, got %v&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+        }
+  }
+  
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;test1Middleware&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;handler&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}) (&lt;span style=&#34;color:#a6e22e&#34;&gt;reply&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;) {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;test1 before&amp;#34;&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;i&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;reply&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;handler&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Println&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;test1 after&amp;#34;&lt;/span&gt;)
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+	}
+}  
+&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;篇幅限制&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;，&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;省略部分代码&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;OutPut&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;：&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;test1&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;before&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;test2&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;before&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;test3&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;before&lt;/span&gt;
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;middleware_test&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;14&lt;/span&gt;: &lt;span style=&#34;color:#a6e22e&#34;&gt;hello&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;kratos&lt;/span&gt;!
+&lt;span style=&#34;color:#a6e22e&#34;&gt;test3&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;after&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;test2&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;after&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;test1&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;after&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;调用过程&#34;&gt;调用过程&lt;/h3&gt;
+&lt;p&gt;对链式调用的使用有所了解后，接着来看Middleware 调用组织过程，大致归纳为：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;option方式配置中间件&lt;/li&gt;
+&lt;li&gt;url路由匹配中间件&lt;/li&gt;
+&lt;li&gt;组装中间件添加到调用链&lt;/li&gt;
+&lt;li&gt;注册到gorilla，其中gorilla实现net.hander，设置为服务路由中间件&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;以Transport.Server Http服务为例，重点关注middleware和router 。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Server is an HTTP server wrapper.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Server&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Server&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;matcher&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Matcher&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;mux&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Router&lt;/span&gt;
+	&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;
+}
+&lt;span style=&#34;color:#75715e&#34;&gt;// Matcher is a middleware matcher.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Matcher&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Use&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ms&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Add&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;selector&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;ms&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt;)
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Match&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;operation&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;) []&lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;Matcher是一个中间件匹配器，operation 为path，实现路由查找。&lt;/li&gt;
+&lt;li&gt;router 为gorilla.Mux, Http路由器和Url匹配器&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;一个完成的调用api-service:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;_Greeter_SayHello0_HTTP_Handler&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;srv&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;GreeterHTTPServer&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;HelloRequest&lt;/span&gt;
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;BindQuery&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;in&lt;/span&gt;); &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+			&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+		}
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;BindVars&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;in&lt;/span&gt;); &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+			&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+		}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;http&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;SetOperation&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/helloworld.v1.Greeter/SayHello&amp;#34;&lt;/span&gt;)
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;h&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;context&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}) (&lt;span style=&#34;color:#66d9ef&#34;&gt;interface&lt;/span&gt;{}, &lt;span style=&#34;color:#66d9ef&#34;&gt;error&lt;/span&gt;) {
+			&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;srv&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;SayHello&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.(&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;HelloRequest&lt;/span&gt;))
+		})
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;h&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;in&lt;/span&gt;)
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nil&lt;/span&gt; {
+			&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;
+		}
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;reply&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;out&lt;/span&gt;.(&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;HelloReply&lt;/span&gt;)
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ctx&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Result&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;reply&lt;/span&gt;)
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其中ctx.Middleware的实现是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;wrapper&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;h&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Handler&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tr&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;ok&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;transport&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;FromServerContext&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Context&lt;/span&gt;()); &lt;span style=&#34;color:#a6e22e&#34;&gt;ok&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Chain&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;srv&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Match&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;tr&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Operation&lt;/span&gt;())&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;)(&lt;span style=&#34;color:#a6e22e&#34;&gt;h&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Chain&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;srv&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Match&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;c&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;URL&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Path&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;)(&lt;span style=&#34;color:#a6e22e&#34;&gt;h&lt;/span&gt;)
+} 
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;matcher&lt;/span&gt;) &lt;span style=&#34;color:#a6e22e&#34;&gt;Match&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;operation&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;) []&lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;ms&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; make([]&lt;span style=&#34;color:#a6e22e&#34;&gt;middleware&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Middleware&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, len(&lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;defaults&lt;/span&gt;))
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; len(&lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;defaults&lt;/span&gt;) &amp;gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;ms&lt;/span&gt; = append(&lt;span style=&#34;color:#a6e22e&#34;&gt;ms&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;defaults&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;ok&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;matchs&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;operation&lt;/span&gt;]; &lt;span style=&#34;color:#a6e22e&#34;&gt;ok&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; append(&lt;span style=&#34;color:#a6e22e&#34;&gt;ms&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;)
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;_&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;prefix&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;range&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;prefix&lt;/span&gt; {
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;strings&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;HasPrefix&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;operation&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;prefix&lt;/span&gt;) {
+			&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; append(&lt;span style=&#34;color:#a6e22e&#34;&gt;ms&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;m&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;matchs&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;prefix&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;)
+		}
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ms&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;以optionnal方式定义的中间件存储m.defaults,通过matcher.Match给不同的路由匹配不同的中间件。最终加入到 middleware.Chain的调用链实现链式调用。&lt;/p&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;文本记录深入理解Kratos框架和Kratos Middleware，核心使用middleware.Chain的链式调用具有相同的签名的中间件函数。框架通过option的方式提供设置中间件， Matcher中间件匹配器匹配不同路由规则的中间件，来实现链式调用。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;kratos doc &lt;a href=&#34;https://go-kratos.dev/docs/component/middleware/overview&#34;&gt;https://go-kratos.dev/docs/component/middleware/overview&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;kratos middleware pkg  &lt;a href=&#34;https://github.com/go-kratos/kratos/blob/main/middleware/middleware.go&#34;&gt;https://github.com/go-kratos/kratos/blob/main/middleware/middleware.go&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
