@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>distributed task on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/distributed-task/</link>
+    <description>Recent content in distributed task on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 18 Feb 2023 21:37:06 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/distributed-task/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Go分布式任务队列Asynq入门</title>
+      <link>https://luckytking.github.io/2023/02/go%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97asynq%E5%85%A5%E9%97%A8/</link>
+      <pubDate>Sat, 18 Feb 2023 21:37:06 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/02/go%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97asynq%E5%85%A5%E9%97%A8/</guid>
+      <description>分布式任务任务调度与管理在微服务开发中是很有必要的。例如，当需要执行一些计算密集型或网络I/O密集型操作时，为了不影响主线程的性能，我们可以将这些任务放到后台异步执行。此外，异步任务处理还可以改善应用程序的可伸缩性和可靠性，因为它可以将任务分布到多个处理器上并允许任务的重试。
+Asynq 介绍  Asynq Simple, reliable, and efficient distributed task queue in Go
+ Asynq 是一个 Go 库，用于排队任务并与 worker 异步处理它们。它由Redis提供支持，旨在实现可扩展且易于上手。
+特性：
+ 保证至少执行一次任务 任务调度 失败任务的重试 工作人员崩溃时自动恢复任务 加权优先级队列 严格的优先队列 添加任务的延迟低，因为 Redis 中的写入速度很快 使用唯一选项对任务进行重复数据删除 允许每个任务超时和截止日期 允许聚合任务组以批处理多个连续操作 支持中间件的灵活处理程序接口 能够暂停队列以停止处理队列中的任务 定期任务 支持 Redis Cluster实现自动分片和高可用 支持 Redis Sentinels以实现高可用性 与Prometheus集成以收集和可视化队列指标 用于检查和远程控制队列和任务的Web UI CLI检查和远程控制队列和任务  总的来说:
+ 分布式任务队列：Asynq提供了一个任务队列，可以分布式地处理异步任务，使得任务可以在多个处理器之间分配。 可靠性：Asynq具有高可靠性，可以确保任务不会丢失或重复执行。 异常处理：Asynq提供了对任务异常的处理机制，以便在任务执行失败时进行重试或处理。 优先级和延迟任务：Asynq允许您为任务设置优先级和延迟执行，以便您可以控制任务的执行顺序。 Web UI和CLI：Asynq提供了一个易于使用的Web UI和CLI工具，可以方便地监控和管理异步任务。  本文主要记录Asynq的入门、基本使用和工作原理。
+安装 使用go get命令安装Asynq库
+go get -u github.com/hibiken/asynq工作原理 高级概述：
+  Client客户端将任务放入队列 Server服务器从队列中拉取任务并为每个任务启动一个工作协程 任务由多个worker同时处理   Client 创建异步任务 asynq.</description>
+    </item>
+    
+  </channel>
+</rss>
