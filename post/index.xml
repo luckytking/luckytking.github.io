@@ -6,7 +6,122 @@
     <description>Recent content in Posts on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 18 Feb 2023 21:37:06 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 25 Feb 2023 15:55:06 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Docker、Go、PostgreSQL如何修改时区</title>
+      <link>https://luckytking.github.io/2023/02/dockergopostgresql%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%97%B6%E5%8C%BA/</link>
+      <pubDate>Sat, 25 Feb 2023 15:55:06 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/02/dockergopostgresql%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%97%B6%E5%8C%BA/</guid>
+      <description>&lt;p&gt;本文主要介绍Docker、Go、PostgreSQL如何修改它们的时区。&lt;/p&gt;
+&lt;p&gt;首先需要知道一些基础概念:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Unix 时间戳 -是从1970年1月1日（UTC/GMT的午夜）开始所经过的秒数，不考虑闰秒。&lt;/li&gt;
+&lt;li&gt;UTC &amp;ndash;协调世界时，又称世界统一时间、世界标准时间、国际协调时间。&lt;/li&gt;
+&lt;li&gt;CST&amp;ndash;可视为中国、古巴的标准时间或美国、澳大利亚的中部时间。北京时间，也就是东八区时间。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;docker&#34;&gt;Docker&lt;/h3&gt;
+&lt;p&gt;Docker 作为部署和运行应用程序的环境，默认使用 UTC 作为其容器的时区，但我们可以通过设置环境变量来修改时区。&lt;/p&gt;
+&lt;p&gt;修改的方法&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在 Dockerfile 中添加以下行：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;ENV TZ=Asia/Shanghai&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;在 Kubernetes 中的 Pod 配置文件中，添加 env 字段，设置环境变量。Example:&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;containers&lt;/span&gt;:
+  - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-container&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;my-image&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;env&lt;/span&gt;:
+      - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TZ&lt;/span&gt;
+        &lt;span style=&#34;color:#f92672&#34;&gt;value&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Asia/Shanghai&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;验证在容器中使用 env 命令查看环境变量，例如&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;env
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出会有key为TZ，value为Asia/Shanghai表示成功&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;TZ&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;Asia/Shanghai
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;go&#34;&gt;Go&lt;/h3&gt;
+&lt;p&gt;在 Go 中修改时区需要使用标准库中的 time 包。我们可以通过FixedZone来修改时区。
+Example：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;time&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;utcZone&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;FixedZone&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;UTC&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;3600&lt;/span&gt;) &lt;span style=&#34;color:#75715e&#34;&gt;// UTC
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Local&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;utcZone&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;utcNow&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Now&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;utcDate&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Date&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;utcNow&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Year&lt;/span&gt;(), &lt;span style=&#34;color:#a6e22e&#34;&gt;utcNow&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Month&lt;/span&gt;(), &lt;span style=&#34;color:#a6e22e&#34;&gt;utcNow&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Day&lt;/span&gt;(), &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;utcNow&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Location&lt;/span&gt;())
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;UTC time: %s\n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;utcDate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;String&lt;/span&gt;())
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;UTC timestamp: %d\n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;utcDate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Unix&lt;/span&gt;())
+
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;cstZone&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;FixedZone&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;CST&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;3600&lt;/span&gt;) &lt;span style=&#34;color:#75715e&#34;&gt;// 东八
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Local&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;cstZone&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;cstNow&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Now&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;cstDate&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Date&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;cstNow&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Year&lt;/span&gt;(), &lt;span style=&#34;color:#a6e22e&#34;&gt;cstNow&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Month&lt;/span&gt;(), &lt;span style=&#34;color:#a6e22e&#34;&gt;cstNow&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Day&lt;/span&gt;(), &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;cstNow&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Location&lt;/span&gt;())
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;CST time: %s\n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;cstDate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;String&lt;/span&gt;())
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;CST timestamp: %d\n&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;cstDate&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Unix&lt;/span&gt;())
+}
+&lt;span style=&#34;color:#75715e&#34;&gt;//output
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//UTC time: 2023-02-25 00:00:00 +0000 UTC
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//UTC timestamp: 1677283200
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//CST time: 2023-02-25 00:00:00 +0800 CST
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//CST timestamp: 1677254400
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在上面的代码中，我们使用time.FixedZone分别设置UTC、上海时区，并获取当天零点的时间戳 _date。&lt;/p&gt;
+&lt;h3 id=&#34;postgresql&#34;&gt;PostgreSQL&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;在PostgreSQL系统内部，所有日期和时间都用全球统一时间UTC格式存储， 时间在发给客户前端前由数据库服务器根据TimeZone 配置参数声明的时区转换成本地时间&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;在 PostgreSQL 中，我们可以通过修改 postgresql.conf 文件来修改时区。
+以下是如何在 Docker运行 PostgreSQL 中修改时区的步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;拷贝dockers中的 postgresql.conf到宿主主机&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;sudo docker cp &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;your_docker_contariner_id&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;:/var/lib/postgresql/data/postgresql.conf /&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;your_work_space&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;修改配置&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;sudo vi /[your_work_space]/postgresql.conf
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;查找替换timezone为上海时区&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-conf&#34; data-lang=&#34;conf&#34;&gt;timezone = &#39;Asia/Shanghai&#39;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可以通过sql查找支持的时区：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;select&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;from&lt;/span&gt; pg_timezone_names;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;保存并覆盖dockers中配置&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;sudo docker cp /&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;your_work_space&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;/postgresql.conf &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;your_docker_contariner_id&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;:/var/lib/postgresql/data/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;4&#34;&gt;
+&lt;li&gt;重新容器&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;sudo docker restart [your_docker_contariner_id
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;现在，你的 PostgreSQL 数据库就使用了正确的时区。&lt;/p&gt;
+&lt;ol start=&#34;5&#34;&gt;
+&lt;li&gt;检查是否设置成功
+通过sql获取设置：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;select&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;from&lt;/span&gt; pg_db_role_setting;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;也可以查看数据库中表字段格式为TimestampTZ，Example
+修改前&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;2023-02-25 00:00:00 +0000 +00&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;修改后台&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;2023-02-25 08:00:00 +0000 +08&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;以上。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://yeasy.gitbook.io/docker_practice/image/dockerfile/env&#34;&gt; docker 修改Env&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.postgres.cn/docs/14/datatype-datetime.html&#34;&gt;postgres.cn/docs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://hjxlog.com/posts/20210902215616.html&#34;&gt; 博客dockers-postgre 修改TimeZone&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
     <item>
       <title>Go分布式任务队列Asynq入门</title>
       <link>https://luckytking.github.io/2023/02/go%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97asynq%E5%85%A5%E9%97%A8/</link>
