@@ -240,6 +240,264 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/03/go%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%BA%93robfig-cron%E4%B8%80%E4%BA%9B%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" aria-label="">
+      
+          Go定时任务库robfig Cron一些主要功能、实际应用场景
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-03-04T22:21:37&#43;08:00">
+        
+   4, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>github.com/robfig/cron/v3 是一个功能强大且易于使用的定时任务管理库。本文进一步介绍robfig/cron在定时任务一些主要功能、如何使用它以及一些实际应用场景的例子。主要包括</p>
+<ol>
+<li>添加任务方法AddJob</li>
+<li>指定执行时间</li>
+<li>动态添加和删除任务</li>
+<li>Option选项</li>
+<li>JobWrapper与DefaultWrapper</li>
+</ol>
+<h3 id="addjob添加任务">AddJob添加任务</h3>
+<p>Cron实例可以通过调用AddJob() 方法用于添加一个实现了 Job 接口的对象作为任务，Example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/robfig/cron/v3&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+)
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GreetingJob</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Name</span> <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">g</span> <span style="color:#a6e22e">GreetingJob</span>) <span style="color:#a6e22e">Run</span>() {
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Hi: &#34;</span>, <span style="color:#a6e22e">g</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#e6db74">&#34;now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>()
+	<span style="color:#a6e22e">entityID</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddJob</span>(<span style="color:#e6db74">&#34;@every 2s&#34;</span>, <span style="color:#a6e22e">GreetingJob</span>{<span style="color:#e6db74">&#34;Greeter&#34;</span>})
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;error : %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;entityID:&#34;</span>, <span style="color:#a6e22e">entityID</span>)
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Stop</span>()
+	<span style="color:#66d9ef">select</span> {}
+}
+
+<span style="color:#75715e">//output:
+</span><span style="color:#75715e">//entityID: 1
+</span><span style="color:#75715e">//Hi:  Greeter now: 2023-03-04 17:50:07.0169185 +0800 CST m=+1.716253301
+</span><span style="color:#75715e">//Hi:  Greeter now: 2023-03-04 17:50:09.0068064 +0800 CST m=+3.706141201
+</span></code></pre></div><p>此例中，GreetingJob实现了cron.Job 接口，cron实例调用AddJob，加入一个每2秒执行的任务，务并传递参数。</p>
+<h3 id="指定执行时间">指定执行时间</h3>
+<p>可以通过修改 cron 表达式来指定任务的执行时间。Example：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithSeconds</span>()) 
+<span style="color:#a6e22e">entityID</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;0 05 18 * * *&#34;</span>, <span style="color:#66d9ef">func</span>() {
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;hi now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
+})
+</code></pre></div><p>此例中，将在每天的傍晚18点5分执行指定的函数。</p>
+<h3 id="动态添加和删除任务">动态添加和删除任务</h3>
+<p>cron/v3 允许开发人员在运行时动态添加和删除任务。Example：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/robfig/cron/v3&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithSeconds</span>())
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Stop</span>()
+	<span style="color:#a6e22e">count</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+     <span style="color:#75715e">// 添加第一个任务
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">entityID1</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;*/2 * * * * *&#34;</span>, <span style="color:#66d9ef">func</span>() {
+		<span style="color:#a6e22e">count</span><span style="color:#f92672">++</span>
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Job1: &#34;</span>, <span style="color:#a6e22e">count</span>, <span style="color:#e6db74">&#34;now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
+	})
+	<span style="color:#a6e22e">must</span>(<span style="color:#a6e22e">err</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;entityID1:&#34;</span>, <span style="color:#a6e22e">entityID1</span>)
+     <span style="color:#75715e">// 等待 6 秒钟，让第一个任务执行3次
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">6</span>)
+    <span style="color:#75715e">// 添加第二个任务
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">entityID2</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;*/2 * * * * *&#34;</span>, <span style="color:#66d9ef">func</span>() {
+		<span style="color:#a6e22e">count</span><span style="color:#f92672">++</span>
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Job2: &#34;</span>, <span style="color:#a6e22e">count</span>, <span style="color:#e6db74">&#34;now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
+	})
+	<span style="color:#a6e22e">must</span>(<span style="color:#a6e22e">err</span>)
+     <span style="color:#75715e">// 等待 10秒钟，让两个任务交替执行几次
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>)
+     <span style="color:#75715e">// 删除第2个任务
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Remove</span>(<span style="color:#a6e22e">entityID2</span>)
+     <span style="color:#75715e">// 等待 10秒钟，发现只有任务1在执行了
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>)
+     <span style="color:#75715e">// 删除第2个任务
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Remove</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">EntryID</span>(<span style="color:#ae81ff">1</span>))
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;entityID2&#34;</span>, <span style="color:#a6e22e">entityID2</span>)
+    <span style="color:#75715e">//发现只有没有任务在执行了 
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">select</span> {}
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">must</span>(<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#a6e22e">err</span>))
+	}
+}
+
+</code></pre></div><h3 id="option选项">Option选项</h3>
+<p>Option 是一种用于配置 Cron 实例的结构体类型。Option 类型有多个可选字段，可用于配置定时任务的行为，上例中有使用到的WithSeconds。</p>
+<p>以下是 Option 类型的一些字段及其说明：</p>
+<ul>
+<li>WithSeconds()：在 cron 表达式中包含秒（0-59），默认为不包含秒。</li>
+<li>WithLocation()：设置时区，可以使用标准时区名称或时区偏移量。</li>
+<li>WithChain()：将多个函数连接成单个函数。</li>
+<li>WithParser()：指定 cron 表达式的解析器，默认为 StandardParser。</li>
+<li>WithLogger()：指定日志记录器，默认为 DefaultLogger。</li>
+</ul>
+<p>下面 WithLogger Option Cron Example：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/robfig/cron/v3&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(
+		<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithLogger</span>(
+			<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">VerbosePrintfLogger</span>(<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>, <span style="color:#e6db74">&#34;cron: &#34;</span>, <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">LstdFlags</span>))))
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;@every 1s&#34;</span>, <span style="color:#66d9ef">func</span>() {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;hello world&#34;</span>)
+	})
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Stop</span>()
+
+	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">3</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+}
+<span style="color:#75715e">//output:
+</span><span style="color:#75715e">//cron: 2023/03/04 21:31:17 start
+</span><span style="color:#75715e">//cron: 2023/03/04 21:31:17 schedule, now=2023-03-04T21:31:17+08:00, entry=1, next=2023-03-04T21:31:18+08:00
+</span><span style="color:#75715e">//cron: 2023/03/04 21:31:18 wake, now=2023-03-04T21:31:18+08:00
+</span><span style="color:#75715e">//cron: 2023/03/04 21:31:18 run, now=2023-03-04T21:31:18+08:00, entry=1, next=2023-03-04T21:31:19+08:00
+</span><span style="color:#75715e">//hello world
+</span></code></pre></div><p>上例中，调用cron.VerbosPrintfLogger()包装log.Logger，这个logger会详细记录cron内部的调度过程</p>
+<h3 id="jobwrapper与defaultwrapper">JobWrapper与DefaultWrapper</h3>
+<p>//NewChain返回一个由给定JobWrappers组成的Chain，类似中间件。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">JobWrapper</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">Job</span>) <span style="color:#a6e22e">Job</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Chain</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">wrappers</span> []<span style="color:#a6e22e">JobWrapper</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewChain</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">JobWrapper</span>) <span style="color:#a6e22e">Chain</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Chain</span>{<span style="color:#a6e22e">c</span>}
+}
+</code></pre></div><p>cron内置了 3 个用得比较多的JobWrapper</p>
+<ul>
+<li>Recover 捕获内部Job产生的 panic</li>
+<li>DelayIfStillRunning 序列化作业，延迟后续的运行直到前一个是完整的。</li>
+<li>SkipIfStillRunning 跳过Job的调用，如果之前的调用是仍在运行。 
+以Reover为例：</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/robfig/cron/v3&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(
+		<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithSeconds</span>(),
+		<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithChain</span>(
+			<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">Recover</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">DefaultLogger</span>),
+		),
+	)
+
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;@every 2s&#34;</span>, <span style="color:#66d9ef">func</span>() {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Start...&#34;</span>)
+		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;ohno....&#34;</span>))
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;End...&#34;</span>)
+	})
+
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Stop</span>()
+
+	<span style="color:#66d9ef">select</span> {}
+}
+</code></pre></div><p>output:</p>
+<pre tabindex="0"><code>Start...
+cron: 2023/03/04 21:59:32 panic, error=ohno...., stack=...
+goroutine 7 [running]:
+github.com/robfig/cron/v3.Recover.func1.1.1()
+	E:/gopath/pkg/mod/github.com/robfig/cron/v3@v3.0.1/chain.go:45 +0xa5
+panic({0x7370c0, 0x75b930})
+	...
+</code></pre><p>在上例中，使用 cron.Recover() 方法来捕获任务执行过程中的 panic，并记录日志。如果不进行 panic 捕获的话，程序将会因为 panic 而退出。需要注意的是，当使用 Recover() 方法时，不应该让任务函数返回一个 error，否则它将不会被正确地捕获。如果任务函数可能会返回 error，建议使用 Try() 方法进行捕获。</p>
+<p>以上。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://github.com/robfig/cron/v3">github.com/robfig/cron/v3</a></li>
+<li><a href="https://darjun.github.io/2020/06/25/godailylib/cron/">一篇讲的比较详细的Blog</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/03/go%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%BA%93robfig-cron%E4%B8%80%E4%BA%9B%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/10/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Bants/" aria-label="">
       
           Go开发常用第三方库之ants

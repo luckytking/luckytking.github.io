@@ -17,7 +17,7 @@
   },
   "name":"jefffff\u0027s Blog",
   "description":"",
-  "url":"https:\/\/luckytking.github.io\/tags\/crontab\/",
+  "url":"https:\/\/luckytking.github.io\/tags\/robfig\/cron\/",
   "keywords":"[]"
 }
 
@@ -33,10 +33,10 @@
 
 <meta property="og:description" content="">
 <meta property="og:type" content="website">
-<meta property="og:title" content="crontab">
-<meta name="twitter:title" content="crontab">
-<meta property="og:url" content="https://luckytking.github.io/tags/crontab/">
-<meta property="twitter:url" content="https://luckytking.github.io/tags/crontab/">
+<meta property="og:title" content="robfig/cron">
+<meta name="twitter:title" content="robfig/cron">
+<meta property="og:url" content="https://luckytking.github.io/tags/robfig/cron/">
+<meta property="twitter:url" content="https://luckytking.github.io/tags/robfig/cron/">
 <meta property="og:site_name" content="jefffff&#39;s Blog">
 <meta property="og:description" content="">
 <meta name="twitter:description" content="">
@@ -63,18 +63,18 @@
 
 
 
-    <title>crontab</title>
+    <title>robfig/cron</title>
 
     <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
     
-      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/tags/crontab/index.xml">
+      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/tags/robfig/cron/index.xml">
     
 
     
       <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
     
 
-    <link rel="canonical" href="https://luckytking.github.io/tags/crontab/">
+    <link rel="canonical" href="https://luckytking.github.io/tags/robfig/cron/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -471,134 +471,6 @@ panic({0x7370c0, 0x75b930})
       <p>
         
           <a href="https://luckytking.github.io/2023/03/go%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%BA%93robfig-cron%E4%B8%80%E4%BA%9B%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/07/go-corntab/" aria-label="">
-      
-          Go Corntab
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-07-17T18:44:07&#43;08:00">
-        
-   17, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文简要介绍golang 使用crontab实现定时任务。</p>
-<h3 id="linux-crontab">linux crontab</h3>
-<p>Linux crontab 是用来定期执行程序的命令。当安装完成操作系统之后，默认便会启动此任务调度命令</p>
-<p>命令语法：</p>
-<blockquote>
-</blockquote>
-<p>crontab [ -u user ] file</p>
-<p>crontab [ -u user ] { -l | -r | -e }</p>
-<pre tabindex="0"><code>*    *    *    *    *
--    -    -    -    -
-|    |    |    |    |
-|    |    |    |    +----- 星期中星期几 (0 - 6) (星期天 为0)
-|    |    |    +---------- 月份 (1 - 12) 
-|    |    +--------------- 一个月中的第几天 (1 - 31)
-|    +-------------------- 小时 (0 - 23)
-+------------------------- 分钟 (0 - 59)
-</code></pre><h3 id="go-cron">go cron</h3>
-<p>第三方包“github.com/robfig/cron”来创建 crontab，以实现定时任务</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/robfig/cron&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#66d9ef">var</span> (
-		<span style="color:#a6e22e">cronS</span> = <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>()
-		<span style="color:#a6e22e">spec</span>  = <span style="color:#e6db74">&#34;*/2 * * * * &#34;</span>
-		<span style="color:#a6e22e">count</span> = <span style="color:#ae81ff">0</span>
-	)
-
-	<span style="color:#a6e22e">entityID</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cronS</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#a6e22e">spec</span>, <span style="color:#66d9ef">func</span>() {
-		<span style="color:#a6e22e">count</span><span style="color:#f92672">++</span>
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;count: &#34;</span>, <span style="color:#a6e22e">count</span>,<span style="color:#e6db74">&#34;now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Unix</span>())
-	})
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;error : %v&#34;</span>, <span style="color:#a6e22e">err</span>)
-		<span style="color:#66d9ef">return</span>
-	}
-	<span style="color:#a6e22e">cronS</span>.<span style="color:#a6e22e">Start</span>()
-
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">entityID</span>)
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">cronS</span>.<span style="color:#a6e22e">Stop</span>()
-	<span style="color:#66d9ef">select</span> {}
-}
-
-</code></pre></div><p>go run main.go</p>
-<p>输出：</p>
-<pre tabindex="0"><code>count:  1 now: 1658053860
-count:  2 now: 1658053920
-count:  3 now: 1658053980
-count:  4 now: 1658054040
-count:  5 now: 1658054100
-
-</code></pre><p>可以看到每隔1分钟，执行一次Func，count++</p>
-<p>默认情况下标准 cron 规范解析（第一个字段是“分钟”)
-可以轻松选择进入秒字段。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">cronS</span> = <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithSeconds</span>())
-<span style="color:#75715e">//注意这里多了一个参数
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">spec</span>  = <span style="color:#e6db74">&#34;*/2 * * * * * &#34;</span>
-</code></pre></div><p>执行输出</p>
-<pre tabindex="0"><code>count:  1 now: 1658053640
-count:  2 now: 1658053642
-count:  3 now: 1658053644
-count:  4 now: 1658053646
-count:  5 now: 1658053648 
-
-</code></pre><p>可以看到每隔两秒执行一次</p>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/07/go-corntab/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
