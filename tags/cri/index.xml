@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CRI on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/cri/</link>
+    <description>Recent content in CRI on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 12 Mar 2023 17:24:41 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/cri/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CRI与使用crictl调试k8s节点</title>
+      <link>https://luckytking.github.io/2023/03/cri%E4%B8%8E%E4%BD%BF%E7%94%A8crictl%E8%B0%83%E8%AF%95k8s%E8%8A%82%E7%82%B9/</link>
+      <pubDate>Sun, 12 Mar 2023 17:24:41 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/03/cri%E4%B8%8E%E4%BD%BF%E7%94%A8crictl%E8%B0%83%E8%AF%95k8s%E8%8A%82%E7%82%B9/</guid>
+      <description>&lt;p&gt;在 Kubernetes 中，Kubelet 是在每个节点上运行的重要组件之一，它负责管理容器的生命周期。而 CRI（Container Runtime Interface）则是 Kubelet 用于与容器运行时进行通信的接口（如下图）。&lt;/p&gt;
+&lt;p&gt;CRI 采用了 ProtoBuffer 和 gPRC，规定 kubelet 该如何调用容器运行时去管理容器和镜像，Kubernetes 通过CRI可支持多种类型的OCI容器运行时，例如 docker、contained、CRI-O、runC、fraki和Kata Containers 等）。&lt;/p&gt;
+&lt;p&gt;为了方便用户进行容器运行时的调试工作，社区提供了 crictl 工具，用于与 CRI 接口进行交互，本文简要介绍如何使用 crictl 对 Kubernetes节点进行调试 。&lt;/p&gt;
+&lt;p&gt;kubelet-layout：&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/kubelet-layout.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;安装&#34;&gt;安装&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;你可以从 cri-tools &lt;a href=&#34;https://github.com/kubernetes-sigs/cri-tools/releases&#34;&gt;发布页面&lt;/a&gt; 下载一个压缩的 crictl 归档文件，用于几种不同的架构。 下载与你的 kubernetes 版本相对应的版本。 提取它并将其移动到系统路径上的某个位置，例如 /usr/local/bin/。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;查看版本，验证安装&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;crictl --version
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出例如如下，说明安装成功:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;crictl version v1.23.0 
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;查看或编辑配置&#34;&gt;查看或编辑配置&lt;/h4&gt;
+&lt;p&gt;要查看或编辑当前配置，请查看或编辑 /etc/crictl.yaml 的内容。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;cat /etc/crictl.yaml
+image-endpoint: unix:///var/run/image-cri-shim.sock
+runtime-endpoint: unix:///run/containerd/containerd.sock
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;调试节点&#34;&gt;调试节点&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;列出运行中的容器：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;crictl ps
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;例如我们列出k8s集群的所有容器，例如输出：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;CONTAINER           IMAGE               CREATED             STATE               NAME                      ATTEMPT             POD ID
+508e30da66ce7       7a71aca7b60fc       3 days ago          Running             calico-node               0                   e0ec650992997
+9daa288a68426       f822f80398b9a       3 days ago          Running             calico-typha              0                   f5c4bd6471941
+300d948e75019       f6bc1b780606f       3 days ago          Running             kube-controller-manager   1                   d5d681744a377
+1cfdc1a6726ae       0198979b7707e       3 days ago          Running             kube-scheduler            1                   eb6ff07ees98c
+3699c312c56f9       9e6a540eeeb62       3 days ago          Running             kube-proxy                0                   e8707140d12941
+4159d7ec37b29       5bc0062e9555c       3 days ago          Running             kube-apiserver            0                   22d043569737f
+8f56a047e8627      25f8c7f3da61c       3 days ago          Restart             etcd                      0                   458e540c798c8
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;本例中，etcd容器一直启动，可以使用以下命令获取容器的日志：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;crictl logs container-id
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如此，通过日志帮助定位问题。&lt;/p&gt;
+&lt;h4 id=&#34;更多命令&#34;&gt;更多命令&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;列出所有的pods&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;crictl pods
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;创建容器&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;crictl run --runtime&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;remote &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;  docker.io/library/nginx:latest &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;  nginx-container
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;ps:使用远程容器CRI来使用最新的 nginx 镜像启动nginx-container的容器。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;删除容器：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;crictl rm nginx-container
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;列出所有镜像：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;crictl images
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;帮助&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt; crictl -h 
+NAME:
+   crictl - client &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; CRI
+
+USAGE:
+   crictl &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;global options&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; command &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;command options&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;arguments...&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+
+VERSION:
+   v1.23.0
+
+COMMANDS:
+   attach              Attach to a running container
+   create              Create a new container
+   exec                Run a command in a running container
+   version             Display runtime version information
+   images, image, img  List images
+   inspect             Display the status of one or more containers
+   inspecti            Return the status of one or more images
+   imagefsinfo         Return image filesystem info
+   inspectp            Display the status of one or more pods
+   logs                Fetch the logs of a container
+   port-forward        Forward local port to a pod
+   ps                  List containers
+   pull                Pull an image from a registry
+   run                 Run a new container inside a sandbox
+   runp                Run a new pod
+   rm                  Remove one or more containers
+   rmi                 Remove one or more images
+   rmp                 Remove one or more pods
+   pods                List pods
+   start               Start one or more created containers
+   info                Display information of the container runtime
+   stop                Stop one or more running containers
+   stopp               Stop one or more running pods
+   update              Update one or more running containers
+   config              Get and set crictl client configuration options
+   stats               List container&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;s&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; resource usage statistics
+   completion          Output shell completion code
+   help, h             Shows a list of commands or help &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; one command
+
+GLOBAL OPTIONS:
+   --config value, -c value            Location of the client config file. If not specified and the default does not exist, the program&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;s directory is searched as well (default: &amp;#34;/etc/crictl.yaml&amp;#34;) [$CRI_CONFIG_FILE]
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;   --debug, -D                         Enable debug mode (default: false)
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;   --image-endpoint value, -i value    Endpoint of CRI image manager service (default: uses &amp;#39;&lt;/span&gt;runtime-endpoint&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt; setting&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;$IMAGE_SERVICE_ENDPOINT&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+   --runtime-endpoint value, -r value  Endpoint of CRI container runtime service &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;default: uses in order the first successful one of &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;unix:///var/run/dockershim.sock unix:///run/containerd/containerd.sock unix:///run/crio/crio.sock unix:///var/run/cri-dockerd.sock&lt;span style=&#34;color:#f92672&#34;&gt;])&lt;/span&gt;. Default is now deprecated and the endpoint should be set instead. &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;$CONTAINER_RUNTIME_ENDPOINT&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+   --timeout value, -t value           Timeout of connecting to the server in seconds &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;e.g. 2s, 20s.&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;. &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; or less is set to default &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;default: 2s&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+   --help, -h                          show help &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;default: false&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+   --version, -v                       print the version &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;default: false&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;以上。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://kubernetes.io/zh-cn/docs/tasks/debug/debug-cluster/crictl/&#34;&gt;kubernetes.io 使用 crictl 对 Kubernetes 节点进行调试&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;%C2%A0https://item.jd.com/13140598.html&#34;&gt;《Kubernetes进阶实战-第2版》CRI 与OCI &lt;/a&gt;
+ &lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
