@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Proxy Mirror on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/proxy-mirror/</link>
+    <description>Recent content in Proxy Mirror on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 19 Mar 2023 16:09:13 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/proxy-mirror/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Gor和ApisixProxyMirror实现捕获复制流量</title>
+      <link>https://luckytking.github.io/2023/03/gor%E5%92%8Capisixproxymirror%E5%AE%9E%E7%8E%B0%E6%8D%95%E8%8E%B7%E5%A4%8D%E5%88%B6%E6%B5%81%E9%87%8F/</link>
+      <pubDate>Sun, 19 Mar 2023 16:09:13 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/03/gor%E5%92%8Capisixproxymirror%E5%AE%9E%E7%8E%B0%E6%8D%95%E8%8E%B7%E5%A4%8D%E5%88%B6%E6%B5%81%E9%87%8F/</guid>
+      <description>&lt;p&gt;在上一篇  &lt;a href=&#34;https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/&#34;&gt;Go网络抓包、引流工具GoReplay&lt;/a&gt; 介绍了Gor的一些基础和实际开发中对 HTTP 流量进行复制，以用于测试、性能监测等用途。而Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。结合使用 Gor 和 Apisix 可以轻松地实现流量复制，并将其应用于各种场景中。&lt;/p&gt;
+&lt;p&gt;本篇文章将介绍如何使用 Gor 和 Apisix 实现流量复制，具体包括以下几个部分：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;测试环境介绍&lt;/li&gt;
+&lt;li&gt;安装和配置 Gor&lt;/li&gt;
+&lt;li&gt;安装和配置 Apisix&lt;/li&gt;
+&lt;li&gt;配置 Apisix 的 proxy-mirror 插件&lt;/li&gt;
+&lt;li&gt;测试流量复制&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;测试环境介绍&#34;&gt;测试环境介绍&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;OS: 两台 Ubuntu 虚拟机（Gateway、Node）
+&lt;blockquote&gt;
+&lt;p&gt;a.  Gateway 安装 ApiSix&lt;/p&gt;
+&lt;p&gt;b.  Node 安装节点服务&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;Docker &amp;amp; DockerCompose&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;安装和配置-gor&#34;&gt;安装和配置 Gor&lt;/h3&gt;
+&lt;p&gt;首先，需要在Node上安装 Gor 工具。可以从 Gor 的&lt;a href=&#34;https://apisix.apache.org/zh/docs/apisix/installation-guide/&#34;&gt;官网下载&lt;/a&gt;相应的二进制文件，然后将其解压到服务器上即可。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# tar xvf gor_1.3.3_x64.tar.gz&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# cp gor /usr/local/bin/gor&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# sudo chmod +x /usr/local/bin/gor&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;安装完成后，可以使用以下命令启动 Gor：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# gor version&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;输出&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# Version:1.3.0 
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;安装和配置-apisix&#34;&gt;安装和配置 Apisix&lt;/h3&gt;
+&lt;p&gt;ApiSix: 这里使用 DockerCompose安装&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;git clone &lt;a href=&#34;https://github.com/apache/apisix-docker.git&#34;&gt;https://github.com/apache/apisix-docker.git&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;cd apisix-docker/example&lt;/p&gt;
+&lt;p&gt;docker-compose up -d&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;这个命令会启动 Apisix 并监听在本地的 80 端口。&lt;/p&gt;
+&lt;h3 id=&#34;配置-apisix-的-proxy-mirror-插件&#34;&gt;配置 Apisix 的 proxy-mirror 插件&lt;/h3&gt;
+&lt;p&gt;Apisix 的 proxy-mirror 插件可以用于流量复制。
+增加一个路由hello-proxy-mirror, Upstream为Node主机的服务A(端口9696)，流量复制到Node主机的服务B(端口9797)，其中&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;host 为 指定镜像服务地址&lt;/li&gt;
+&lt;li&gt;sample_ratio 镜像请求采样率，本例中为1，表示全量复制&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;uri&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/hello&amp;#34;&lt;/span&gt;,
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello-proxy-mirror&amp;#34;&lt;/span&gt;,
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;methods&amp;#34;&lt;/span&gt;: [
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;GET&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;POST&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;PUT&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;DELETE&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;PATCH&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;HEAD&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OPTIONS&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;CONNECT&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;TRACE&amp;#34;&lt;/span&gt;
+  ],
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;plugins&amp;#34;&lt;/span&gt;: {
+    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;proxy-mirror&amp;#34;&lt;/span&gt;: {
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;disable&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;host&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;http://192.168.1.101:9797&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;sample_ratio&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+    }
+  },
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;upstream&amp;#34;&lt;/span&gt;: {
+    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;nodes&amp;#34;&lt;/span&gt;: [
+      {
+        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;host&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;192.168.1.101&amp;#34;&lt;/span&gt;,
+        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;port&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;9696&lt;/span&gt;,
+        &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;weight&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+      }
+    ],
+    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;timeout&amp;#34;&lt;/span&gt;: {
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;connect&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;send&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;read&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;
+    },
+    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;type&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;roundrobin&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;scheme&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;http&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;pass_host&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pass&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;keepalive_pool&amp;#34;&lt;/span&gt;: {
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;idle_timeout&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;60&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;requests&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1000&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;size&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;320&lt;/span&gt;
+    }
+  },
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;status&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这个配置会开启 proxy-mirror 插件，并将其配置为将流量发送到本地的 8080 端口，即 Gor 监听的地址。&lt;/p&gt;
+&lt;h3 id=&#34;测试流量复制&#34;&gt;测试流量复制&lt;/h3&gt;
+&lt;p&gt;接着可开始测试流量复制。&lt;/p&gt;
+&lt;h4 id=&#34;启动-http-服务a监听9696端口&#34;&gt;启动 HTTP 服务A监听9696端口：&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;python3 -m http.server &lt;span style=&#34;color:#ae81ff&#34;&gt;9696&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;正常启动输出&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Serving HTTP on 0.0.0.0 port 9696 (http://0.0.0.0:9696/) ...
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;启动-镜像服务b监听9797端口&#34;&gt;启动 镜像服务B监听9797端口：&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;python3 -m http.server &lt;span style=&#34;color:#ae81ff&#34;&gt;9797&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;正常启动输出&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Serving HTTP on 0.0.0.0 port 9797 (http://0.0.0.0:9797/) ...
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;启动-gor-监听在本地的-9797-端口&#34;&gt;启动 Gor 监听在本地的 9797 端口&lt;/h4&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;sudo gor --input-raw :9797 --output-stdout  
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;此命令将监听镜像服务B端口9797， 将 HTTP 流量输出到控制台&lt;/p&gt;
+&lt;p&gt;接着，curl测试&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-curl&#34; data-lang=&#34;curl&#34;&gt;curl http://192.168.1.100:80/hello -i
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;输出&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;HTTP/1.1 404 File not found
+Content-Type: text/html;charset=utf-8
+Content-Length: 469
+Connection: keep-alive
+Date: Sun, 19 Mar 2023 06:55:42 GMT
+Server: APISIX/3.2.0
+
+&amp;lt;!DOCTYPE HTML PUBLIC &amp;quot;-//W3C//DTD HTML 4.01//EN&amp;quot;
+        &amp;quot;http://www.w3.org/TR/html4/strict.dtd&amp;quot;&amp;gt;
+&amp;lt;html&amp;gt;
+    &amp;lt;head&amp;gt;
+        &amp;lt;meta http-equiv=&amp;quot;Content-Type&amp;quot; content=&amp;quot;text/html;charset=utf-8&amp;quot;&amp;gt;
+        &amp;lt;title&amp;gt;Error response&amp;lt;/title&amp;gt;
+    &amp;lt;/head&amp;gt;
+    &amp;lt;body&amp;gt;
+        &amp;lt;h1&amp;gt;Error response&amp;lt;/h1&amp;gt;
+        &amp;lt;p&amp;gt;Error code: 404&amp;lt;/p&amp;gt;
+        &amp;lt;p&amp;gt;Message: File not found.&amp;lt;/p&amp;gt;
+        &amp;lt;p&amp;gt;Error code explanation: HTTPStatus.NOT_FOUND - Nothing matches the given URI.&amp;lt;/p&amp;gt;
+    &amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;测试会发送一个 HTTP 请求到Apisix开放的Http端口80，可以到达下游服务（Node主机的ServerA 9696端口），输出如下：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;192.168.1.100 - - [19/Mar/2023 06:47:44] code 404, message File not found
+192.168.1.100 - - [19/Mar/2023 06:47:44] &amp;quot;GET /hello HTTP/1.1&amp;quot; 404 -
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;而且，ApiSix Proxy Mirror复制Http请求到端口 9797的镜像服务， 输出如下:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;192.168.1.100 - - [19/Mar/2023 06:49:07] code 404, message File not found
+192.168.1.100 - - [19/Mar/2023 06:49:07] &amp;quot;GET /hello HTTP/1.1&amp;quot; 404 -
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可见和目标服务的的完全一致。 
+接着，观察Gor是否正常记录http请求，正常输出如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; af0c2645c0a801c7399d6efb &lt;span style=&#34;color:#ae81ff&#34;&gt;1679212462567906772&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+GET /hello HTTP/1.1
+Host: 192.168.1.100
+Connection: close
+User-Agent: curl/7.64.1
+Accept: */*
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;说明Gor已经成功从镜像服务捕获流量。
+再结合使用Gor的流量回放功能可以应用于例如测试、性能监测等场景。 
+以上。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://apisix.apache.org/zh/docs/apisix/getting-started&#34;&gt;ApiSix Wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://625a9090d04b9a6953165811--2-11-old-docs-apache-apisix.netlify.app/zh/docs/apisix/plugins/proxy-mirror&#34;&gt;Proxy Mirror&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/&#34;&gt;go网络抓包引流工具 &lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

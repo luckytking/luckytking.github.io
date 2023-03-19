@@ -238,6 +238,214 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/03/gor%E5%92%8Capisixproxymirror%E5%AE%9E%E7%8E%B0%E6%8D%95%E8%8E%B7%E5%A4%8D%E5%88%B6%E6%B5%81%E9%87%8F/" aria-label="">
+      
+          Gor和ApisixProxyMirror实现捕获复制流量
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-03-19T16:09:13&#43;08:00">
+        
+   19, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e8%bd%af%e4%bb%b6%e6%b5%8b%e8%af%95">软件测试</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>在上一篇  <a href="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/">Go网络抓包、引流工具GoReplay</a> 介绍了Gor的一些基础和实际开发中对 HTTP 流量进行复制，以用于测试、性能监测等用途。而Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。结合使用 Gor 和 Apisix 可以轻松地实现流量复制，并将其应用于各种场景中。</p>
+<p>本篇文章将介绍如何使用 Gor 和 Apisix 实现流量复制，具体包括以下几个部分：</p>
+<ol>
+<li>测试环境介绍</li>
+<li>安装和配置 Gor</li>
+<li>安装和配置 Apisix</li>
+<li>配置 Apisix 的 proxy-mirror 插件</li>
+<li>测试流量复制</li>
+</ol>
+<h3 id="测试环境介绍">测试环境介绍</h3>
+<ol>
+<li>OS: 两台 Ubuntu 虚拟机（Gateway、Node）
+<blockquote>
+<p>a.  Gateway 安装 ApiSix</p>
+<p>b.  Node 安装节点服务</p>
+</blockquote>
+</li>
+<li>Docker &amp; DockerCompose</li>
+</ol>
+<h3 id="安装和配置-gor">安装和配置 Gor</h3>
+<p>首先，需要在Node上安装 Gor 工具。可以从 Gor 的<a href="https://apisix.apache.org/zh/docs/apisix/installation-guide/">官网下载</a>相应的二进制文件，然后将其解压到服务器上即可。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># tar xvf gor_1.3.3_x64.tar.gz</span>
+<span style="color:#75715e"># cp gor /usr/local/bin/gor</span>
+<span style="color:#75715e"># sudo chmod +x /usr/local/bin/gor</span>
+</code></pre></div><p>安装完成后，可以使用以下命令启动 Gor：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># gor version</span>
+</code></pre></div><p>输出</p>
+<pre tabindex="0"><code># Version:1.3.0 
+</code></pre><h3 id="安装和配置-apisix">安装和配置 Apisix</h3>
+<p>ApiSix: 这里使用 DockerCompose安装</p>
+<blockquote>
+<p>git clone <a href="https://github.com/apache/apisix-docker.git">https://github.com/apache/apisix-docker.git</a></p>
+<p>cd apisix-docker/example</p>
+<p>docker-compose up -d</p>
+</blockquote>
+<p>这个命令会启动 Apisix 并监听在本地的 80 端口。</p>
+<h3 id="配置-apisix-的-proxy-mirror-插件">配置 Apisix 的 proxy-mirror 插件</h3>
+<p>Apisix 的 proxy-mirror 插件可以用于流量复制。
+增加一个路由hello-proxy-mirror, Upstream为Node主机的服务A(端口9696)，流量复制到Node主机的服务B(端口9797)，其中</p>
+<ol>
+<li>host 为 指定镜像服务地址</li>
+<li>sample_ratio 镜像请求采样率，本例中为1，表示全量复制</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="color:#f92672">&#34;uri&#34;</span>: <span style="color:#e6db74">&#34;/hello&#34;</span>,
+  <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;hello-proxy-mirror&#34;</span>,
+  <span style="color:#f92672">&#34;methods&#34;</span>: [
+    <span style="color:#e6db74">&#34;GET&#34;</span>,
+    <span style="color:#e6db74">&#34;POST&#34;</span>,
+    <span style="color:#e6db74">&#34;PUT&#34;</span>,
+    <span style="color:#e6db74">&#34;DELETE&#34;</span>,
+    <span style="color:#e6db74">&#34;PATCH&#34;</span>,
+    <span style="color:#e6db74">&#34;HEAD&#34;</span>,
+    <span style="color:#e6db74">&#34;OPTIONS&#34;</span>,
+    <span style="color:#e6db74">&#34;CONNECT&#34;</span>,
+    <span style="color:#e6db74">&#34;TRACE&#34;</span>
+  ],
+  <span style="color:#f92672">&#34;plugins&#34;</span>: {
+    <span style="color:#f92672">&#34;proxy-mirror&#34;</span>: {
+      <span style="color:#f92672">&#34;disable&#34;</span>: <span style="color:#66d9ef">false</span>,
+      <span style="color:#f92672">&#34;host&#34;</span>: <span style="color:#e6db74">&#34;http://192.168.1.101:9797&#34;</span>,
+      <span style="color:#f92672">&#34;sample_ratio&#34;</span>: <span style="color:#ae81ff">1</span>
+    }
+  },
+  <span style="color:#f92672">&#34;upstream&#34;</span>: {
+    <span style="color:#f92672">&#34;nodes&#34;</span>: [
+      {
+        <span style="color:#f92672">&#34;host&#34;</span>: <span style="color:#e6db74">&#34;192.168.1.101&#34;</span>,
+        <span style="color:#f92672">&#34;port&#34;</span>: <span style="color:#ae81ff">9696</span>,
+        <span style="color:#f92672">&#34;weight&#34;</span>: <span style="color:#ae81ff">1</span>
+      }
+    ],
+    <span style="color:#f92672">&#34;timeout&#34;</span>: {
+      <span style="color:#f92672">&#34;connect&#34;</span>: <span style="color:#ae81ff">6</span>,
+      <span style="color:#f92672">&#34;send&#34;</span>: <span style="color:#ae81ff">6</span>,
+      <span style="color:#f92672">&#34;read&#34;</span>: <span style="color:#ae81ff">6</span>
+    },
+    <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;roundrobin&#34;</span>,
+    <span style="color:#f92672">&#34;scheme&#34;</span>: <span style="color:#e6db74">&#34;http&#34;</span>,
+    <span style="color:#f92672">&#34;pass_host&#34;</span>: <span style="color:#e6db74">&#34;pass&#34;</span>,
+    <span style="color:#f92672">&#34;keepalive_pool&#34;</span>: {
+      <span style="color:#f92672">&#34;idle_timeout&#34;</span>: <span style="color:#ae81ff">60</span>,
+      <span style="color:#f92672">&#34;requests&#34;</span>: <span style="color:#ae81ff">1000</span>,
+      <span style="color:#f92672">&#34;size&#34;</span>: <span style="color:#ae81ff">320</span>
+    }
+  },
+  <span style="color:#f92672">&#34;status&#34;</span>: <span style="color:#ae81ff">1</span>
+}
+</code></pre></div><p>这个配置会开启 proxy-mirror 插件，并将其配置为将流量发送到本地的 8080 端口，即 Gor 监听的地址。</p>
+<h3 id="测试流量复制">测试流量复制</h3>
+<p>接着可开始测试流量复制。</p>
+<h4 id="启动-http-服务a监听9696端口">启动 HTTP 服务A监听9696端口：</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">python3 -m http.server <span style="color:#ae81ff">9696</span>
+</code></pre></div><p>正常启动输出</p>
+<pre tabindex="0"><code>Serving HTTP on 0.0.0.0 port 9696 (http://0.0.0.0:9696/) ...
+</code></pre><h4 id="启动-镜像服务b监听9797端口">启动 镜像服务B监听9797端口：</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">python3 -m http.server <span style="color:#ae81ff">9797</span>
+</code></pre></div><p>正常启动输出</p>
+<pre tabindex="0"><code>Serving HTTP on 0.0.0.0 port 9797 (http://0.0.0.0:9797/) ...
+</code></pre><h4 id="启动-gor-监听在本地的-9797-端口">启动 Gor 监听在本地的 9797 端口</h4>
+<pre tabindex="0"><code>sudo gor --input-raw :9797 --output-stdout  
+</code></pre><p>此命令将监听镜像服务B端口9797， 将 HTTP 流量输出到控制台</p>
+<p>接着，curl测试</p>
+<pre tabindex="0"><code class="language-curl" data-lang="curl">curl http://192.168.1.100:80/hello -i
+</code></pre><p>输出</p>
+<pre tabindex="0"><code>HTTP/1.1 404 File not found
+Content-Type: text/html;charset=utf-8
+Content-Length: 469
+Connection: keep-alive
+Date: Sun, 19 Mar 2023 06:55:42 GMT
+Server: APISIX/3.2.0
+
+&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;
+        &quot;http://www.w3.org/TR/html4/strict.dtd&quot;&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html;charset=utf-8&quot;&gt;
+        &lt;title&gt;Error response&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Error response&lt;/h1&gt;
+        &lt;p&gt;Error code: 404&lt;/p&gt;
+        &lt;p&gt;Message: File not found.&lt;/p&gt;
+        &lt;p&gt;Error code explanation: HTTPStatus.NOT_FOUND - Nothing matches the given URI.&lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre><p>测试会发送一个 HTTP 请求到Apisix开放的Http端口80，可以到达下游服务（Node主机的ServerA 9696端口），输出如下：</p>
+<pre tabindex="0"><code>192.168.1.100 - - [19/Mar/2023 06:47:44] code 404, message File not found
+192.168.1.100 - - [19/Mar/2023 06:47:44] &quot;GET /hello HTTP/1.1&quot; 404 -
+</code></pre><p>而且，ApiSix Proxy Mirror复制Http请求到端口 9797的镜像服务， 输出如下:</p>
+<pre tabindex="0"><code>192.168.1.100 - - [19/Mar/2023 06:49:07] code 404, message File not found
+192.168.1.100 - - [19/Mar/2023 06:49:07] &quot;GET /hello HTTP/1.1&quot; 404 -
+</code></pre><p>可见和目标服务的的完全一致。 
+接着，观察Gor是否正常记录http请求，正常输出如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#ae81ff">1</span> af0c2645c0a801c7399d6efb <span style="color:#ae81ff">1679212462567906772</span> <span style="color:#ae81ff">0</span>
+GET /hello HTTP/1.1
+Host: 192.168.1.100
+Connection: close
+User-Agent: curl/7.64.1
+Accept: */*
+</code></pre></div><p>说明Gor已经成功从镜像服务捕获流量。
+再结合使用Gor的流量回放功能可以应用于例如测试、性能监测等场景。 
+以上。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://apisix.apache.org/zh/docs/apisix/getting-started">ApiSix Wiki</a></li>
+<li><a href="https://625a9090d04b9a6953165811--2-11-old-docs-apache-apisix.netlify.app/zh/docs/apisix/plugins/proxy-mirror">Proxy Mirror</a></li>
+<li><a href="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/">go网络抓包引流工具 </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/03/gor%E5%92%8Capisixproxymirror%E5%AE%9E%E7%8E%B0%E6%8D%95%E8%8E%B7%E5%A4%8D%E5%88%B6%E6%B5%81%E9%87%8F/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/03/cri%E4%B8%8E%E4%BD%BF%E7%94%A8crictl%E8%B0%83%E8%AF%95k8s%E8%8A%82%E7%82%B9/" aria-label="">
       
           CRI与使用crictl调试k8s节点
@@ -1783,186 +1991,6 @@ jeffffff@ubuntu1~$
       <p>
         
           <a href="https://luckytking.github.io/2022/12/ssh%E5%85%8D%E5%AF%86%E7%99%BB%E5%85%A5ubuntu/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/12/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D/" aria-label="">
-      
-          Go浅拷贝与深拷贝
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-12-04T16:44:31&#43;08:00">
-        
-   4, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要介绍Go实现浅拷贝和深拷贝，以及工具库mohae/deepcopy。</p>
-<h3 id="定义">定义</h3>
-<blockquote>
-<p>浅拷贝是按位拷贝对象，它会创建一个新对象，这个对象有着原始对象属性值的一份精确拷贝。如果属性是基本类型，拷贝的就是基本类型的值；如果属性是内存地址（引用类型），拷贝的就是内存地址 ，因此如果其中一个对象改变了这个地址，就会影响到另一个对象。即默认拷贝构造函数只是对对象进行浅拷贝复制(逐个成员依次拷贝)，即只复制对象空间而不复制资源</p>
-</blockquote>
-<blockquote>
-<p>深拷贝是指源对象与拷贝对象互相独立，其中任何一个对象的改动都不会对另外一个对象造成影响。比较典型的就是Value（值）对象，如预定义类型Int32，Double，以及结构（struct），枚举（Enum）等</p>
-</blockquote>
-<h3 id="浅拷贝">浅拷贝</h3>
-<p>go使用<strong>copy</strong>内置函数将源片中的元素复制到目标切片,如果拷贝的
-结构中不包含指针是没问题，否则则数据源和拷贝之间对应指针会共同指向同一块内存。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">shallowCopyReference</span>() {
-	<span style="color:#a6e22e">brazil</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>{{<span style="color:#e6db74">&#34;Neymar&#34;</span>}, {<span style="color:#e6db74">&#34;Messi&#34;</span>}}
-	<span style="color:#a6e22e">argentina</span> <span style="color:#f92672">:=</span> make([]<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>, len(<span style="color:#a6e22e">brazil</span>))
-	copy(<span style="color:#a6e22e">argentina</span>, <span style="color:#a6e22e">brazil</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%p, %p\n&#34;</span>, <span style="color:#a6e22e">brazil</span>, <span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%p, %p\n&#34;</span>, <span style="color:#a6e22e">argentina</span>, <span style="color:#a6e22e">argentina</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;Anthony&#34;</span>
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%p, %v, %p\n&#34;</span>, <span style="color:#a6e22e">brazil</span>, <span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%p, %v, %p\n&#34;</span>, <span style="color:#a6e22e">argentina</span>, <span style="color:#a6e22e">argentina</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>[<span style="color:#ae81ff">0</span>])
-}
-<span style="color:#75715e">//output
-</span><span style="color:#75715e"></span><span style="color:#ae81ff">0xc0000412e0</span>, <span style="color:#ae81ff">0xc0000412f0</span>
-<span style="color:#ae81ff">0xc000041310</span>, <span style="color:#ae81ff">0xc0000412f0</span>
-<span style="color:#ae81ff">0xc0000412e0</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc0000412f0</span>
-<span style="color:#ae81ff">0xc000041310</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc0000412f0</span> 
-</code></pre></div><p>如上，修改了src（拷贝原始结构）的指针对象，dst（拷贝目标结构）的值也被改动了，显然是不行的。</p>
-<h3 id="深拷贝">深拷贝</h3>
-<h4 id="方法一gobjson-序列化成字节序列再反序列化生成克隆对象">方法一：gob、json 序列化成字节序列再反序列化生成克隆对象</h4>
-<ul>
-<li>gob序列化</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepCopyByGobExample</span>() {
-	<span style="color:#a6e22e">players</span> <span style="color:#f92672">:=</span> append([]<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>{}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Neymar&#34;</span>}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Messi&#34;</span>})
-	<span style="color:#a6e22e">brazil</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{<span style="color:#a6e22e">Players</span>: <span style="color:#a6e22e">players</span>}
-	<span style="color:#a6e22e">argentina</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{}
-	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">deepCopyByGob</span>(<span style="color:#a6e22e">brazil</span>, <span style="color:#a6e22e">argentina</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;deepcopy error:&#34;</span>, <span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;Anthony&#34;</span>
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepCopyByGob</span>(<span style="color:#a6e22e">dst</span>, <span style="color:#a6e22e">src</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Team</span>) <span style="color:#66d9ef">error</span> {
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">buf</span> <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Buffer</span>
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gob</span>.<span style="color:#a6e22e">NewEncoder</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">buf</span>).<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">src</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	}
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">gob</span>.<span style="color:#a6e22e">NewDecoder</span>(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBuffer</span>(<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">Bytes</span>())).<span style="color:#a6e22e">Decode</span>(<span style="color:#a6e22e">dst</span>)
-}
-<span style="color:#75715e">//output
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">brazil</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000184ff0</span>
-<span style="color:#a6e22e">argentina</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000185330</span>
-<span style="color:#a6e22e">brazil</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc000184ff0</span>
-<span style="color:#a6e22e">argentina</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000184ff0</span> 
-</code></pre></div><ul>
-<li>json序列化</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepcopyByJsonExample</span>() {
-	<span style="color:#a6e22e">players</span> <span style="color:#f92672">:=</span> append([]<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>{}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Neymar&#34;</span>}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Messi&#34;</span>})
-	<span style="color:#a6e22e">brazil</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{<span style="color:#a6e22e">Players</span>: <span style="color:#a6e22e">players</span>}
-	<span style="color:#a6e22e">argentina</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{}
-	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">deepCopyByJson</span>(<span style="color:#a6e22e">brazil</span>, <span style="color:#a6e22e">argentina</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;deepcopy error:&#34;</span>, <span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;Anthony&#34;</span>
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepCopyByJson</span>(<span style="color:#a6e22e">src</span>, <span style="color:#a6e22e">dst</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Team</span>) <span style="color:#66d9ef">error</span> {
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">tmp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">src</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	} <span style="color:#66d9ef">else</span> {
-		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">tmp</span>, <span style="color:#a6e22e">dst</span>)
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-	}
-}
-<span style="color:#75715e">//output
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">brazil</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
-<span style="color:#a6e22e">argentina</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000041490</span>
-<span style="color:#a6e22e">brazil</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
-<span style="color:#a6e22e">argentina</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
-</code></pre></div><p>可以看到deepcopy出来的指针地址不一样，那么都dst的修改就不会影响到src了。</p>
-<h4 id="方法二使用第三方工具库">方法二：使用第三方工具库</h4>
-<p>DeepCopy对事物进行深度复制:未导出的字段值不会被复制。
-feature:</p>
-<ul>
-<li>copy slice</li>
-<li>copy map</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">deepCopyExample</span>() {
-	<span style="color:#a6e22e">brazil</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Team</span>{<span style="color:#a6e22e">Players</span>: append([]<span style="color:#f92672">*</span><span style="color:#a6e22e">Player</span>{}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Neymar&#34;</span>}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Player</span>{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;Messi&#34;</span>})}
-	<span style="color:#a6e22e">argentinaIfc</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">deepcopy</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#a6e22e">brazil</span>)
-	<span style="color:#a6e22e">argentina</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">argentinaIfc</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">Team</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v,%v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Name</span> = <span style="color:#e6db74">&#34;Anthony&#34;</span>
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;brazil&#34;</span>, <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v, %v, %p\n&#34;</span>, <span style="color:#e6db74">&#34;argentina&#34;</span>, <span style="color:#a6e22e">argentina</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">brazil</span>.<span style="color:#a6e22e">Players</span>[<span style="color:#ae81ff">0</span>])
-}
-<span style="color:#75715e">//output
-</span><span style="color:#75715e"></span><span style="color:#a6e22e">brazil</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
-<span style="color:#a6e22e">argentina</span>,<span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc000041330</span>
-<span style="color:#a6e22e">brazil</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Anthony</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
-<span style="color:#a6e22e">argentina</span>, <span style="color:#f92672">&amp;</span>{<span style="color:#a6e22e">Neymar</span>}, <span style="color:#ae81ff">0xc0000412e0</span>
-</code></pre></div><h3 id="小结">小结</h3>
-<p>浅拷贝是值的拷贝，如果属性是引用，拷贝的就是内存地址，需要使用深拷贝。深拷贝的实现原理本质上是通过反射实现。通过将源对象转换成接口，再对接口通过反射判断其类型。所以可以通过序列化成gob、json等来实现。工具库mohae/deepcopy可以对切片、map、结构体、接口进行深拷贝，是个不错的选择。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://github.com/mohae/deepcopy">modae/deepcopy</a></li>
-<li><a href="https://juejin.cn/post/7143030425839992863">modae/deepcopy实现原理分析</a></li>
-<li><a href="https://juejin.cn/post/7143030425839992863">go深拷贝常见方式及性能</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/12/go%E6%B5%85%E6%8B%B7%E8%B4%9D%E4%B8%8E%E6%B7%B1%E6%8B%B7%E8%B4%9D/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
