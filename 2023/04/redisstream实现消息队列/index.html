@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"Redis Stream是在 Redis 5.0中引入的数据类型，可以实现高性能、高可靠性的消息队列。本文主要介绍 Redis Stream 的概念、使用方法和一些适用场景如发布订阅模式、消息队列。\n简介 Redis Stream是Redis为消息队列设计的数据类型，它将消息队列的数据结构抽象为一个有序的消息流（stream），每个消息都有一个唯一的ID和一个关联的键值对（key-value pairs）它支持以下功能：\n 添加消息-将消息添加到队列的末尾 读取消息-从队列的开头读取消息 删除消息-删除指定id的消息 创建消费者组-创建多个消费者组，每个消费者组都可以独立地读取消息。同时可实现负载均衡和消息分发。 确认消息- XACK 命令来确认已经成功处理的消息，避免重复消费  XADD-添加消息 语法：\nXADD key [NOMKSTREAM] [\u0026lt;MAXLEN | MINID\u0026gt; [= | ~] threshold [LIMIT count]] \u0026lt;* | id\u0026gt; field value [field value ...]  MAXLEN：可选参数，用于限制消息流的长度。如果指定了 MAXLEN，那么当消息流的长度超过指定的长度时，最早的消息将被自动删除 ID：可选参数，用于指定消息的 ID。如果不指定，Redis 会自动生成一个唯一的 ID。 field value [field value \u0026hellip; ：消息的键值对，可以是任何字符串。  例如：\nXADD mystream * name Foo age 10\r此命令将向名为 mystream 的消息流中添加一条消息，输出如下：\n\u0026gt;\u0026#34;1680355760868-0\u0026#34; XREAD-读取消息 语法：",
+  "url":"https:\/\/luckytking.github.io\/2023\/04\/redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97\/",
+  "keywords":"[mq, redis, stream]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="mq, redis, stream">
+<meta name="description" content="Redis Stream是在 Redis 5.0中引入的数据类型，可以实现高性能、高可靠性的消息队列。本文主要介绍 Redis Stream 的概念、使用方法和一些适用场景如发布订阅模式、消息队列。
+简介 Redis Stream是Redis为消息队列设计的数据类型，它将消息队列的数据结构抽象为一个有序的消息流（stream），每个消息都有一个唯一的ID和一个关联的键值对（key-value pairs）它支持以下功能：
+ 添加消息-将消息添加到队列的末尾 读取消息-从队列的开头读取消息 删除消息-删除指定id的消息 创建消费者组-创建多个消费者组，每个消费者组都可以独立地读取消息。同时可实现负载均衡和消息分发。 确认消息- XACK 命令来确认已经成功处理的消息，避免重复消费  XADD-添加消息 语法：
+XADD key [NOMKSTREAM] [&lt;MAXLEN | MINID&gt; [= | ~] threshold [LIMIT count]] &lt;* | id&gt; field value [field value ...]  MAXLEN：可选参数，用于限制消息流的长度。如果指定了 MAXLEN，那么当消息流的长度超过指定的长度时，最早的消息将被自动删除 ID：可选参数，用于指定消息的 ID。如果不指定，Redis 会自动生成一个唯一的 ID。 field value [field value &hellip; ：消息的键值对，可以是任何字符串。  例如：
+XADD mystream * name Foo age 10此命令将向名为 mystream 的消息流中添加一条消息，输出如下：
+&gt;&#34;1680355760868-0&#34; XREAD-读取消息 语法：">
+
+
+<meta property="og:description" content="Redis Stream是在 Redis 5.0中引入的数据类型，可以实现高性能、高可靠性的消息队列。本文主要介绍 Redis Stream 的概念、使用方法和一些适用场景如发布订阅模式、消息队列。
+简介 Redis Stream是Redis为消息队列设计的数据类型，它将消息队列的数据结构抽象为一个有序的消息流（stream），每个消息都有一个唯一的ID和一个关联的键值对（key-value pairs）它支持以下功能：
+ 添加消息-将消息添加到队列的末尾 读取消息-从队列的开头读取消息 删除消息-删除指定id的消息 创建消费者组-创建多个消费者组，每个消费者组都可以独立地读取消息。同时可实现负载均衡和消息分发。 确认消息- XACK 命令来确认已经成功处理的消息，避免重复消费  XADD-添加消息 语法：
+XADD key [NOMKSTREAM] [&lt;MAXLEN | MINID&gt; [= | ~] threshold [LIMIT count]] &lt;* | id&gt; field value [field value ...]  MAXLEN：可选参数，用于限制消息流的长度。如果指定了 MAXLEN，那么当消息流的长度超过指定的长度时，最早的消息将被自动删除 ID：可选参数，用于指定消息的 ID。如果不指定，Redis 会自动生成一个唯一的 ID。 field value [field value &hellip; ：消息的键值对，可以是任何字符串。  例如：
+XADD mystream * name Foo age 10此命令将向名为 mystream 的消息流中添加一条消息，输出如下：
+&gt;&#34;1680355760868-0&#34; XREAD-读取消息 语法：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RedisStream实现消息队列">
+<meta name="twitter:title" content="RedisStream实现消息队列">
+<meta property="og:url" content="https://luckytking.github.io/2023/04/redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">
+<meta property="twitter:url" content="https://luckytking.github.io/2023/04/redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="Redis Stream是在 Redis 5.0中引入的数据类型，可以实现高性能、高可靠性的消息队列。本文主要介绍 Redis Stream 的概念、使用方法和一些适用场景如发布订阅模式、消息队列。
+简介 Redis Stream是Redis为消息队列设计的数据类型，它将消息队列的数据结构抽象为一个有序的消息流（stream），每个消息都有一个唯一的ID和一个关联的键值对（key-value pairs）它支持以下功能：
+ 添加消息-将消息添加到队列的末尾 读取消息-从队列的开头读取消息 删除消息-删除指定id的消息 创建消费者组-创建多个消费者组，每个消费者组都可以独立地读取消息。同时可实现负载均衡和消息分发。 确认消息- XACK 命令来确认已经成功处理的消息，避免重复消费  XADD-添加消息 语法：
+XADD key [NOMKSTREAM] [&lt;MAXLEN | MINID&gt; [= | ~] threshold [LIMIT count]] &lt;* | id&gt; field value [field value ...]  MAXLEN：可选参数，用于限制消息流的长度。如果指定了 MAXLEN，那么当消息流的长度超过指定的长度时，最早的消息将被自动删除 ID：可选参数，用于指定消息的 ID。如果不指定，Redis 会自动生成一个唯一的 ID。 field value [field value &hellip; ：消息的键值对，可以是任何字符串。  例如：
+XADD mystream * name Foo age 10此命令将向名为 mystream 的消息流中添加一条消息，输出如下：
+&gt;&#34;1680355760868-0&#34; XREAD-读取消息 语法：">
+<meta name="twitter:description" content="Redis Stream是在 Redis 5.0中引入的数据类型，可以实现高性能、高可靠性的消息队列。本文主要介绍 Redis Stream 的概念、使用方法和一些适用场景如发布订阅模式、消息队列。
+简介 Redis Stream是Redis为消息队列设计的数据类型，它将消息队列的数据结构抽象为一个有序的消息流（stream），每个消息都有一个唯一的ID和一个关联的键值对（key-value pairs）它支持以下功能：
+ 添加消息-将消息添加到队列的末尾 读取消息-从队列的开头读取消息 删除消息-删除指定id的消息 创建消费者组-创建多个消费者组，每个消费者组都可以独立地读取消息。同时可实现负载均衡和消息分发。 确认消息- XACK 命令来确认已经成功处理的消息，避免重复消费  XADD-添加消息 语法：
+XADD key [NOMKSTREAM] [&lt;MAXLEN | MINID&gt; [= | ~] threshold [LIMIT count]] &lt;* | id&gt; field value [field value ...]  MAXLEN：可选参数，用于限制消息流的长度。如果指定了 MAXLEN，那么当消息流的长度超过指定的长度时，最早的消息将被自动删除 ID：可选参数，用于指定消息的 ID。如果不指定，Redis 会自动生成一个唯一的 ID。 field value [field value &hellip; ：消息的键值对，可以是任何字符串。  例如：
+XADD mystream * name Foo age 10此命令将向名为 mystream 的消息流中添加一条消息，输出如下：
+&gt;&#34;1680355760868-0&#34; XREAD-读取消息 语法：">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2023-04-02T15:20:45">
+  
+  
+    <meta property="article:modified_time" content="2023-04-02T15:20:45">
+  
+  
+  
+    
+      <meta property="article:section" content="后端开发">
+    
+  
+  
+    
+      <meta property="article:tag" content="mq">
+    
+      <meta property="article:tag" content="redis">
+    
+      <meta property="article:tag" content="stream">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>RedisStream实现消息队列</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2023/04/redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      RedisStream实现消息队列
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-04-02T15:20:45&#43;08:00">
+        
+   2, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91">后端开发</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>Redis Stream是在 Redis 5.0中引入的数据类型，可以实现高性能、高可靠性的消息队列。本文主要介绍 Redis Stream 的概念、使用方法和一些适用场景如发布订阅模式、消息队列。</p>
+<h3 id="简介">简介</h3>
+<p>Redis Stream是Redis为消息队列设计的数据类型，它将消息队列的数据结构抽象为一个有序的消息流（stream），每个消息都有一个唯一的ID和一个关联的键值对（key-value pairs）它支持以下功能：</p>
+<ol>
+<li>添加消息-将消息添加到队列的末尾</li>
+<li>读取消息-从队列的开头读取消息</li>
+<li>删除消息-删除指定id的消息</li>
+<li>创建消费者组-创建多个消费者组，每个消费者组都可以独立地读取消息。同时可实现负载均衡和消息分发。</li>
+<li>确认消息- XACK 命令来确认已经成功处理的消息，避免重复消费</li>
+</ol>
+<h3 id="xadd-添加消息">XADD-添加消息</h3>
+<p>语法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XADD</span> <span style="color:#f92672">key</span> <span style="color:#f92672">[</span><span style="color:#f92672">NOMKSTREAM</span><span style="color:#f92672">]</span> <span style="color:#f92672">[&lt;</span><span style="color:#f92672">MAXLEN</span> <span style="color:#f92672">|</span> <span style="color:#f92672">MINID</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">[=</span> <span style="color:#f92672">|</span> <span style="color:#f92672">~]</span> <span style="color:#f92672">threshold</span>
+  <span style="color:#f92672">[</span><span style="color:#f92672">LIMIT</span> <span style="color:#f92672">count</span><span style="color:#f92672">]]</span> <span style="color:#f92672">&lt;*</span> <span style="color:#f92672">|</span> <span style="color:#f92672">id</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">field</span> <span style="color:#f92672">value</span> <span style="color:#f92672">[</span><span style="color:#f92672">field</span> <span style="color:#f92672">value</span> <span style="color:#f92672">...]</span>
+</code></pre></div><ul>
+<li>MAXLEN：可选参数，用于限制消息流的长度。如果指定了 MAXLEN，那么当消息流的长度超过指定的长度时，最早的消息将被自动删除</li>
+<li>ID：可选参数，用于指定消息的 ID。如果不指定，Redis 会自动生成一个唯一的 ID。</li>
+<li>field value [field value &hellip; ：消息的键值对，可以是任何字符串。</li>
+</ul>
+<p>例如：</p>
+<pre tabindex="0"><code>XADD mystream * name Foo age 10
+</code></pre><p>此命令将向名为 mystream 的消息流中添加一条消息，输出如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">&gt;</span><span style="color:#e6db74">&#34;1680355760868-0&#34;</span>
+</code></pre></div><h3 id="xread-读取消息">XREAD-读取消息</h3>
+<p>语法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XREAD</span> <span style="color:#f92672">[</span><span style="color:#f92672">COUNT</span> <span style="color:#f92672">count</span><span style="color:#f92672">]</span> <span style="color:#f92672">[</span><span style="color:#f92672">BLOCK</span> <span style="color:#f92672">milliseconds</span><span style="color:#f92672">]</span> <span style="color:#f92672">STREAMS</span> <span style="color:#f92672">key</span> <span style="color:#f92672">[</span><span style="color:#f92672">key</span> <span style="color:#f92672">...]</span> <span style="color:#f92672">id</span>
+  <span style="color:#f92672">[</span><span style="color:#f92672">id</span> <span style="color:#f92672">...]</span>
+</code></pre></div><ul>
+<li>COUNT：可选参数，用于指定要读取的消息数。</li>
+<li>BLOCK：可选参数，用于指定阻塞时间，如果没有新的消息可以读取，那么会等待指定的时间后返回。</li>
+<li>milliseconds：阻塞时间，以毫秒为单位。</li>
+<li>key：消息流的名称。</li>
+<li>id：可选参数，用于指定从哪个消息 ID 开始读取消息。如果不指定 id，那么从最新的消息开始读取。</li>
+</ul>
+<p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XREAD</span> <span style="color:#f92672">STREAMS</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">0</span>
+</code></pre></div><p>此命令将返回 mystream 中最新的消息。</p>
+<p>输出如下</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">&gt;</span><span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;mystream&#34;</span>
+<span style="color:#f92672">&gt;</span>   <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;1680355760868-0&#34;</span>
+<span style="color:#f92672">&gt;</span>         <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;name&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;Foo&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">3</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;age&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">4</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;10&#34;</span>
+</code></pre></div><h3 id="xdel-删除消息">XDEL 删除消息</h3>
+<p>语法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XDEL</span> <span style="color:#f92672">key</span> <span style="color:#f92672">id</span> <span style="color:#f92672">[</span><span style="color:#f92672">id</span> <span style="color:#f92672">...]</span>
+</code></pre></div><ul>
+<li>id 将要删除的ID</li>
+</ul>
+<p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XDEL</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">1680355760868-0</span>
+</code></pre></div><p>此命令将从名为 mystream 的消息流中删除一条消息，输出如下</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">&gt;</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">XDEL</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">1680355760868-0</span>
+<span style="color:#f92672">&gt;(</span><span style="color:#f92672">integer</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span>
+<span style="color:#f92672">&gt;</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">XREAD</span> <span style="color:#f92672">STREAMS</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">0</span>
+<span style="color:#f92672">&gt;(</span><span style="color:#f92672">nil</span><span style="color:#f92672">)</span>
+</code></pre></div><h3 id="xgroup-create-创建消费者组">XGROUP CREATE-创建消费者组</h3>
+<p>语法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XGROUP</span> <span style="color:#f92672">CREATE</span> <span style="color:#f92672">key</span> <span style="color:#f92672">group</span> <span style="color:#f92672">&lt;</span><span style="color:#f92672">id</span> <span style="color:#f92672">|</span> <span style="color:#f92672">$&gt;</span> <span style="color:#f92672">[</span><span style="color:#f92672">MKSTREAM</span><span style="color:#f92672">]</span>
+  <span style="color:#f92672">[</span><span style="color:#f92672">ENTRIESREAD</span> <span style="color:#f92672">entries-read</span><span style="color:#f92672">]</span>
+</code></pre></div><ul>
+<li>key：消息流的名称。</li>
+<li>group：消费者组的名称。</li>
+<li>id：可选参数，用于指定消费者组的起始 ID。如果不指定，那么起始 ID 将是最新消息的 ID。</li>
+<li>MKSTREAM：可选参数，用于指定如果消息流不存在时是否自动创建。如果指定了 MKSTREAM，则会自动创建消息流。</li>
+</ul>
+<p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XGROUP</span> <span style="color:#f92672">CREATE</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">group1</span> <span style="color:#f92672">0-0</span>
+</code></pre></div><p>创建一个名为 group1 的消费者组，并绑定到 mystream 的消息流上, 起始ID为最新的ID。输出如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">&gt;</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">XADD</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">*</span> <span style="color:#f92672">name</span> <span style="color:#f92672">Bar</span> <span style="color:#f92672">age</span> <span style="color:#f92672">11</span>
+<span style="color:#f92672">&gt;</span><span style="color:#e6db74">&#34;1680356821501-0&#34;</span>
+
+<span style="color:#f92672">&gt;</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">XREADGROUP</span> <span style="color:#f92672">GROUP</span> <span style="color:#f92672">group1</span> <span style="color:#f92672">consumer</span> <span style="color:#f92672">COUNT</span> <span style="color:#f92672">5</span> <span style="color:#f92672">STREAMS</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">&gt;</span><span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;mystream&#34;</span>
+<span style="color:#f92672">&gt;</span>   <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;1680356821501-0&#34;</span>
+<span style="color:#f92672">&gt;</span>         <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;name&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;Bar&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">3</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;age&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">4</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;11&#34;</span>
+</code></pre></div><h3 id="xack-确认消息">XACK-确认消息</h3>
+<p>语法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XACK</span> <span style="color:#f92672">key</span> <span style="color:#f92672">group</span> <span style="color:#f92672">id</span> <span style="color:#f92672">[</span><span style="color:#f92672">id</span> <span style="color:#f92672">...]</span>
+</code></pre></div><ul>
+<li>key：消息流的名称。</li>
+<li>group：消费者组的名称。</li>
+<li>id：要确认的消息的 ID。
+例如：</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">XACK</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">group1</span> <span style="color:#f92672">1680356821501-0</span>
+<span style="color:#f92672">(</span><span style="color:#f92672">integer</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span>
+</code></pre></div><p>此命令将确认 ID 为 1680356821501-0 的消息已经被处理：</p>
+<h3 id="xread-block-阻塞数据">XREAD BLOCK 阻塞数据</h3>
+<p>语法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XREAD</span> <span style="color:#f92672">[</span><span style="color:#f92672">COUNT</span> <span style="color:#f92672">count</span><span style="color:#f92672">]</span> <span style="color:#f92672">[</span><span style="color:#f92672">BLOCK</span> <span style="color:#f92672">milliseconds</span><span style="color:#f92672">]</span> <span style="color:#f92672">STREAMS</span> <span style="color:#f92672">key</span> <span style="color:#f92672">[</span><span style="color:#f92672">key</span> <span style="color:#f92672">...]</span> <span style="color:#f92672">id</span>
+  <span style="color:#f92672">[</span><span style="color:#f92672">id</span> <span style="color:#f92672">...]</span>
+</code></pre></div><p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">XREAD</span> <span style="color:#f92672">COUNT</span> <span style="color:#f92672">5</span> <span style="color:#f92672">BLOCK</span> <span style="color:#f92672">0</span> <span style="color:#f92672">STREAMS</span> <span style="color:#f92672">queue</span> <span style="color:#f92672">1680269417682-0</span>
+</code></pre></div><p>此READ BLOCK 命令可以一直阻塞等待新的消息，直到 Redis 连接超时或者命令被中断。可以通过在 XREAD BLOCK 命令中指定一个非零的超时时间来避免无限阻塞。</p>
+<h3 id="实践篇">实践篇</h3>
+<h3 id="发布--订阅模式">发布 / 订阅模式</h3>
+<p>Redis Stream 支持创建多个消费者组，利用这个特性我们可以实现发布 / 订阅模式。
+例如上例中，创建一个名为 group2 的消费者组，并绑定到 mystream 的消息流上, 起始ID为最新的ID。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">XGROUP</span> <span style="color:#f92672">CREATE</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">group2</span> <span style="color:#f92672">0-0</span>
+</code></pre></div><p>输出如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">&gt;</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">XADD</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">*</span> <span style="color:#f92672">name</span> <span style="color:#f92672">Jeff</span> <span style="color:#f92672">age</span> <span style="color:#f92672">20</span>
+<span style="color:#f92672">&gt;</span><span style="color:#e6db74">&#34;1680414977243-0&#34;</span>
+<span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">&gt;</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span>  <span style="color:#f92672">XREADGROUP</span> <span style="color:#f92672">GROUP</span> <span style="color:#f92672">group1</span> <span style="color:#f92672">consumer</span> <span style="color:#f92672">COUNT</span> <span style="color:#f92672">5</span> <span style="color:#f92672">STREAMS</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">&gt;</span><span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;mystream&#34;</span>
+<span style="color:#f92672">&gt;</span>   <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;1680414977243-0&#34;</span>
+<span style="color:#f92672">&gt;</span>         <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;name&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;Jeff&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">3</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;age&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">4</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;20&#34;</span>
+
+<span style="color:#f92672">&gt;</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">&gt;</span>  <span style="color:#f92672">XREADGROUP</span> <span style="color:#f92672">GROUP</span> <span style="color:#f92672">group2</span> <span style="color:#f92672">consumer</span> <span style="color:#f92672">COUNT</span> <span style="color:#f92672">5</span> <span style="color:#f92672">STREAMS</span> <span style="color:#f92672">mystream</span> <span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">&gt;</span><span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;mystream&#34;</span>
+<span style="color:#f92672">&gt;</span>   <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;1680414977243-0&#34;</span>
+<span style="color:#f92672">&gt;</span>         <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#f92672">1</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;name&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">2</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;Jeff&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">3</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;age&#34;</span>
+<span style="color:#f92672">&gt;</span>            <span style="color:#f92672">4</span><span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;20&#34;</span>
+</code></pre></div><p>例中，我们增加了信息到 mystream，在多的GROUP消费者可以分别收到消息。</p>
+<h3 id="消息队列">消息队列</h3>
+<p>利用以下几个特性，可以方便地实现各种消息队列的场景。</p>
+<ol>
+<li>
+<p>原子性:  既是每个消息有且只有一次被读取</p>
+<p>a. 当多个消费者在同一个消费者组中读取消息时，它们会竞争相同的消息。当一个消息被多个消费者读取时，只有其中一个消费者会成功处理该消息。</p>
+<p>b. 可以使用 XACK 命令来确认已经成功处理的消息，避免重复消费。</p>
+</li>
+<li>
+<p>高性能可拓展
+a. 消费者组的动态扩展和收缩，可以使用消费者组来实现负载均衡和消息分发。</p>
+</li>
+</ol>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://redis.io/commands/xread">redis.io</a></li>
+<li><a href="https://redis.io/docs/data-types/streams-tutorial">redis.io streams-tutorial</a></li>
+<li><a href="https://mp.weixin.qq.com/s/RthQvzLHZRGNo-z6X_7jQQ">一篇List、PubSub、Stream实现消息队列的博客</a></li>
+<li><a href="https://overstarry.vip/posts/%E4%BD%BF%E7%94%A8redis%E5%AE%9E%E7%8E%B0%E9%98%9F%E5%88%97-/">golang适用用List、PubSub、Stream 实现消息队列</a></li>
+</ul>
+
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/mq/">mq</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/redis/">redis</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/stream/">stream</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/03/postgres%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E4%B8%8Emvcc/" data-tooltip="Postgres事务隔离级别与MVCC" aria-label=": Postgres事务隔离级别与MVCC">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/03/postgres%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E4%B8%8Emvcc/" data-tooltip="Postgres事务隔离级别与MVCC" aria-label=": Postgres事务隔离级别与MVCC">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

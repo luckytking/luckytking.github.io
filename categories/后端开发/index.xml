@@ -6,7 +6,21 @@
     <description>Recent content in 后端开发 on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 25 Feb 2023 15:55:06 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 02 Apr 2023 15:20:45 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RedisStream实现消息队列</title>
+      <link>https://luckytking.github.io/2023/04/redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</link>
+      <pubDate>Sun, 02 Apr 2023 15:20:45 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/04/redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</guid>
+      <description>Redis Stream是在 Redis 5.0中引入的数据类型，可以实现高性能、高可靠性的消息队列。本文主要介绍 Redis Stream 的概念、使用方法和一些适用场景如发布订阅模式、消息队列。
+简介 Redis Stream是Redis为消息队列设计的数据类型，它将消息队列的数据结构抽象为一个有序的消息流（stream），每个消息都有一个唯一的ID和一个关联的键值对（key-value pairs）它支持以下功能：
+ 添加消息-将消息添加到队列的末尾 读取消息-从队列的开头读取消息 删除消息-删除指定id的消息 创建消费者组-创建多个消费者组，每个消费者组都可以独立地读取消息。同时可实现负载均衡和消息分发。 确认消息- XACK 命令来确认已经成功处理的消息，避免重复消费  XADD-添加消息 语法：
+XADD key [NOMKSTREAM] [&amp;lt;MAXLEN | MINID&amp;gt; [= | ~] threshold [LIMIT count]] &amp;lt;* | id&amp;gt; field value [field value ...]  MAXLEN：可选参数，用于限制消息流的长度。如果指定了 MAXLEN，那么当消息流的长度超过指定的长度时，最早的消息将被自动删除 ID：可选参数，用于指定消息的 ID。如果不指定，Redis 会自动生成一个唯一的 ID。 field value [field value &amp;hellip; ：消息的键值对，可以是任何字符串。  例如：
+XADD mystream * name Foo age 10此命令将向名为 mystream 的消息流中添加一条消息，输出如下：
+&amp;gt;&amp;#34;1680355760868-0&amp;#34; XREAD-读取消息 语法：</description>
+    </item>
+    
     <item>
       <title>Docker、Go、PostgreSQL如何修改时区</title>
       <link>https://luckytking.github.io/2023/02/dockergopostgresql%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%97%B6%E5%8C%BA/</link>
