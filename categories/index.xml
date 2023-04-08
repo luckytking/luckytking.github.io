@@ -6,22 +6,22 @@
     <description>Recent content in Categories on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 02 Apr 2023 15:20:45 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 08 Apr 2023 22:33:14 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>go</title>
+      <link>https://luckytking.github.io/categories/go/</link>
+      <pubDate>Sat, 08 Apr 2023 22:33:14 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/categories/go/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>后端开发</title>
       <link>https://luckytking.github.io/categories/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/</link>
       <pubDate>Sun, 02 Apr 2023 15:20:45 +0800</pubDate>
       
       <guid>https://luckytking.github.io/categories/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>go</title>
-      <link>https://luckytking.github.io/categories/go/</link>
-      <pubDate>Sun, 26 Mar 2023 16:30:12 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/categories/go/</guid>
       <description></description>
     </item>
     
