@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cblockquote\u003e\n\u003cp\u003e背景:\n公司项目中，需要暴露对内网的Websocket服务。\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003eWebsocket 它是一种基于 TCP 的一种独立实现，APISIX 可以对 TCP\/UDP 协议进行代理并实现动态负载均衡， 在 nginx 世界，称 TCP\/UDP 代理为 stream 代理，在 APISIX 这里我们也遵循了这个声明，下文统称Stream。\u003c\/p\u003e\n\u003cp\u003eSNI（Server Name Indication）是用来改善 SSL 和 TLS 的一项特性，它允许客户端在服务器端向其发送证书之前向服务器端发送请求的域名，服务器端根据客户端请求的域名选择合适的 SSL 证书发送给客户端。\u003c\/p\u003e\n\u003cp\u003e本文主要介绍ApiSix如何基于SNI代理TCP\/UDP。\u003c\/p\u003e\n\u003ch3 id=\u0022启用stream-代理\u0022\u003e启用Stream 代理\u003c\/h3\u003e\n\u003cp\u003e在 conf\/config.yaml 配置文件设置 stream_proxy 选项， 指定一组需要进行动态代理的 IP 地址。默认情况不开启 stream 代理。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eapisix\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003estream_proxy\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# TCP\/UDP proxy\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003etcp\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# TCP proxy address list\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003e9100\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;127.0.0.1:9101\u0026#34;\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003eudp\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# UDP proxy address list\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003e9200\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;127.0.0.1:9211\u0026#34;\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e如果 apisix.enable_admin 为 true，上面的配置会同时启用 HTTP 和 stream 代理。如果你设置 enable_admin 为 false，且需要同时启用 HTTP 和 stream 代理，设置 only 为 false：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eapisix\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003eenable_admin\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003efalse\u003c\/span\u003e\n  \u003cspan style=\u0022color:#f92672\u0022\u003estream_proxy\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# TCP\/UDP proxy\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003eonly\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003efalse\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003etcp\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# TCP proxy address list\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003e9100\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022启用-tls\u0022\u003e启用 TLS：\u003c\/h3\u003e\n\u003cp\u003e首先，我们需要给对应的 TCP 地址启用 TLS\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003estream_proxy\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# TCP\/UDP proxy\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003eonly\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003efalse\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003etcp\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# TCP proxy address list\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003e9100\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#f92672\u0022\u003eaddr\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e9333\u003c\/span\u003e\n        \u003cspan style=\u0022color:#f92672\u0022\u003etls\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003etrue\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022配置路由\u0022\u003e配置路由\u003c\/h3\u003e\n\u003cp\u003e当连接为 TLS over TCP 时，我们可以通过 SNI 来匹配路由，比如：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003ecurl\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehttp\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\/\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e127\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e1\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e9180\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eapisix\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eadmin\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003estream_routes\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-H\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#39;X-API-KEY: Your-Api-Key\u0026#39;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-X\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ePUT\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-d\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#39;\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e  {\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e      \u0026#34;sni\u0026#34;: \u0026#34;mysite.com\u0026#34;,\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e      \u0026#34;server_port\u0026#34;: 9333,\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e      \u0026#34;upstream\u0026#34;: {\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e          \u0026#34;scheme\u0026#34;: \u0026#34;tls\u0026#34;,\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e          \u0026#34;nodes\u0026#34;: {\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e              \u0026#34;192.168.1.33:8080\u0026#34;: 1\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e          },\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e          \u0026#34;type\u0026#34;: \u0026#34;roundrobin\u0026#34;\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e      }\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e  }\u0026#39;\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e查看是否创建成功:\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003ecurl\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehttp\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\/\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e127\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e1\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e9180\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eapisix\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eadmin\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003estream_routes\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-H\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#39;X-API-KEY: Your-Api-Key\u0026#39;\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e如创建错误，可以删除\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003ecurl\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehttp\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\/\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e127\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e1\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e9180\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eapisix\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eadmin\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003estream_routes\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-H\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#39;X-API-KEY: Your-Api-Key\u0026#39;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-X\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eDELETE\u003c\/span\u003e \n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e查看更多stream路由：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003ecurl\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehttp\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\/\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e127\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e1\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e9180\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eapisix\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eadmin\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003estream_routes\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-H\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#39;X-API-KEY: Your-Api-Key\u0026#39;\u003c\/span\u003e \n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e更多Api参考：\n\u003ca href=\u0022https:\/\/apisix.apache.org\/zh\/docs\/apisix\/2.12\/admin-api\/#stream-route\u0022\u003ehttps:\/\/apisix.apache.org\/zh\/docs\/apisix\/2.12\/admin-api\/#stream-route\u003c\/a\u003e\u003c\/p\u003e\n\u003ch3 id=\u0022上传sni证书\u0022\u003e上传SNI证书\u003c\/h3\u003e\n\u003cp\u003e上传站点(mysite.com)的证书到ApiSix\u003c\/p\u003e\n\u003ch3 id=\u0022测试\u0022\u003e测试\u003c\/h3\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003ecurl\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-v\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehttps\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\/\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003emysite\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ecom\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e9333\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e   \u003cspan style=\u0022color:#f92672\u0022\u003eTrying\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ex\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ex\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ey\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ey\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e...\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTCP_NODELAY\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eset\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eConnected\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eto\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003emysite\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ecom\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e19333\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003ex\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ex\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ey\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ey\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e)\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eport\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e9333\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e#0\u003cspan style=\u0022color:#f92672\u0022\u003e)\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eALPN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eoffering\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eh2\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eALPN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eoffering\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehttp\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e1\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003esuccessfully\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eset\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecertificate\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003everify\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003elocations\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e   \u003cspan style=\u0022color:#f92672\u0022\u003eCAfile\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eetc\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003essl\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003ecert\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003epem\u003c\/span\u003e\n  \u003cspan style=\u0022color:#f92672\u0022\u003eCApath\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003enone\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eOUT\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eClient\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehello\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eIN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eServer\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehello\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e2\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eIN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eCertificate\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e11\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eIN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eServer\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ekey\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eexchange\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e12\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eIN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eServer\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003efinished\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e14\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eOUT\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eClient\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ekey\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eexchange\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e16\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eOUT\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003echange\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecipher\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eChange\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecipher\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003espec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eOUT\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eFinished\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e20\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eIN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003echange\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecipher\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eChange\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecipher\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003espec\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eIN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eFinished\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e20\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSSL\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003econnection\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eusing\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eECDHE-RSA-CHACHA20-POLY1305\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eALPN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eserver\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003edid\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003enot\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eagree\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eto\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ea\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eprotocol\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eServer\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecertificate\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003esubject\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eCN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e=*\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003emysite\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ecom\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003estart\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003edate\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eMar\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e29\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e00\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e00\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e00\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e2023\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eGMT\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003eexpire\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003edate\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eJun\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e27\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e23\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e59\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e59\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e2023\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eGMT\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003esubjectAltName\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehost\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;mysite.com\u0026#34;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ematched\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecert\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e\u0026#39;\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003es\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;*.mysite.com\u0026#34;\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003eissuer\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eC\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eAT\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eO\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eZeroSSL\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eCN\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eZeroSSL\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eRSA\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eDomain\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSecure\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSite\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eCA\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003eSSL\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecertificate\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003everify\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eok\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e.\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eGET\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eHTTP\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e1\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eHost\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003emysite\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ecom\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e9333\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eUser-Agent\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ecurl\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e7\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e64\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e1\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eAccept\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\/*\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eHTTP\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e1\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e400\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eBad\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eRequest\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eContent-Type\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003etext\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\/\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eplain\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003echarset\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eutf-8\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSec-Websocket-Version\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e13\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eX-Content-Type-Options\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003enosniff\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eDate\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSun\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e23\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eApr\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e2023\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e05\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e50\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e07\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eGMT\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eContent-Length\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e12\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003eBad\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eRequest\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eConnection\u003c\/span\u003e #0 \u003cspan style=\u0022color:#f92672\u0022\u003eto\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehost\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003emysite\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ecom\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eleft\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eintact\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eClosing\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003econnection\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e0\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eSuccess。\u003c\/p\u003e\n\u003ch3 id=\u0022过程中遇见的问题\u0022\u003e过程中遇见的问题\u003c\/h3\u003e\n\u003col\u003e\n\u003cli\u003e连接不上\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e curl -v http:\/\/mysite.com\r\n*   Trying x.x.y.y...\r\n* TCP_NODELAY set\r\n* Connected to mysite.com (x.x.y.y.) port 19333\r\n\u0026gt; GET \/ HTTP\/1.1\r\n\u0026gt; Host: mysite.com:19333\r\n\u0026gt; User-Agent: curl\/7.64.1\r\n\u0026gt; Accept: *\/*\r\n\u0026gt;\r\n* Recv failure: Connection reset by peer\r\n* Closing connection 0\r\ncurl: (56) Recv failure: Connection reset by peer\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e需要排查路由器端口是否正常开放，ApiSix的端口是否正常，经排查原因是：配置路由时\u0026quot;server_port\u0026quot;缺失\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-json\u0022 data-lang=\u0022json\u0022\u003e{\n      \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;sni\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;mysite.com\u0026#34;\u003c\/span\u003e,\n      \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;upstream\u0026#34;\u003c\/span\u003e: {\n          \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;scheme\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;tls\u0026#34;\u003c\/span\u003e,\n          \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;nodes\u0026#34;\u003c\/span\u003e: {\n              \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;192.168.1.33:8080\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e\n          },\n          \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;type\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;roundrobin\u0026#34;\u003c\/span\u003e\n      }\n  }\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003col start=\u00222\u0022\u003e\n\u003cli\u003ehandshark失败，证书错误\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLSv1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eOUT\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e),\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTLS\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehandshake\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e,\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eClient\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ehello\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e1\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e):\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eLibreSSL\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSSL_connect\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSSL_ERROR_SYSCALL\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ein\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003econnection\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eto\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003emysite\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ecom\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e19333\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eClosing\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003econnection\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e0\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003ecurl\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e35\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e)\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eLibreSSL\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSSL_connect\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eSSL_ERROR_SYSCALL\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ein\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003econnection\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eto\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003emysite\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ecom\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e19333\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e排位原因是：这里作者使用的ApiSix版本是2.12，缺失前缀 【addr】\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003estream_proxy\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# TCP\/UDP proxy\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003eonly\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003efalse\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003etcp\u003c\/span\u003e: \u003cspan style=\u0022color:#75715e\u0022\u003e# TCP proxy address list\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003e9100\u003c\/span\u003e\n      - \u003cspan style=\u0022color:#ae81ff\u0022\u003e9333\u003c\/span\u003e\n        \u003cspan style=\u0022color:#f92672\u0022\u003etls\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003etrue\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/apisix.apache.org\/zh\/docs\/apisix\/2.12\/stream-proxy\/#%E4%BB%A3%E7%90%86%E5%88%B0-tls-over-tcp-%E4%B8%8A%E6%B8%B8\u0022\u003eapisix.apache.org\/zh\/docs\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/apisix.apache.org\/zh\/docs\/apisix\/2.12\/stream-proxy\/#%E4%BB%A3%E7%90%86%E5%88%B0-tls-over-tcp-%E4%B8%8A%E6%B8%B8\u0022\u003eapisix.apache.ogr\/zh\/streams\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/www.fenghong.tech\/blog\/kubernetes\/sni-apisix-tcp\/\u0022\u003e\nBlog-基于sni使用apisix代理四层TCP\/UDP\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2023\/04\/apisix%E5%9F%BA%E4%BA%8Esni%E4%BB%A3%E7%90%86tcpudp\/",
+  "keywords":"[k8s, ApiSix, websocket, tcp, stream]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="k8s, ApiSix, websocket, tcp, stream">
+<meta name="description" content="
+背景:
+公司项目中，需要暴露对内网的Websocket服务。
+
+Websocket 它是一种基于 TCP 的一种独立实现，APISIX 可以对 TCP/UDP 协议进行代理并实现动态负载均衡， 在 nginx 世界，称 TCP/UDP 代理为 stream 代理，在 APISIX 这里我们也遵循了这个声明，下文统称Stream。
+SNI（Server Name Indication）是用来改善 SSL 和 TLS 的一项特性，它允许客户端在服务器端向其发送证书之前向服务器端发送请求的域名，服务器端根据客户端请求的域名选择合适的 SSL 证书发送给客户端。
+本文主要介绍ApiSix如何基于SNI代理TCP/UDP。
+启用Stream 代理
+在 conf/config.yaml 配置文件设置 stream_proxy 选项， 指定一组需要进行动态代理的 IP 地址。默认情况不开启 stream 代理。
+apisix:
+  stream_proxy: # TCP/UDP proxy
+    tcp: # TCP proxy address list
+      - 9100
+      - &#34;127.0.0.1:9101&#34;
+    udp: # UDP proxy address list
+      - 9200
+      - &#34;127.0.0.1:9211&#34;
+如果 apisix.enable_admin 为 true，上面的配置会同时启用 HTTP 和 stream 代理。如果你设置 enable_admin 为 false，且需要同时启用 HTTP 和 stream 代理，设置 only 为 false：
+apisix:
+  enable_admin: false
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+启用 TLS：
+首先，我们需要给对应的 TCP 地址启用 TLS
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+      - addr: 9333
+        tls: true
+配置路由
+当连接为 TLS over TCP 时，我们可以通过 SNI 来匹配路由，比如：
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39; -X PUT -d &#39;
+  {
+      &#34;sni&#34;: &#34;mysite.com&#34;,
+      &#34;server_port&#34;: 9333,
+      &#34;upstream&#34;: {
+          &#34;scheme&#34;: &#34;tls&#34;,
+          &#34;nodes&#34;: {
+              &#34;192.168.1.33:8080&#34;: 1
+          },
+          &#34;type&#34;: &#34;roundrobin&#34;
+      }
+  }&#39;
+查看是否创建成功:
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39;
+如创建错误，可以删除
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39; -X DELETE 
+查看更多stream路由：
+curl http://127.0.0.1:9180//apisix/admin/stream_routes -H &#39;X-API-KEY: Your-Api-Key&#39; 
+更多Api参考：
+https://apisix.apache.org/zh/docs/apisix/2.12/admin-api/#stream-route
+上传SNI证书
+上传站点(mysite.com)的证书到ApiSix
+测试
+curl -v https://mysite.com:9333/
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com:19333 (x.x.y.y) port 9333 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* TLSv1.2 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server did not agree to a protocol
+* Server certificate:
+*  subject: CN=*.mysite.com
+*  start date: Mar 29 00:00:00 2023 GMT
+*  expire date: Jun 27 23:59:59 2023 GMT
+*  subjectAltName: host &#34;mysite.com&#34; matched cert&#39;s &#34;*.mysite.com&#34;
+*  issuer: C=AT; O=ZeroSSL; CN=ZeroSSL RSA Domain Secure Site CA
+*  SSL certificate verify ok.
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:9333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 400 Bad Request
+&lt; Content-Type: text/plain; charset=utf-8
+&lt; Sec-Websocket-Version: 13
+&lt; X-Content-Type-Options: nosniff
+&lt; Date: Sun, 23 Apr 2023 05:50:07 GMT
+&lt; Content-Length: 12
+&lt;
+Bad Request
+* Connection #0 to host mysite.com left intact
+* Closing connection 0
+Success。
+过程中遇见的问题
+
+连接不上
+
+ curl -v http://mysite.com
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com (x.x.y.y.) port 19333
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:19333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+* Recv failure: Connection reset by peer
+* Closing connection 0
+curl: (56) Recv failure: Connection reset by peer
+需要排查路由器端口是否正常开放，ApiSix的端口是否正常，经排查原因是：配置路由时&quot;server_port&quot;缺失
+{
+      &#34;sni&#34;: &#34;mysite.com&#34;,
+      &#34;upstream&#34;: {
+          &#34;scheme&#34;: &#34;tls&#34;,
+          &#34;nodes&#34;: {
+              &#34;192.168.1.33:8080&#34;: 1
+          },
+          &#34;type&#34;: &#34;roundrobin&#34;
+      }
+  }
+
+handshark失败，证书错误
+
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to mysite.com:19333
+* Closing connection 0
+curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to mysite.com:19333
+排位原因是：这里作者使用的ApiSix版本是2.12，缺失前缀 【addr】
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+      - 9333
+        tls: true
+参考
+
+apisix.apache.org/zh/docs
+apisix.apache.ogr/zh/streams
+
+Blog-基于sni使用apisix代理四层TCP/UDP
+">
+
+
+<meta property="og:description" content="
+背景:
+公司项目中，需要暴露对内网的Websocket服务。
+
+Websocket 它是一种基于 TCP 的一种独立实现，APISIX 可以对 TCP/UDP 协议进行代理并实现动态负载均衡， 在 nginx 世界，称 TCP/UDP 代理为 stream 代理，在 APISIX 这里我们也遵循了这个声明，下文统称Stream。
+SNI（Server Name Indication）是用来改善 SSL 和 TLS 的一项特性，它允许客户端在服务器端向其发送证书之前向服务器端发送请求的域名，服务器端根据客户端请求的域名选择合适的 SSL 证书发送给客户端。
+本文主要介绍ApiSix如何基于SNI代理TCP/UDP。
+启用Stream 代理
+在 conf/config.yaml 配置文件设置 stream_proxy 选项， 指定一组需要进行动态代理的 IP 地址。默认情况不开启 stream 代理。
+apisix:
+  stream_proxy: # TCP/UDP proxy
+    tcp: # TCP proxy address list
+      - 9100
+      - &#34;127.0.0.1:9101&#34;
+    udp: # UDP proxy address list
+      - 9200
+      - &#34;127.0.0.1:9211&#34;
+如果 apisix.enable_admin 为 true，上面的配置会同时启用 HTTP 和 stream 代理。如果你设置 enable_admin 为 false，且需要同时启用 HTTP 和 stream 代理，设置 only 为 false：
+apisix:
+  enable_admin: false
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+启用 TLS：
+首先，我们需要给对应的 TCP 地址启用 TLS
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+      - addr: 9333
+        tls: true
+配置路由
+当连接为 TLS over TCP 时，我们可以通过 SNI 来匹配路由，比如：
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39; -X PUT -d &#39;
+  {
+      &#34;sni&#34;: &#34;mysite.com&#34;,
+      &#34;server_port&#34;: 9333,
+      &#34;upstream&#34;: {
+          &#34;scheme&#34;: &#34;tls&#34;,
+          &#34;nodes&#34;: {
+              &#34;192.168.1.33:8080&#34;: 1
+          },
+          &#34;type&#34;: &#34;roundrobin&#34;
+      }
+  }&#39;
+查看是否创建成功:
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39;
+如创建错误，可以删除
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39; -X DELETE 
+查看更多stream路由：
+curl http://127.0.0.1:9180//apisix/admin/stream_routes -H &#39;X-API-KEY: Your-Api-Key&#39; 
+更多Api参考：
+https://apisix.apache.org/zh/docs/apisix/2.12/admin-api/#stream-route
+上传SNI证书
+上传站点(mysite.com)的证书到ApiSix
+测试
+curl -v https://mysite.com:9333/
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com:19333 (x.x.y.y) port 9333 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* TLSv1.2 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server did not agree to a protocol
+* Server certificate:
+*  subject: CN=*.mysite.com
+*  start date: Mar 29 00:00:00 2023 GMT
+*  expire date: Jun 27 23:59:59 2023 GMT
+*  subjectAltName: host &#34;mysite.com&#34; matched cert&#39;s &#34;*.mysite.com&#34;
+*  issuer: C=AT; O=ZeroSSL; CN=ZeroSSL RSA Domain Secure Site CA
+*  SSL certificate verify ok.
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:9333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 400 Bad Request
+&lt; Content-Type: text/plain; charset=utf-8
+&lt; Sec-Websocket-Version: 13
+&lt; X-Content-Type-Options: nosniff
+&lt; Date: Sun, 23 Apr 2023 05:50:07 GMT
+&lt; Content-Length: 12
+&lt;
+Bad Request
+* Connection #0 to host mysite.com left intact
+* Closing connection 0
+Success。
+过程中遇见的问题
+
+连接不上
+
+ curl -v http://mysite.com
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com (x.x.y.y.) port 19333
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:19333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+* Recv failure: Connection reset by peer
+* Closing connection 0
+curl: (56) Recv failure: Connection reset by peer
+需要排查路由器端口是否正常开放，ApiSix的端口是否正常，经排查原因是：配置路由时&quot;server_port&quot;缺失
+{
+      &#34;sni&#34;: &#34;mysite.com&#34;,
+      &#34;upstream&#34;: {
+          &#34;scheme&#34;: &#34;tls&#34;,
+          &#34;nodes&#34;: {
+              &#34;192.168.1.33:8080&#34;: 1
+          },
+          &#34;type&#34;: &#34;roundrobin&#34;
+      }
+  }
+
+handshark失败，证书错误
+
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to mysite.com:19333
+* Closing connection 0
+curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to mysite.com:19333
+排位原因是：这里作者使用的ApiSix版本是2.12，缺失前缀 【addr】
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+      - 9333
+        tls: true
+参考
+
+apisix.apache.org/zh/docs
+apisix.apache.ogr/zh/streams
+
+Blog-基于sni使用apisix代理四层TCP/UDP
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apisix基于SNI代理TCP、UDP">
+<meta name="twitter:title" content="Apisix基于SNI代理TCP、UDP">
+<meta property="og:url" content="https://luckytking.github.io/2023/04/apisix%E5%9F%BA%E4%BA%8Esni%E4%BB%A3%E7%90%86tcpudp/">
+<meta property="twitter:url" content="https://luckytking.github.io/2023/04/apisix%E5%9F%BA%E4%BA%8Esni%E4%BB%A3%E7%90%86tcpudp/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="
+背景:
+公司项目中，需要暴露对内网的Websocket服务。
+
+Websocket 它是一种基于 TCP 的一种独立实现，APISIX 可以对 TCP/UDP 协议进行代理并实现动态负载均衡， 在 nginx 世界，称 TCP/UDP 代理为 stream 代理，在 APISIX 这里我们也遵循了这个声明，下文统称Stream。
+SNI（Server Name Indication）是用来改善 SSL 和 TLS 的一项特性，它允许客户端在服务器端向其发送证书之前向服务器端发送请求的域名，服务器端根据客户端请求的域名选择合适的 SSL 证书发送给客户端。
+本文主要介绍ApiSix如何基于SNI代理TCP/UDP。
+启用Stream 代理
+在 conf/config.yaml 配置文件设置 stream_proxy 选项， 指定一组需要进行动态代理的 IP 地址。默认情况不开启 stream 代理。
+apisix:
+  stream_proxy: # TCP/UDP proxy
+    tcp: # TCP proxy address list
+      - 9100
+      - &#34;127.0.0.1:9101&#34;
+    udp: # UDP proxy address list
+      - 9200
+      - &#34;127.0.0.1:9211&#34;
+如果 apisix.enable_admin 为 true，上面的配置会同时启用 HTTP 和 stream 代理。如果你设置 enable_admin 为 false，且需要同时启用 HTTP 和 stream 代理，设置 only 为 false：
+apisix:
+  enable_admin: false
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+启用 TLS：
+首先，我们需要给对应的 TCP 地址启用 TLS
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+      - addr: 9333
+        tls: true
+配置路由
+当连接为 TLS over TCP 时，我们可以通过 SNI 来匹配路由，比如：
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39; -X PUT -d &#39;
+  {
+      &#34;sni&#34;: &#34;mysite.com&#34;,
+      &#34;server_port&#34;: 9333,
+      &#34;upstream&#34;: {
+          &#34;scheme&#34;: &#34;tls&#34;,
+          &#34;nodes&#34;: {
+              &#34;192.168.1.33:8080&#34;: 1
+          },
+          &#34;type&#34;: &#34;roundrobin&#34;
+      }
+  }&#39;
+查看是否创建成功:
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39;
+如创建错误，可以删除
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39; -X DELETE 
+查看更多stream路由：
+curl http://127.0.0.1:9180//apisix/admin/stream_routes -H &#39;X-API-KEY: Your-Api-Key&#39; 
+更多Api参考：
+https://apisix.apache.org/zh/docs/apisix/2.12/admin-api/#stream-route
+上传SNI证书
+上传站点(mysite.com)的证书到ApiSix
+测试
+curl -v https://mysite.com:9333/
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com:19333 (x.x.y.y) port 9333 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* TLSv1.2 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server did not agree to a protocol
+* Server certificate:
+*  subject: CN=*.mysite.com
+*  start date: Mar 29 00:00:00 2023 GMT
+*  expire date: Jun 27 23:59:59 2023 GMT
+*  subjectAltName: host &#34;mysite.com&#34; matched cert&#39;s &#34;*.mysite.com&#34;
+*  issuer: C=AT; O=ZeroSSL; CN=ZeroSSL RSA Domain Secure Site CA
+*  SSL certificate verify ok.
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:9333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 400 Bad Request
+&lt; Content-Type: text/plain; charset=utf-8
+&lt; Sec-Websocket-Version: 13
+&lt; X-Content-Type-Options: nosniff
+&lt; Date: Sun, 23 Apr 2023 05:50:07 GMT
+&lt; Content-Length: 12
+&lt;
+Bad Request
+* Connection #0 to host mysite.com left intact
+* Closing connection 0
+Success。
+过程中遇见的问题
+
+连接不上
+
+ curl -v http://mysite.com
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com (x.x.y.y.) port 19333
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:19333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+* Recv failure: Connection reset by peer
+* Closing connection 0
+curl: (56) Recv failure: Connection reset by peer
+需要排查路由器端口是否正常开放，ApiSix的端口是否正常，经排查原因是：配置路由时&quot;server_port&quot;缺失
+{
+      &#34;sni&#34;: &#34;mysite.com&#34;,
+      &#34;upstream&#34;: {
+          &#34;scheme&#34;: &#34;tls&#34;,
+          &#34;nodes&#34;: {
+              &#34;192.168.1.33:8080&#34;: 1
+          },
+          &#34;type&#34;: &#34;roundrobin&#34;
+      }
+  }
+
+handshark失败，证书错误
+
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to mysite.com:19333
+* Closing connection 0
+curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to mysite.com:19333
+排位原因是：这里作者使用的ApiSix版本是2.12，缺失前缀 【addr】
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+      - 9333
+        tls: true
+参考
+
+apisix.apache.org/zh/docs
+apisix.apache.ogr/zh/streams
+
+Blog-基于sni使用apisix代理四层TCP/UDP
+">
+<meta name="twitter:description" content="
+背景:
+公司项目中，需要暴露对内网的Websocket服务。
+
+Websocket 它是一种基于 TCP 的一种独立实现，APISIX 可以对 TCP/UDP 协议进行代理并实现动态负载均衡， 在 nginx 世界，称 TCP/UDP 代理为 stream 代理，在 APISIX 这里我们也遵循了这个声明，下文统称Stream。
+SNI（Server Name Indication）是用来改善 SSL 和 TLS 的一项特性，它允许客户端在服务器端向其发送证书之前向服务器端发送请求的域名，服务器端根据客户端请求的域名选择合适的 SSL 证书发送给客户端。
+本文主要介绍ApiSix如何基于SNI代理TCP/UDP。
+启用Stream 代理
+在 conf/config.yaml 配置文件设置 stream_proxy 选项， 指定一组需要进行动态代理的 IP 地址。默认情况不开启 stream 代理。
+apisix:
+  stream_proxy: # TCP/UDP proxy
+    tcp: # TCP proxy address list
+      - 9100
+      - &#34;127.0.0.1:9101&#34;
+    udp: # UDP proxy address list
+      - 9200
+      - &#34;127.0.0.1:9211&#34;
+如果 apisix.enable_admin 为 true，上面的配置会同时启用 HTTP 和 stream 代理。如果你设置 enable_admin 为 false，且需要同时启用 HTTP 和 stream 代理，设置 only 为 false：
+apisix:
+  enable_admin: false
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+启用 TLS：
+首先，我们需要给对应的 TCP 地址启用 TLS
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+      - addr: 9333
+        tls: true
+配置路由
+当连接为 TLS over TCP 时，我们可以通过 SNI 来匹配路由，比如：
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39; -X PUT -d &#39;
+  {
+      &#34;sni&#34;: &#34;mysite.com&#34;,
+      &#34;server_port&#34;: 9333,
+      &#34;upstream&#34;: {
+          &#34;scheme&#34;: &#34;tls&#34;,
+          &#34;nodes&#34;: {
+              &#34;192.168.1.33:8080&#34;: 1
+          },
+          &#34;type&#34;: &#34;roundrobin&#34;
+      }
+  }&#39;
+查看是否创建成功:
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39;
+如创建错误，可以删除
+curl http://127.0.0.1:9180/apisix/admin/stream_routes/1 -H &#39;X-API-KEY: Your-Api-Key&#39; -X DELETE 
+查看更多stream路由：
+curl http://127.0.0.1:9180//apisix/admin/stream_routes -H &#39;X-API-KEY: Your-Api-Key&#39; 
+更多Api参考：
+https://apisix.apache.org/zh/docs/apisix/2.12/admin-api/#stream-route
+上传SNI证书
+上传站点(mysite.com)的证书到ApiSix
+测试
+curl -v https://mysite.com:9333/
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com:19333 (x.x.y.y) port 9333 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* TLSv1.2 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server did not agree to a protocol
+* Server certificate:
+*  subject: CN=*.mysite.com
+*  start date: Mar 29 00:00:00 2023 GMT
+*  expire date: Jun 27 23:59:59 2023 GMT
+*  subjectAltName: host &#34;mysite.com&#34; matched cert&#39;s &#34;*.mysite.com&#34;
+*  issuer: C=AT; O=ZeroSSL; CN=ZeroSSL RSA Domain Secure Site CA
+*  SSL certificate verify ok.
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:9333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 400 Bad Request
+&lt; Content-Type: text/plain; charset=utf-8
+&lt; Sec-Websocket-Version: 13
+&lt; X-Content-Type-Options: nosniff
+&lt; Date: Sun, 23 Apr 2023 05:50:07 GMT
+&lt; Content-Length: 12
+&lt;
+Bad Request
+* Connection #0 to host mysite.com left intact
+* Closing connection 0
+Success。
+过程中遇见的问题
+
+连接不上
+
+ curl -v http://mysite.com
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com (x.x.y.y.) port 19333
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:19333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+* Recv failure: Connection reset by peer
+* Closing connection 0
+curl: (56) Recv failure: Connection reset by peer
+需要排查路由器端口是否正常开放，ApiSix的端口是否正常，经排查原因是：配置路由时&quot;server_port&quot;缺失
+{
+      &#34;sni&#34;: &#34;mysite.com&#34;,
+      &#34;upstream&#34;: {
+          &#34;scheme&#34;: &#34;tls&#34;,
+          &#34;nodes&#34;: {
+              &#34;192.168.1.33:8080&#34;: 1
+          },
+          &#34;type&#34;: &#34;roundrobin&#34;
+      }
+  }
+
+handshark失败，证书错误
+
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to mysite.com:19333
+* Closing connection 0
+curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to mysite.com:19333
+排位原因是：这里作者使用的ApiSix版本是2.12，缺失前缀 【addr】
+  stream_proxy: # TCP/UDP proxy
+    only: false
+    tcp: # TCP proxy address list
+      - 9100
+      - 9333
+        tls: true
+参考
+
+apisix.apache.org/zh/docs
+apisix.apache.ogr/zh/streams
+
+Blog-基于sni使用apisix代理四层TCP/UDP
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2023-04-30T13:45:59">
+  
+  
+    <meta property="article:modified_time" content="2023-04-30T13:45:59">
+  
+  
+  
+    
+      <meta property="article:section" content="k8s">
+    
+  
+  
+    
+      <meta property="article:tag" content="ApiSix">
+    
+      <meta property="article:tag" content="Tcp">
+    
+      <meta property="article:tag" content="Websocket">
+    
+      <meta property="article:tag" content="stream">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Apisix基于SNI代理TCP、UDP</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2023/04/apisix%E5%9F%BA%E4%BA%8Esni%E4%BB%A3%E7%90%86tcpudp/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Apisix基于SNI代理TCP、UDP
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-04-30T13:45:59&#43;08:00">
+        
+   30, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <blockquote>
+<p>背景:
+公司项目中，需要暴露对内网的Websocket服务。</p>
+</blockquote>
+<p>Websocket 它是一种基于 TCP 的一种独立实现，APISIX 可以对 TCP/UDP 协议进行代理并实现动态负载均衡， 在 nginx 世界，称 TCP/UDP 代理为 stream 代理，在 APISIX 这里我们也遵循了这个声明，下文统称Stream。</p>
+<p>SNI（Server Name Indication）是用来改善 SSL 和 TLS 的一项特性，它允许客户端在服务器端向其发送证书之前向服务器端发送请求的域名，服务器端根据客户端请求的域名选择合适的 SSL 证书发送给客户端。</p>
+<p>本文主要介绍ApiSix如何基于SNI代理TCP/UDP。</p>
+<h3 id="启用stream-代理">启用Stream 代理</h3>
+<p>在 conf/config.yaml 配置文件设置 stream_proxy 选项， 指定一组需要进行动态代理的 IP 地址。默认情况不开启 stream 代理。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apisix</span>:
+  <span style="color:#f92672">stream_proxy</span>: <span style="color:#75715e"># TCP/UDP proxy</span>
+    <span style="color:#f92672">tcp</span>: <span style="color:#75715e"># TCP proxy address list</span>
+      - <span style="color:#ae81ff">9100</span>
+      - <span style="color:#e6db74">&#34;127.0.0.1:9101&#34;</span>
+    <span style="color:#f92672">udp</span>: <span style="color:#75715e"># UDP proxy address list</span>
+      - <span style="color:#ae81ff">9200</span>
+      - <span style="color:#e6db74">&#34;127.0.0.1:9211&#34;</span>
+</code></pre></div><p>如果 apisix.enable_admin 为 true，上面的配置会同时启用 HTTP 和 stream 代理。如果你设置 enable_admin 为 false，且需要同时启用 HTTP 和 stream 代理，设置 only 为 false：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apisix</span>:
+  <span style="color:#f92672">enable_admin</span>: <span style="color:#66d9ef">false</span>
+  <span style="color:#f92672">stream_proxy</span>: <span style="color:#75715e"># TCP/UDP proxy</span>
+    <span style="color:#f92672">only</span>: <span style="color:#66d9ef">false</span>
+    <span style="color:#f92672">tcp</span>: <span style="color:#75715e"># TCP proxy address list</span>
+      - <span style="color:#ae81ff">9100</span>
+</code></pre></div><h3 id="启用-tls">启用 TLS：</h3>
+<p>首先，我们需要给对应的 TCP 地址启用 TLS</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">  <span style="color:#f92672">stream_proxy</span>: <span style="color:#75715e"># TCP/UDP proxy</span>
+    <span style="color:#f92672">only</span>: <span style="color:#66d9ef">false</span>
+    <span style="color:#f92672">tcp</span>: <span style="color:#75715e"># TCP proxy address list</span>
+      - <span style="color:#ae81ff">9100</span>
+      - <span style="color:#f92672">addr</span>: <span style="color:#ae81ff">9333</span>
+        <span style="color:#f92672">tls</span>: <span style="color:#66d9ef">true</span>
+</code></pre></div><h3 id="配置路由">配置路由</h3>
+<p>当连接为 TLS over TCP 时，我们可以通过 SNI 来匹配路由，比如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">curl</span> <span style="color:#f92672">http</span><span style="color:#f92672">://</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">9180</span><span style="color:#f92672">/</span><span style="color:#f92672">apisix</span><span style="color:#f92672">/</span><span style="color:#f92672">admin</span><span style="color:#f92672">/</span><span style="color:#f92672">stream_routes</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span> <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#39;X-API-KEY: Your-Api-Key&#39;</span> <span style="color:#f92672">-X</span> <span style="color:#f92672">PUT</span> <span style="color:#f92672">-d</span> <span style="color:#e6db74">&#39;
+</span><span style="color:#e6db74">  {
+</span><span style="color:#e6db74">      &#34;sni&#34;: &#34;mysite.com&#34;,
+</span><span style="color:#e6db74">      &#34;server_port&#34;: 9333,
+</span><span style="color:#e6db74">      &#34;upstream&#34;: {
+</span><span style="color:#e6db74">          &#34;scheme&#34;: &#34;tls&#34;,
+</span><span style="color:#e6db74">          &#34;nodes&#34;: {
+</span><span style="color:#e6db74">              &#34;192.168.1.33:8080&#34;: 1
+</span><span style="color:#e6db74">          },
+</span><span style="color:#e6db74">          &#34;type&#34;: &#34;roundrobin&#34;
+</span><span style="color:#e6db74">      }
+</span><span style="color:#e6db74">  }&#39;</span>
+</code></pre></div><p>查看是否创建成功:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">curl</span> <span style="color:#f92672">http</span><span style="color:#f92672">://</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">9180</span><span style="color:#f92672">/</span><span style="color:#f92672">apisix</span><span style="color:#f92672">/</span><span style="color:#f92672">admin</span><span style="color:#f92672">/</span><span style="color:#f92672">stream_routes</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span> <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#39;X-API-KEY: Your-Api-Key&#39;</span>
+</code></pre></div><p>如创建错误，可以删除</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">curl</span> <span style="color:#f92672">http</span><span style="color:#f92672">://</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">9180</span><span style="color:#f92672">/</span><span style="color:#f92672">apisix</span><span style="color:#f92672">/</span><span style="color:#f92672">admin</span><span style="color:#f92672">/</span><span style="color:#f92672">stream_routes</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span> <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#39;X-API-KEY: Your-Api-Key&#39;</span> <span style="color:#f92672">-X</span> <span style="color:#f92672">DELETE</span> 
+</code></pre></div><p>查看更多stream路由：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">curl</span> <span style="color:#f92672">http</span><span style="color:#f92672">://</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">9180</span><span style="color:#f92672">//</span><span style="color:#f92672">apisix</span><span style="color:#f92672">/</span><span style="color:#f92672">admin</span><span style="color:#f92672">/</span><span style="color:#f92672">stream_routes</span> <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#39;X-API-KEY: Your-Api-Key&#39;</span> 
+</code></pre></div><p>更多Api参考：
+<a href="https://apisix.apache.org/zh/docs/apisix/2.12/admin-api/#stream-route">https://apisix.apache.org/zh/docs/apisix/2.12/admin-api/#stream-route</a></p>
+<h3 id="上传sni证书">上传SNI证书</h3>
+<p>上传站点(mysite.com)的证书到ApiSix</p>
+<h3 id="测试">测试</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">curl</span> <span style="color:#f92672">-v</span> <span style="color:#f92672">https</span><span style="color:#f92672">://</span><span style="color:#f92672">mysite</span>.<span style="color:#a6e22e">com</span>:<span style="color:#a6e22e">9333</span><span style="color:#f92672">/</span>
+<span style="color:#f92672">*</span>   <span style="color:#f92672">Trying</span> <span style="color:#f92672">x</span>.<span style="color:#a6e22e">x</span>.<span style="color:#a6e22e">y</span>.<span style="color:#a6e22e">y</span><span style="color:#f92672">...</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TCP_NODELAY</span> <span style="color:#f92672">set</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">Connected</span> <span style="color:#f92672">to</span> <span style="color:#f92672">mysite</span>.<span style="color:#a6e22e">com</span>:<span style="color:#a6e22e">19333</span> <span style="color:#f92672">(</span><span style="color:#f92672">x</span>.<span style="color:#a6e22e">x</span>.<span style="color:#a6e22e">y</span>.<span style="color:#a6e22e">y</span><span style="color:#f92672">)</span> <span style="color:#f92672">port</span> <span style="color:#f92672">9333</span> <span style="color:#f92672">(</span>#0<span style="color:#f92672">)</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">ALPN</span><span style="color:#f92672">,</span> <span style="color:#f92672">offering</span> <span style="color:#f92672">h2</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">ALPN</span><span style="color:#f92672">,</span> <span style="color:#f92672">offering</span> <span style="color:#f92672">http</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span>.<span style="color:#a6e22e">1</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">successfully</span> <span style="color:#f92672">set</span> <span style="color:#f92672">certificate</span> <span style="color:#f92672">verify</span> <span style="color:#f92672">locations</span><span style="color:#f92672">:</span>
+<span style="color:#f92672">*</span>   <span style="color:#f92672">CAfile</span><span style="color:#f92672">:</span> <span style="color:#f92672">/</span><span style="color:#f92672">etc</span><span style="color:#f92672">/</span><span style="color:#f92672">ssl</span><span style="color:#f92672">/</span><span style="color:#f92672">cert</span>.<span style="color:#a6e22e">pem</span>
+  <span style="color:#f92672">CApath</span><span style="color:#f92672">:</span> <span style="color:#f92672">none</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">OUT</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Client</span> <span style="color:#f92672">hello</span> <span style="color:#f92672">(</span><span style="color:#f92672">1</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">IN</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Server</span> <span style="color:#f92672">hello</span> <span style="color:#f92672">(</span><span style="color:#f92672">2</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">IN</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Certificate</span> <span style="color:#f92672">(</span><span style="color:#f92672">11</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">IN</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Server</span> <span style="color:#f92672">key</span> <span style="color:#f92672">exchange</span> <span style="color:#f92672">(</span><span style="color:#f92672">12</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">IN</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Server</span> <span style="color:#f92672">finished</span> <span style="color:#f92672">(</span><span style="color:#f92672">14</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">OUT</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Client</span> <span style="color:#f92672">key</span> <span style="color:#f92672">exchange</span> <span style="color:#f92672">(</span><span style="color:#f92672">16</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">OUT</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">change</span> <span style="color:#f92672">cipher</span><span style="color:#f92672">,</span> <span style="color:#f92672">Change</span> <span style="color:#f92672">cipher</span> <span style="color:#f92672">spec</span> <span style="color:#f92672">(</span><span style="color:#f92672">1</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">OUT</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Finished</span> <span style="color:#f92672">(</span><span style="color:#f92672">20</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">IN</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">change</span> <span style="color:#f92672">cipher</span><span style="color:#f92672">,</span> <span style="color:#f92672">Change</span> <span style="color:#f92672">cipher</span> <span style="color:#f92672">spec</span> <span style="color:#f92672">(</span><span style="color:#f92672">1</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">IN</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Finished</span> <span style="color:#f92672">(</span><span style="color:#f92672">20</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">SSL</span> <span style="color:#f92672">connection</span> <span style="color:#f92672">using</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">/</span> <span style="color:#f92672">ECDHE-RSA-CHACHA20-POLY1305</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">ALPN</span><span style="color:#f92672">,</span> <span style="color:#f92672">server</span> <span style="color:#f92672">did</span> <span style="color:#f92672">not</span> <span style="color:#f92672">agree</span> <span style="color:#f92672">to</span> <span style="color:#f92672">a</span> <span style="color:#f92672">protocol</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">Server</span> <span style="color:#f92672">certificate</span><span style="color:#f92672">:</span>
+<span style="color:#f92672">*</span>  <span style="color:#f92672">subject</span><span style="color:#f92672">:</span> <span style="color:#f92672">CN</span><span style="color:#f92672">=*</span>.<span style="color:#a6e22e">mysite</span>.<span style="color:#a6e22e">com</span>
+<span style="color:#f92672">*</span>  <span style="color:#f92672">start</span> <span style="color:#f92672">date</span><span style="color:#f92672">:</span> <span style="color:#f92672">Mar</span> <span style="color:#f92672">29</span> <span style="color:#f92672">00</span>:<span style="color:#a6e22e">00</span>:<span style="color:#a6e22e">00</span> <span style="color:#f92672">2023</span> <span style="color:#f92672">GMT</span>
+<span style="color:#f92672">*</span>  <span style="color:#f92672">expire</span> <span style="color:#f92672">date</span><span style="color:#f92672">:</span> <span style="color:#f92672">Jun</span> <span style="color:#f92672">27</span> <span style="color:#f92672">23</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">59</span> <span style="color:#f92672">2023</span> <span style="color:#f92672">GMT</span>
+<span style="color:#f92672">*</span>  <span style="color:#f92672">subjectAltName</span><span style="color:#f92672">:</span> <span style="color:#f92672">host</span> <span style="color:#e6db74">&#34;mysite.com&#34;</span> <span style="color:#f92672">matched</span> <span style="color:#f92672">cert</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#f92672">s</span> <span style="color:#e6db74">&#34;*.mysite.com&#34;</span>
+<span style="color:#f92672">*</span>  <span style="color:#f92672">issuer</span><span style="color:#f92672">:</span> <span style="color:#f92672">C</span><span style="color:#f92672">=</span><span style="color:#f92672">AT</span><span style="color:#f92672">;</span> <span style="color:#f92672">O</span><span style="color:#f92672">=</span><span style="color:#f92672">ZeroSSL</span><span style="color:#f92672">;</span> <span style="color:#f92672">CN</span><span style="color:#f92672">=</span><span style="color:#f92672">ZeroSSL</span> <span style="color:#f92672">RSA</span> <span style="color:#f92672">Domain</span> <span style="color:#f92672">Secure</span> <span style="color:#f92672">Site</span> <span style="color:#f92672">CA</span>
+<span style="color:#f92672">*</span>  <span style="color:#f92672">SSL</span> <span style="color:#f92672">certificate</span> <span style="color:#f92672">verify</span> <span style="color:#f92672">ok</span><span style="color:#f92672">.</span>
+<span style="color:#f92672">&gt;</span> <span style="color:#f92672">GET</span> <span style="color:#f92672">/</span> <span style="color:#f92672">HTTP</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span>.<span style="color:#a6e22e">1</span>
+<span style="color:#f92672">&gt;</span> <span style="color:#f92672">Host</span><span style="color:#f92672">:</span> <span style="color:#f92672">mysite</span>.<span style="color:#a6e22e">com</span>:<span style="color:#a6e22e">9333</span>
+<span style="color:#f92672">&gt;</span> <span style="color:#f92672">User-Agent</span><span style="color:#f92672">:</span> <span style="color:#f92672">curl</span><span style="color:#f92672">/</span><span style="color:#f92672">7</span>.<span style="color:#a6e22e">64</span>.<span style="color:#a6e22e">1</span>
+<span style="color:#f92672">&gt;</span> <span style="color:#f92672">Accept</span><span style="color:#f92672">:</span> <span style="color:#f92672">*/*</span>
+<span style="color:#f92672">&gt;</span>
+<span style="color:#f92672">&lt;</span> <span style="color:#f92672">HTTP</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span>.<span style="color:#a6e22e">1</span> <span style="color:#f92672">400</span> <span style="color:#f92672">Bad</span> <span style="color:#f92672">Request</span>
+<span style="color:#f92672">&lt;</span> <span style="color:#f92672">Content-Type</span><span style="color:#f92672">:</span> <span style="color:#f92672">text</span><span style="color:#f92672">/</span><span style="color:#f92672">plain</span><span style="color:#f92672">;</span> <span style="color:#f92672">charset</span><span style="color:#f92672">=</span><span style="color:#f92672">utf-8</span>
+<span style="color:#f92672">&lt;</span> <span style="color:#f92672">Sec-Websocket-Version</span><span style="color:#f92672">:</span> <span style="color:#f92672">13</span>
+<span style="color:#f92672">&lt;</span> <span style="color:#f92672">X-Content-Type-Options</span><span style="color:#f92672">:</span> <span style="color:#f92672">nosniff</span>
+<span style="color:#f92672">&lt;</span> <span style="color:#f92672">Date</span><span style="color:#f92672">:</span> <span style="color:#f92672">Sun</span><span style="color:#f92672">,</span> <span style="color:#f92672">23</span> <span style="color:#f92672">Apr</span> <span style="color:#f92672">2023</span> <span style="color:#f92672">05</span>:<span style="color:#a6e22e">50</span>:<span style="color:#a6e22e">07</span> <span style="color:#f92672">GMT</span>
+<span style="color:#f92672">&lt;</span> <span style="color:#f92672">Content-Length</span><span style="color:#f92672">:</span> <span style="color:#f92672">12</span>
+<span style="color:#f92672">&lt;</span>
+<span style="color:#f92672">Bad</span> <span style="color:#f92672">Request</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">Connection</span> #0 <span style="color:#f92672">to</span> <span style="color:#f92672">host</span> <span style="color:#f92672">mysite</span>.<span style="color:#a6e22e">com</span> <span style="color:#f92672">left</span> <span style="color:#f92672">intact</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">Closing</span> <span style="color:#f92672">connection</span> <span style="color:#f92672">0</span>
+</code></pre></div><p>Success。</p>
+<h3 id="过程中遇见的问题">过程中遇见的问题</h3>
+<ol>
+<li>连接不上</li>
+</ol>
+<pre tabindex="0"><code> curl -v http://mysite.com
+*   Trying x.x.y.y...
+* TCP_NODELAY set
+* Connected to mysite.com (x.x.y.y.) port 19333
+&gt; GET / HTTP/1.1
+&gt; Host: mysite.com:19333
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+* Recv failure: Connection reset by peer
+* Closing connection 0
+curl: (56) Recv failure: Connection reset by peer
+</code></pre><p>需要排查路由器端口是否正常开放，ApiSix的端口是否正常，经排查原因是：配置路由时&quot;server_port&quot;缺失</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+      <span style="color:#f92672">&#34;sni&#34;</span>: <span style="color:#e6db74">&#34;mysite.com&#34;</span>,
+      <span style="color:#f92672">&#34;upstream&#34;</span>: {
+          <span style="color:#f92672">&#34;scheme&#34;</span>: <span style="color:#e6db74">&#34;tls&#34;</span>,
+          <span style="color:#f92672">&#34;nodes&#34;</span>: {
+              <span style="color:#f92672">&#34;192.168.1.33:8080&#34;</span>: <span style="color:#ae81ff">1</span>
+          },
+          <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;roundrobin&#34;</span>
+      }
+  }
+</code></pre></div><ol start="2">
+<li>handshark失败，证书错误</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">*</span> <span style="color:#f92672">TLSv1</span>.<span style="color:#a6e22e">2</span> <span style="color:#f92672">(</span><span style="color:#f92672">OUT</span><span style="color:#f92672">),</span> <span style="color:#f92672">TLS</span> <span style="color:#f92672">handshake</span><span style="color:#f92672">,</span> <span style="color:#f92672">Client</span> <span style="color:#f92672">hello</span> <span style="color:#f92672">(</span><span style="color:#f92672">1</span><span style="color:#f92672">):</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">LibreSSL</span> <span style="color:#f92672">SSL_connect</span><span style="color:#f92672">:</span> <span style="color:#f92672">SSL_ERROR_SYSCALL</span> <span style="color:#f92672">in</span> <span style="color:#f92672">connection</span> <span style="color:#f92672">to</span> <span style="color:#f92672">mysite</span>.<span style="color:#a6e22e">com</span>:<span style="color:#a6e22e">19333</span>
+<span style="color:#f92672">*</span> <span style="color:#f92672">Closing</span> <span style="color:#f92672">connection</span> <span style="color:#f92672">0</span>
+<span style="color:#f92672">curl</span><span style="color:#f92672">:</span> <span style="color:#f92672">(</span><span style="color:#f92672">35</span><span style="color:#f92672">)</span> <span style="color:#f92672">LibreSSL</span> <span style="color:#f92672">SSL_connect</span><span style="color:#f92672">:</span> <span style="color:#f92672">SSL_ERROR_SYSCALL</span> <span style="color:#f92672">in</span> <span style="color:#f92672">connection</span> <span style="color:#f92672">to</span> <span style="color:#f92672">mysite</span>.<span style="color:#a6e22e">com</span>:<span style="color:#a6e22e">19333</span>
+</code></pre></div><p>排位原因是：这里作者使用的ApiSix版本是2.12，缺失前缀 【addr】</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">  <span style="color:#f92672">stream_proxy</span>: <span style="color:#75715e"># TCP/UDP proxy</span>
+    <span style="color:#f92672">only</span>: <span style="color:#66d9ef">false</span>
+    <span style="color:#f92672">tcp</span>: <span style="color:#75715e"># TCP proxy address list</span>
+      - <span style="color:#ae81ff">9100</span>
+      - <span style="color:#ae81ff">9333</span>
+        <span style="color:#f92672">tls</span>: <span style="color:#66d9ef">true</span>
+</code></pre></div><h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://apisix.apache.org/zh/docs/apisix/2.12/stream-proxy/#%E4%BB%A3%E7%90%86%E5%88%B0-tls-over-tcp-%E4%B8%8A%E6%B8%B8">apisix.apache.org/zh/docs</a></li>
+<li><a href="https://apisix.apache.org/zh/docs/apisix/2.12/stream-proxy/#%E4%BB%A3%E7%90%86%E5%88%B0-tls-over-tcp-%E4%B8%8A%E6%B8%B8">apisix.apache.ogr/zh/streams</a></li>
+<li><a href="https://www.fenghong.tech/blog/kubernetes/sni-apisix-tcp/">
+Blog-基于sni使用apisix代理四层TCP/UDP</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/apisix/">ApiSix</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/tcp/">Tcp</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/websocket/">Websocket</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/stream/">stream</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/04/go%E4%BD%BF%E7%94%A8redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" data-tooltip="Go使用RedisStream实现消息队列" aria-label=": Go使用RedisStream实现消息队列">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/04/go%E4%BD%BF%E7%94%A8redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" data-tooltip="Go使用RedisStream实现消息队列" aria-label=": Go使用RedisStream实现消息队列">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+
