@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e本文主要介绍享元模式基础概念、实现原理和通过一个棋牌游戏例子简述实现过程。\u003c\/p\u003e\n\u003ch3 id=\u0022享元模式\u0022\u003e享元模式\u003c\/h3\u003e\n\u003cp\u003e所谓“享元”，顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。\n具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。\u003c\/p\u003e\n\u003cp\u003e享元的实现并不复杂，通过工厂模式，通过一个 Map 来缓存已经创建过的享元对象，来达到复用的目的。\n其中：\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003eFlyweight ： 享元类包含原始对象中部分能在多个对象中共享的状态。\u003c\/li\u003e\n\u003cli\u003eFlyweightFactory：享元工厂，会对已有享元的缓存池进行管理。\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003cp\u003e接着，我们通过一个棋牌游戏的案例来演示。\u003c\/p\u003e\n\u003ch3 id=\u0022案例-棋牌游戏\u0022\u003e案例-棋牌游戏\u003c\/h3\u003e\n\u003cp\u003e这里以象棋为例，游戏大厅中有N个房间，那么每个房间会有一个棋局对象，和X个（将、相、士、炮）棋子对象。以下是go的具体实现flyweight.go\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edesign_mode\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eChessPiece\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e      \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eColor\u003c\/span\u003e     \u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionX\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionY\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003etype\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eChessBoard\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003estruct\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eCards\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eChessPiece\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewChessBoard\u003c\/span\u003e() \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eChessBoard\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eChessBoard\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eCards\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eChessPiece\u003c\/span\u003e{\n\t\t\t\u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e: {\n\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e:      \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;車\u0026#34;\u003c\/span\u003e,\n\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eColor\u003c\/span\u003e:     \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;紅\u0026#34;\u003c\/span\u003e,\n\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionX\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e,\n\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionY\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e11\u003c\/span\u003e,\n\t\t\t},\n\t\t\t\u003cspan style=\u0022color:#ae81ff\u0022\u003e2\u003c\/span\u003e: {\n\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e:      \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;馬\u0026#34;\u003c\/span\u003e,\n\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eColor\u003c\/span\u003e:     \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;黑\u0026#34;\u003c\/span\u003e,\n\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionX\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e2\u003c\/span\u003e,\n\t\t\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionY\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e2\u003c\/span\u003e,\n\t\t\t},\n\t\t},\n\t\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 其他棋子\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t}\n}\n\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e开N个房间flyweight_test.go\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edesign_mode\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;testing\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eTestNewChessBoard\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003etesting\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eT\u003c\/span\u003e) {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003egame1\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewChessBoard\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003egame2\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewChessBoard\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLog\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003egame1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eCards\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLog\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003egame2\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eCards\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e])\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003et\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLog\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003egame1\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eCards\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e] \u003cspan style=\u0022color:#f92672\u0022\u003e==\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egame2\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eCards\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e])\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eOutPut:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e=== RUN   TestNewChessBoard\r\n    flyweight_test.go:15: \u0026amp;{車 紅 1 11}\r\n    flyweight_test.go:16: \u0026amp;{車 紅 1 11}\r\n    flyweight_test.go:17: false\r\n--- PASS: TestNewChessBoard (0.00s)\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e例中，每创建一个棋局就需要初始化对应的棋子，如果游戏大厅有百万人同时在线 ，那保存这么多棋局对象就会消耗大量的内存。\u003c\/p\u003e\n\u003ch3 id=\u0022使用享元模式重构\u0022\u003e使用享元模式重构\u003c\/h3\u003e\n\u003cp\u003e如何对上例进行优化呢，从例子中，每个大厅存在大量重复对象棋牌，利用享元模式把棋牌设计成共享的（map）详细如下。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003edesign_mode\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;fmt\u0026#34;\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003evar\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003echessPieceUnit\u003c\/span\u003e = \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eChessPiece\u003c\/span\u003e{\n\t\u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e: {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e:  \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;車\u0026#34;\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eColor\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;紅\u0026#34;\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionX\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionY\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e11\u003c\/span\u003e,\n\t},\n\t\u003cspan style=\u0022color:#ae81ff\u0022\u003e2\u003c\/span\u003e: {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eName\u003c\/span\u003e:  \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;馬\u0026#34;\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eColor\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;黑\u0026#34;\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionX\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e2\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ePositionY\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e2\u003c\/span\u003e,\n\t},\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ 其他棋子\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eNewChessPieceUnitFactory\u003c\/span\u003e() \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eChessBoard\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eboard\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eChessBoard\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eCards\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003emap\u003c\/span\u003e[\u003cspan style=\u0022color:#66d9ef\u0022\u003eint\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003eChessPiece\u003c\/span\u003e{}}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eid\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003erange\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003echessPieceUnit\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eboard\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eCards\u003c\/span\u003e[\u003cspan style=\u0022color:#a6e22e\u0022\u003eid\u003c\/span\u003e] = \u003cspan style=\u0022color:#a6e22e\u0022\u003echessPieceUnit\u003c\/span\u003e[\u003cspan style=\u0022color:#a6e22e\u0022\u003eid\u003c\/span\u003e]\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eboard\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eoutput:\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e===\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eRUN\u003c\/span\u003e   \u003cspan style=\u0022color:#f92672\u0022\u003eTestNewChessPieceUnitFactory\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003eflyweight2_test\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ego\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e13\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e車\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e紅\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e1\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e11\u003c\/span\u003e}\n    \u003cspan style=\u0022color:#f92672\u0022\u003eflyweight2_test\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ego\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e14\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026amp;\u003c\/span\u003e{\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e車\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e紅\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e1\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e11\u003c\/span\u003e}\n    \u003cspan style=\u0022color:#f92672\u0022\u003eflyweight2_test\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003ego\u003c\/span\u003e:\u003cspan style=\u0022color:#a6e22e\u0022\u003e15\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003etrue\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003e---\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003ePASS\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e:\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eTestNewChessPieceUnitFactory\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e(\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e00s\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e)\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e例中，通过一个ChessPieceUnit来缓存一个ChessBoard棋局的30\u002b个ChessPiece棋子对象。原本如果是1万个ChessBoard棋局，需要创建【1万乘30】约30万个棋子对象。现在通过共享同一个ChessPieceUnit，那么需要创建约【30】个对象，大大节省了内存。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e设计模式之美 \u003ca href=\u0022https:\/\/item.jd.com\/13174161.html\u0022\u003ehttps:\/\/item.jd.com\/13174161.html\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2023\/05\/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight\/",
+  "keywords":"[disign-mode, 设计模式, 享元, flyweight]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="disign-mode, 设计模式, 享元, flyweight">
+<meta name="description" content="本文主要介绍享元模式基础概念、实现原理和通过一个棋牌游戏例子简述实现过程。
+享元模式
+所谓“享元”，顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。
+具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。
+享元的实现并不复杂，通过工厂模式，通过一个 Map 来缓存已经创建过的享元对象，来达到复用的目的。
+其中：
+
+Flyweight ： 享元类包含原始对象中部分能在多个对象中共享的状态。
+FlyweightFactory：享元工厂，会对已有享元的缓存池进行管理。
+
+接着，我们通过一个棋牌游戏的案例来演示。
+案例-棋牌游戏
+这里以象棋为例，游戏大厅中有N个房间，那么每个房间会有一个棋局对象，和X个（将、相、士、炮）棋子对象。以下是go的具体实现flyweight.go
+package design_mode
+
+type ChessPiece struct {
+	Name      string
+	Color     string
+	PositionX int
+	PositionY int
+}
+
+type ChessBoard struct {
+	Cards map[int]*ChessPiece
+}
+
+func NewChessBoard() *ChessBoard {
+	return &amp;ChessBoard{
+		Cards: map[int]*ChessPiece{
+			1: {
+				Name:      &#34;車&#34;,
+				Color:     &#34;紅&#34;,
+				PositionX: 1,
+				PositionY: 11,
+			},
+			2: {
+				Name:      &#34;馬&#34;,
+				Color:     &#34;黑&#34;,
+				PositionX: 2,
+				PositionY: 2,
+			},
+		},
+		// 其他棋子
+	}
+}
+
+
+开N个房间flyweight_test.go
+package design_mode
+
+import (
+	&#34;testing&#34;
+)
+
+func TestNewChessBoard(t *testing.T) {
+	game1 := NewChessBoard()
+	game2 := NewChessBoard()
+	t.Log(game1.Cards[1])
+	t.Log(game2.Cards[1])
+	t.Log(game1.Cards[1] == game2.Cards[1])
+}
+OutPut:
+=== RUN   TestNewChessBoard
+    flyweight_test.go:15: &amp;{車 紅 1 11}
+    flyweight_test.go:16: &amp;{車 紅 1 11}
+    flyweight_test.go:17: false
+--- PASS: TestNewChessBoard (0.00s)
+例中，每创建一个棋局就需要初始化对应的棋子，如果游戏大厅有百万人同时在线 ，那保存这么多棋局对象就会消耗大量的内存。
+使用享元模式重构
+如何对上例进行优化呢，从例子中，每个大厅存在大量重复对象棋牌，利用享元模式把棋牌设计成共享的（map）详细如下。
+package design_mode
+
+import &#34;fmt&#34;
+
+var chessPieceUnit = map[int]*ChessPiece{
+	1: {
+		Name:  &#34;車&#34;,
+		Color: &#34;紅&#34;,
+		PositionX: 1,
+		PositionY: 11,
+	},
+	2: {
+		Name:  &#34;馬&#34;,
+		Color: &#34;黑&#34;,
+		PositionX: 2,
+		PositionY: 2,
+	},
+	// 其他棋子
+}
+
+func NewChessPieceUnitFactory() *ChessBoard {
+	board := &amp;ChessBoard{Cards: map[int]*ChessPiece{}}
+	for id := range chessPieceUnit {
+		board.Cards[id] = chessPieceUnit[id]
+	}
+	return board
+}
+output:
+=== RUN   TestNewChessPieceUnitFactory
+    flyweight2_test.go:13: &amp;{車 紅 1 11}
+    flyweight2_test.go:14: &amp;{車 紅 1 11}
+    flyweight2_test.go:15: true
+--- PASS: TestNewChessPieceUnitFactory (0.00s)
+例中，通过一个ChessPieceUnit来缓存一个ChessBoard棋局的30&#43;个ChessPiece棋子对象。原本如果是1万个ChessBoard棋局，需要创建【1万乘30】约30万个棋子对象。现在通过共享同一个ChessPieceUnit，那么需要创建约【30】个对象，大大节省了内存。
+参考
+
+设计模式之美 https://item.jd.com/13174161.html
+">
+
+
+<meta property="og:description" content="本文主要介绍享元模式基础概念、实现原理和通过一个棋牌游戏例子简述实现过程。
+享元模式
+所谓“享元”，顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。
+具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。
+享元的实现并不复杂，通过工厂模式，通过一个 Map 来缓存已经创建过的享元对象，来达到复用的目的。
+其中：
+
+Flyweight ： 享元类包含原始对象中部分能在多个对象中共享的状态。
+FlyweightFactory：享元工厂，会对已有享元的缓存池进行管理。
+
+接着，我们通过一个棋牌游戏的案例来演示。
+案例-棋牌游戏
+这里以象棋为例，游戏大厅中有N个房间，那么每个房间会有一个棋局对象，和X个（将、相、士、炮）棋子对象。以下是go的具体实现flyweight.go
+package design_mode
+
+type ChessPiece struct {
+	Name      string
+	Color     string
+	PositionX int
+	PositionY int
+}
+
+type ChessBoard struct {
+	Cards map[int]*ChessPiece
+}
+
+func NewChessBoard() *ChessBoard {
+	return &amp;ChessBoard{
+		Cards: map[int]*ChessPiece{
+			1: {
+				Name:      &#34;車&#34;,
+				Color:     &#34;紅&#34;,
+				PositionX: 1,
+				PositionY: 11,
+			},
+			2: {
+				Name:      &#34;馬&#34;,
+				Color:     &#34;黑&#34;,
+				PositionX: 2,
+				PositionY: 2,
+			},
+		},
+		// 其他棋子
+	}
+}
+
+
+开N个房间flyweight_test.go
+package design_mode
+
+import (
+	&#34;testing&#34;
+)
+
+func TestNewChessBoard(t *testing.T) {
+	game1 := NewChessBoard()
+	game2 := NewChessBoard()
+	t.Log(game1.Cards[1])
+	t.Log(game2.Cards[1])
+	t.Log(game1.Cards[1] == game2.Cards[1])
+}
+OutPut:
+=== RUN   TestNewChessBoard
+    flyweight_test.go:15: &amp;{車 紅 1 11}
+    flyweight_test.go:16: &amp;{車 紅 1 11}
+    flyweight_test.go:17: false
+--- PASS: TestNewChessBoard (0.00s)
+例中，每创建一个棋局就需要初始化对应的棋子，如果游戏大厅有百万人同时在线 ，那保存这么多棋局对象就会消耗大量的内存。
+使用享元模式重构
+如何对上例进行优化呢，从例子中，每个大厅存在大量重复对象棋牌，利用享元模式把棋牌设计成共享的（map）详细如下。
+package design_mode
+
+import &#34;fmt&#34;
+
+var chessPieceUnit = map[int]*ChessPiece{
+	1: {
+		Name:  &#34;車&#34;,
+		Color: &#34;紅&#34;,
+		PositionX: 1,
+		PositionY: 11,
+	},
+	2: {
+		Name:  &#34;馬&#34;,
+		Color: &#34;黑&#34;,
+		PositionX: 2,
+		PositionY: 2,
+	},
+	// 其他棋子
+}
+
+func NewChessPieceUnitFactory() *ChessBoard {
+	board := &amp;ChessBoard{Cards: map[int]*ChessPiece{}}
+	for id := range chessPieceUnit {
+		board.Cards[id] = chessPieceUnit[id]
+	}
+	return board
+}
+output:
+=== RUN   TestNewChessPieceUnitFactory
+    flyweight2_test.go:13: &amp;{車 紅 1 11}
+    flyweight2_test.go:14: &amp;{車 紅 1 11}
+    flyweight2_test.go:15: true
+--- PASS: TestNewChessPieceUnitFactory (0.00s)
+例中，通过一个ChessPieceUnit来缓存一个ChessBoard棋局的30&#43;个ChessPiece棋子对象。原本如果是1万个ChessBoard棋局，需要创建【1万乘30】约30万个棋子对象。现在通过共享同一个ChessPieceUnit，那么需要创建约【30】个对象，大大节省了内存。
+参考
+
+设计模式之美 https://item.jd.com/13174161.html
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式  享元模式flyweight">
+<meta name="twitter:title" content="设计模式  享元模式flyweight">
+<meta property="og:url" content="https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/">
+<meta property="twitter:url" content="https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="本文主要介绍享元模式基础概念、实现原理和通过一个棋牌游戏例子简述实现过程。
+享元模式
+所谓“享元”，顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。
+具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。
+享元的实现并不复杂，通过工厂模式，通过一个 Map 来缓存已经创建过的享元对象，来达到复用的目的。
+其中：
+
+Flyweight ： 享元类包含原始对象中部分能在多个对象中共享的状态。
+FlyweightFactory：享元工厂，会对已有享元的缓存池进行管理。
+
+接着，我们通过一个棋牌游戏的案例来演示。
+案例-棋牌游戏
+这里以象棋为例，游戏大厅中有N个房间，那么每个房间会有一个棋局对象，和X个（将、相、士、炮）棋子对象。以下是go的具体实现flyweight.go
+package design_mode
+
+type ChessPiece struct {
+	Name      string
+	Color     string
+	PositionX int
+	PositionY int
+}
+
+type ChessBoard struct {
+	Cards map[int]*ChessPiece
+}
+
+func NewChessBoard() *ChessBoard {
+	return &amp;ChessBoard{
+		Cards: map[int]*ChessPiece{
+			1: {
+				Name:      &#34;車&#34;,
+				Color:     &#34;紅&#34;,
+				PositionX: 1,
+				PositionY: 11,
+			},
+			2: {
+				Name:      &#34;馬&#34;,
+				Color:     &#34;黑&#34;,
+				PositionX: 2,
+				PositionY: 2,
+			},
+		},
+		// 其他棋子
+	}
+}
+
+
+开N个房间flyweight_test.go
+package design_mode
+
+import (
+	&#34;testing&#34;
+)
+
+func TestNewChessBoard(t *testing.T) {
+	game1 := NewChessBoard()
+	game2 := NewChessBoard()
+	t.Log(game1.Cards[1])
+	t.Log(game2.Cards[1])
+	t.Log(game1.Cards[1] == game2.Cards[1])
+}
+OutPut:
+=== RUN   TestNewChessBoard
+    flyweight_test.go:15: &amp;{車 紅 1 11}
+    flyweight_test.go:16: &amp;{車 紅 1 11}
+    flyweight_test.go:17: false
+--- PASS: TestNewChessBoard (0.00s)
+例中，每创建一个棋局就需要初始化对应的棋子，如果游戏大厅有百万人同时在线 ，那保存这么多棋局对象就会消耗大量的内存。
+使用享元模式重构
+如何对上例进行优化呢，从例子中，每个大厅存在大量重复对象棋牌，利用享元模式把棋牌设计成共享的（map）详细如下。
+package design_mode
+
+import &#34;fmt&#34;
+
+var chessPieceUnit = map[int]*ChessPiece{
+	1: {
+		Name:  &#34;車&#34;,
+		Color: &#34;紅&#34;,
+		PositionX: 1,
+		PositionY: 11,
+	},
+	2: {
+		Name:  &#34;馬&#34;,
+		Color: &#34;黑&#34;,
+		PositionX: 2,
+		PositionY: 2,
+	},
+	// 其他棋子
+}
+
+func NewChessPieceUnitFactory() *ChessBoard {
+	board := &amp;ChessBoard{Cards: map[int]*ChessPiece{}}
+	for id := range chessPieceUnit {
+		board.Cards[id] = chessPieceUnit[id]
+	}
+	return board
+}
+output:
+=== RUN   TestNewChessPieceUnitFactory
+    flyweight2_test.go:13: &amp;{車 紅 1 11}
+    flyweight2_test.go:14: &amp;{車 紅 1 11}
+    flyweight2_test.go:15: true
+--- PASS: TestNewChessPieceUnitFactory (0.00s)
+例中，通过一个ChessPieceUnit来缓存一个ChessBoard棋局的30&#43;个ChessPiece棋子对象。原本如果是1万个ChessBoard棋局，需要创建【1万乘30】约30万个棋子对象。现在通过共享同一个ChessPieceUnit，那么需要创建约【30】个对象，大大节省了内存。
+参考
+
+设计模式之美 https://item.jd.com/13174161.html
+">
+<meta name="twitter:description" content="本文主要介绍享元模式基础概念、实现原理和通过一个棋牌游戏例子简述实现过程。
+享元模式
+所谓“享元”，顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。
+具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。
+享元的实现并不复杂，通过工厂模式，通过一个 Map 来缓存已经创建过的享元对象，来达到复用的目的。
+其中：
+
+Flyweight ： 享元类包含原始对象中部分能在多个对象中共享的状态。
+FlyweightFactory：享元工厂，会对已有享元的缓存池进行管理。
+
+接着，我们通过一个棋牌游戏的案例来演示。
+案例-棋牌游戏
+这里以象棋为例，游戏大厅中有N个房间，那么每个房间会有一个棋局对象，和X个（将、相、士、炮）棋子对象。以下是go的具体实现flyweight.go
+package design_mode
+
+type ChessPiece struct {
+	Name      string
+	Color     string
+	PositionX int
+	PositionY int
+}
+
+type ChessBoard struct {
+	Cards map[int]*ChessPiece
+}
+
+func NewChessBoard() *ChessBoard {
+	return &amp;ChessBoard{
+		Cards: map[int]*ChessPiece{
+			1: {
+				Name:      &#34;車&#34;,
+				Color:     &#34;紅&#34;,
+				PositionX: 1,
+				PositionY: 11,
+			},
+			2: {
+				Name:      &#34;馬&#34;,
+				Color:     &#34;黑&#34;,
+				PositionX: 2,
+				PositionY: 2,
+			},
+		},
+		// 其他棋子
+	}
+}
+
+
+开N个房间flyweight_test.go
+package design_mode
+
+import (
+	&#34;testing&#34;
+)
+
+func TestNewChessBoard(t *testing.T) {
+	game1 := NewChessBoard()
+	game2 := NewChessBoard()
+	t.Log(game1.Cards[1])
+	t.Log(game2.Cards[1])
+	t.Log(game1.Cards[1] == game2.Cards[1])
+}
+OutPut:
+=== RUN   TestNewChessBoard
+    flyweight_test.go:15: &amp;{車 紅 1 11}
+    flyweight_test.go:16: &amp;{車 紅 1 11}
+    flyweight_test.go:17: false
+--- PASS: TestNewChessBoard (0.00s)
+例中，每创建一个棋局就需要初始化对应的棋子，如果游戏大厅有百万人同时在线 ，那保存这么多棋局对象就会消耗大量的内存。
+使用享元模式重构
+如何对上例进行优化呢，从例子中，每个大厅存在大量重复对象棋牌，利用享元模式把棋牌设计成共享的（map）详细如下。
+package design_mode
+
+import &#34;fmt&#34;
+
+var chessPieceUnit = map[int]*ChessPiece{
+	1: {
+		Name:  &#34;車&#34;,
+		Color: &#34;紅&#34;,
+		PositionX: 1,
+		PositionY: 11,
+	},
+	2: {
+		Name:  &#34;馬&#34;,
+		Color: &#34;黑&#34;,
+		PositionX: 2,
+		PositionY: 2,
+	},
+	// 其他棋子
+}
+
+func NewChessPieceUnitFactory() *ChessBoard {
+	board := &amp;ChessBoard{Cards: map[int]*ChessPiece{}}
+	for id := range chessPieceUnit {
+		board.Cards[id] = chessPieceUnit[id]
+	}
+	return board
+}
+output:
+=== RUN   TestNewChessPieceUnitFactory
+    flyweight2_test.go:13: &amp;{車 紅 1 11}
+    flyweight2_test.go:14: &amp;{車 紅 1 11}
+    flyweight2_test.go:15: true
+--- PASS: TestNewChessPieceUnitFactory (0.00s)
+例中，通过一个ChessPieceUnit来缓存一个ChessBoard棋局的30&#43;个ChessPiece棋子对象。原本如果是1万个ChessBoard棋局，需要创建【1万乘30】约30万个棋子对象。现在通过共享同一个ChessPieceUnit，那么需要创建约【30】个对象，大大节省了内存。
+参考
+
+设计模式之美 https://item.jd.com/13174161.html
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2023-05-14T16:06:36">
+  
+  
+    <meta property="article:modified_time" content="2023-05-14T16:06:36">
+  
+  
+  
+    
+      <meta property="article:section" content="DisignMode">
+    
+  
+  
+    
+      <meta property="article:tag" content="disign-mode">
+    
+      <meta property="article:tag" content="observer">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>设计模式  享元模式flyweight</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      设计模式  享元模式flyweight
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-05-14T16:06:36&#43;08:00">
+        
+   14, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/disignmode">DisignMode</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>本文主要介绍享元模式基础概念、实现原理和通过一个棋牌游戏例子简述实现过程。</p>
+<h3 id="享元模式">享元模式</h3>
+<p>所谓“享元”，顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。
+具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。</p>
+<p>享元的实现并不复杂，通过工厂模式，通过一个 Map 来缓存已经创建过的享元对象，来达到复用的目的。
+其中：</p>
+<ul>
+<li>Flyweight ： 享元类包含原始对象中部分能在多个对象中共享的状态。</li>
+<li>FlyweightFactory：享元工厂，会对已有享元的缓存池进行管理。</li>
+</ul>
+<p>接着，我们通过一个棋牌游戏的案例来演示。</p>
+<h3 id="案例-棋牌游戏">案例-棋牌游戏</h3>
+<p>这里以象棋为例，游戏大厅中有N个房间，那么每个房间会有一个棋局对象，和X个（将、相、士、炮）棋子对象。以下是go的具体实现flyweight.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">design_mode</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ChessPiece</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Name</span>      <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">Color</span>     <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">PositionX</span> <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">PositionY</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ChessBoard</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Cards</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">ChessPiece</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewChessBoard</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">ChessBoard</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ChessBoard</span>{
+		<span style="color:#a6e22e">Cards</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">ChessPiece</span>{
+			<span style="color:#ae81ff">1</span>: {
+				<span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;車&#34;</span>,
+				<span style="color:#a6e22e">Color</span>:     <span style="color:#e6db74">&#34;紅&#34;</span>,
+				<span style="color:#a6e22e">PositionX</span>: <span style="color:#ae81ff">1</span>,
+				<span style="color:#a6e22e">PositionY</span>: <span style="color:#ae81ff">11</span>,
+			},
+			<span style="color:#ae81ff">2</span>: {
+				<span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;馬&#34;</span>,
+				<span style="color:#a6e22e">Color</span>:     <span style="color:#e6db74">&#34;黑&#34;</span>,
+				<span style="color:#a6e22e">PositionX</span>: <span style="color:#ae81ff">2</span>,
+				<span style="color:#a6e22e">PositionY</span>: <span style="color:#ae81ff">2</span>,
+			},
+		},
+		<span style="color:#75715e">// 其他棋子
+</span><span style="color:#75715e"></span>	}
+}
+
+
+</code></pre></div><p>开N个房间flyweight_test.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">design_mode</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;testing&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestNewChessBoard</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+	<span style="color:#a6e22e">game1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewChessBoard</span>()
+	<span style="color:#a6e22e">game2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewChessBoard</span>()
+	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">game1</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#ae81ff">1</span>])
+	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">game2</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#ae81ff">1</span>])
+	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">game1</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">==</span> <span style="color:#a6e22e">game2</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#ae81ff">1</span>])
+}
+</code></pre></div><p>OutPut:</p>
+<pre tabindex="0"><code>=== RUN   TestNewChessBoard
+    flyweight_test.go:15: &amp;{車 紅 1 11}
+    flyweight_test.go:16: &amp;{車 紅 1 11}
+    flyweight_test.go:17: false
+--- PASS: TestNewChessBoard (0.00s)
+</code></pre><p>例中，每创建一个棋局就需要初始化对应的棋子，如果游戏大厅有百万人同时在线 ，那保存这么多棋局对象就会消耗大量的内存。</p>
+<h3 id="使用享元模式重构">使用享元模式重构</h3>
+<p>如何对上例进行优化呢，从例子中，每个大厅存在大量重复对象棋牌，利用享元模式把棋牌设计成共享的（map）详细如下。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">design_mode</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">chessPieceUnit</span> = <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">ChessPiece</span>{
+	<span style="color:#ae81ff">1</span>: {
+		<span style="color:#a6e22e">Name</span>:  <span style="color:#e6db74">&#34;車&#34;</span>,
+		<span style="color:#a6e22e">Color</span>: <span style="color:#e6db74">&#34;紅&#34;</span>,
+		<span style="color:#a6e22e">PositionX</span>: <span style="color:#ae81ff">1</span>,
+		<span style="color:#a6e22e">PositionY</span>: <span style="color:#ae81ff">11</span>,
+	},
+	<span style="color:#ae81ff">2</span>: {
+		<span style="color:#a6e22e">Name</span>:  <span style="color:#e6db74">&#34;馬&#34;</span>,
+		<span style="color:#a6e22e">Color</span>: <span style="color:#e6db74">&#34;黑&#34;</span>,
+		<span style="color:#a6e22e">PositionX</span>: <span style="color:#ae81ff">2</span>,
+		<span style="color:#a6e22e">PositionY</span>: <span style="color:#ae81ff">2</span>,
+	},
+	<span style="color:#75715e">// 其他棋子
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewChessPieceUnitFactory</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">ChessBoard</span> {
+	<span style="color:#a6e22e">board</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ChessBoard</span>{<span style="color:#a6e22e">Cards</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">ChessPiece</span>{}}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">id</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">chessPieceUnit</span> {
+		<span style="color:#a6e22e">board</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#a6e22e">id</span>] = <span style="color:#a6e22e">chessPieceUnit</span>[<span style="color:#a6e22e">id</span>]
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">board</span>
+}
+</code></pre></div><p>output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">===</span> <span style="color:#f92672">RUN</span>   <span style="color:#f92672">TestNewChessPieceUnitFactory</span>
+    <span style="color:#f92672">flyweight2_test</span>.<span style="color:#a6e22e">go</span>:<span style="color:#a6e22e">13</span><span style="color:#f92672">:</span> <span style="color:#f92672">&amp;</span>{<span style="color:#960050;background-color:#1e0010">車</span> <span style="color:#960050;background-color:#1e0010">紅</span> <span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#960050;background-color:#1e0010">11</span>}
+    <span style="color:#f92672">flyweight2_test</span>.<span style="color:#a6e22e">go</span>:<span style="color:#a6e22e">14</span><span style="color:#f92672">:</span> <span style="color:#f92672">&amp;</span>{<span style="color:#960050;background-color:#1e0010">車</span> <span style="color:#960050;background-color:#1e0010">紅</span> <span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#960050;background-color:#1e0010">11</span>}
+    <span style="color:#f92672">flyweight2_test</span>.<span style="color:#a6e22e">go</span>:<span style="color:#a6e22e">15</span><span style="color:#f92672">:</span> <span style="color:#f92672">true</span>
+<span style="color:#f92672">---</span> <span style="color:#f92672">PASS</span><span style="color:#f92672">:</span> <span style="color:#f92672">TestNewChessPieceUnitFactory</span> <span style="color:#f92672">(</span><span style="color:#f92672">0</span>.<span style="color:#a6e22e">00s</span><span style="color:#f92672">)</span>
+</code></pre></div><p>例中，通过一个ChessPieceUnit来缓存一个ChessBoard棋局的30+个ChessPiece棋子对象。原本如果是1万个ChessBoard棋局，需要创建【1万乘30】约30万个棋子对象。现在通过共享同一个ChessPieceUnit，那么需要创建约【30】个对象，大大节省了内存。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>设计模式之美 <a href="https://item.jd.com/13174161.html">https://item.jd.com/13174161.html</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/disign-mode/">disign-mode</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/observer/">observer</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/04/apisix%E5%9F%BA%E4%BA%8Esni%E4%BB%A3%E7%90%86tcpudp/" data-tooltip="Apisix基于SNI代理TCP、UDP" aria-label=": Apisix基于SNI代理TCP、UDP">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/04/apisix%E5%9F%BA%E4%BA%8Esni%E4%BB%A3%E7%90%86tcpudp/" data-tooltip="Apisix基于SNI代理TCP、UDP" aria-label=": Apisix基于SNI代理TCP、UDP">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

@@ -237,6 +237,152 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" aria-label="">
+      
+          Redis实现对象存储和列表分页
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-06-05T16:23:04&#43;08:00">
+        
+   5, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <h2 id="场景">场景</h2>
+<p>在项目开发中，需要用到缓存和对一个列表数据分页查询，但由于redis是key-value的存储方式，我们期望的使用类似postgresql的offset和limit，不至于需要一个个key遍历过去。</p>
+<h2 id="设计">设计</h2>
+<p>分析一下我们需求，那么需求需要实现的接口大概是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">FindByPage</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">page</span>, <span style="color:#a6e22e">size</span> <span style="color:#66d9ef">int</span>) ([]<span style="color:#a6e22e">Object</span>, <span style="color:#66d9ef">error</span>)
+</code></pre></div><p>大致我们需要解决两个问题:</p>
+<ul>
+<li>存储对象</li>
+<li>列表分页快速查找</li>
+</ul>
+<h3 id="对象存储">对象存储</h3>
+<blockquote>
+<p>Redis hash 是一个 string 类型的 field（字段） 和 value（值） 的映射表，hash 特别适合用于存储对象。</p>
+<ul>
+<li>HDEL key field1 [field2]删除一个或多个哈希表字段</li>
+<li>HEXISTS key field查看哈希表 key 中，指定的字段是否存在。</li>
+<li>HGET key field获取存储在哈希表中指定字段的值。</li>
+<li>HGETALL key获取在哈希表中指定 key 的所有字段和值</li>
+</ul>
+</blockquote>
+<p>如此，我们可以 redis hash 和 json.Encoding 来存储。
+获得一个Object</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//【ObjectID】= &#34;{&#34;foo&#34;: &#34;123&#34;, &#34;bar&#34;:&#34;456&#34;}&#34;
+</span><span style="color:#75715e"></span>
+<span style="color:#f92672">import</span>  <span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
+
+<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HGet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">String</span>()).<span style="color:#a6e22e">Result</span>()
+<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+     <span style="color:#66d9ef">return</span>
+}
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">obj</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">YourObject</span>{}
+<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>([]byte(<span style="color:#a6e22e">result</span>), <span style="color:#a6e22e">obj</span>)
+<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+     <span style="color:#66d9ef">return</span>
+}
+</code></pre></div><p>增加一个Object：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">ob</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Marshal</span>(<span style="color:#a6e22e">Object</span>{}<span style="color:#960050;background-color:#1e0010">）</span>) 
+	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">repo</span>.<span style="color:#a6e22e">data</span>.<span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">HSet</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">ob</span>.<span style="color:#a6e22e">ID</span>, <span style="color:#a6e22e">ob</span>).<span style="color:#a6e22e">Err</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+</code></pre></div><h3 id="分页">分页</h3>
+<p>我们的需求中，ObjectID是一个唯一的int，那么可以使用 zset</p>
+<blockquote>
+<p>ZXyy redis 有序集合的基本命令。</p>
+<ul>
+<li>ZADD key score1 member1 [score2 member2]向有序集合添加一个或多个成员，或者更新已存在成员的分数</li>
+<li>ZCARD key获取有序集合的成员数</li>
+<li>ZRANGE key start stop [WITHSCORES]通过索引区间返回有序集合指定区间内的成员</li>
+</ul>
+</blockquote>
+<p>那么可以把 zset 的key 和 value 都设置为 ObjectID
+增加一个Object的代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Z</span>{
+     <span style="color:#a6e22e">Score</span>:  float64(<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">ID</span>),
+     <span style="color:#a6e22e">Member</span>: <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(int(<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">ID</span>)),
+}).<span style="color:#a6e22e">Err</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+     <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+}
+</code></pre></div><p>获取X分页的代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> (
+     <span style="color:#a6e22e">start</span> = int64((<span style="color:#a6e22e">page</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">size</span>)
+     <span style="color:#a6e22e">end</span>   = <span style="color:#a6e22e">start</span> <span style="color:#f92672">+</span> int64(<span style="color:#a6e22e">size</span>)
+)
+<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rdb</span>.<span style="color:#a6e22e">ZRange</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">Result</span>()
+<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+     <span style="color:#66d9ef">return</span>
+}
+</code></pre></div><h3 id="测试">测试</h3>
+<p>我们增加N个Object：</p>
+<pre tabindex="0"><code>[1 a]
+[2 b]
+[3 c]
+[11 aa]
+[12 bb]
+[13 cc]
+[21 aaaa]
+</code></pre><p>每页的长度为4，获取第一页</p>
+<pre tabindex="0"><code>[1 2 3 11]
+</code></pre><p>第二页：</p>
+<pre tabindex="0"><code>[12 13 21]
+</code></pre><p>第三页：</p>
+<pre tabindex="0"><code>[ ]
+</code></pre><h4 id="参考">参考</h4>
+<ul>
+<li><a href="https://cloud.tencent.com/developer/article/1802288">https://cloud.tencent.com/developer/article/1802288</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/" aria-label="">
       
           Google、meta第三方登入后端验证
