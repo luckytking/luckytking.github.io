@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>flyweight on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/flyweight/</link>
+    <description>Recent content in flyweight on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 14 May 2023 16:06:36 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/flyweight/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>设计模式  享元模式flyweight</title>
+      <link>https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/</link>
+      <pubDate>Sun, 14 May 2023 16:06:36 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/</guid>
+      <description>&lt;p&gt;本文主要介绍享元模式基础概念、实现原理和通过一个棋牌游戏例子简述实现过程。&lt;/p&gt;
+&lt;h3 id=&#34;享元模式&#34;&gt;享元模式&lt;/h3&gt;
+&lt;p&gt;所谓“享元”，顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。
+具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。&lt;/p&gt;
+&lt;p&gt;享元的实现并不复杂，通过工厂模式，通过一个 Map 来缓存已经创建过的享元对象，来达到复用的目的。
+其中：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Flyweight ： 享元类包含原始对象中部分能在多个对象中共享的状态。&lt;/li&gt;
+&lt;li&gt;FlyweightFactory：享元工厂，会对已有享元的缓存池进行管理。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;接着，我们通过一个棋牌游戏的案例来演示。&lt;/p&gt;
+&lt;h3 id=&#34;案例-棋牌游戏&#34;&gt;案例-棋牌游戏&lt;/h3&gt;
+&lt;p&gt;这里以象棋为例，游戏大厅中有N个房间，那么每个房间会有一个棋局对象，和X个（将、相、士、炮）棋子对象。以下是go的具体实现flyweight.go&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;design_mode&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ChessPiece&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Color&lt;/span&gt;     &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionX&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionY&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ChessBoard&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;Cards&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ChessPiece&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;NewChessBoard&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ChessBoard&lt;/span&gt; {
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ChessBoard&lt;/span&gt;{
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Cards&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ChessPiece&lt;/span&gt;{
+			&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;: {
+				&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;:      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;車&amp;#34;&lt;/span&gt;,
+				&lt;span style=&#34;color:#a6e22e&#34;&gt;Color&lt;/span&gt;:     &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;紅&amp;#34;&lt;/span&gt;,
+				&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionX&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;,
+				&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionY&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;11&lt;/span&gt;,
+			},
+			&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;: {
+				&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;:      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;馬&amp;#34;&lt;/span&gt;,
+				&lt;span style=&#34;color:#a6e22e&#34;&gt;Color&lt;/span&gt;:     &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;黑&amp;#34;&lt;/span&gt;,
+				&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionX&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;,
+				&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionY&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;,
+			},
+		},
+		&lt;span style=&#34;color:#75715e&#34;&gt;// 其他棋子
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	}
+}
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;开N个房间flyweight_test.go&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;design_mode&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; (
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;testing&amp;#34;&lt;/span&gt;
+)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TestNewChessBoard&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;testing&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;T&lt;/span&gt;) {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;game1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;NewChessBoard&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;game2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;NewChessBoard&lt;/span&gt;()
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Log&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;game1&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Cards&lt;/span&gt;[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;])
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Log&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;game2&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Cards&lt;/span&gt;[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;])
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;t&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Log&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;game1&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Cards&lt;/span&gt;[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;game2&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Cards&lt;/span&gt;[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;])
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;OutPut:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;=== RUN   TestNewChessBoard
+    flyweight_test.go:15: &amp;amp;{車 紅 1 11}
+    flyweight_test.go:16: &amp;amp;{車 紅 1 11}
+    flyweight_test.go:17: false
+--- PASS: TestNewChessBoard (0.00s)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;例中，每创建一个棋局就需要初始化对应的棋子，如果游戏大厅有百万人同时在线 ，那保存这么多棋局对象就会消耗大量的内存。&lt;/p&gt;
+&lt;h3 id=&#34;使用享元模式重构&#34;&gt;使用享元模式重构&lt;/h3&gt;
+&lt;p&gt;如何对上例进行优化呢，从例子中，每个大厅存在大量重复对象棋牌，利用享元模式把棋牌设计成共享的（map）详细如下。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;package&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;design_mode&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fmt&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;chessPieceUnit&lt;/span&gt; = &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ChessPiece&lt;/span&gt;{
+	&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;: {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;:  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;車&amp;#34;&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Color&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;紅&amp;#34;&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionX&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionY&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;11&lt;/span&gt;,
+	},
+	&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;: {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Name&lt;/span&gt;:  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;馬&amp;#34;&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;Color&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;黑&amp;#34;&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionX&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;,
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;PositionY&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;,
+	},
+	&lt;span style=&#34;color:#75715e&#34;&gt;// 其他棋子
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;NewChessPieceUnitFactory&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ChessBoard&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;board&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ChessBoard&lt;/span&gt;{&lt;span style=&#34;color:#a6e22e&#34;&gt;Cards&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;map&lt;/span&gt;[&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ChessPiece&lt;/span&gt;{}}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;range&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;chessPieceUnit&lt;/span&gt; {
+		&lt;span style=&#34;color:#a6e22e&#34;&gt;board&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Cards&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;] = &lt;span style=&#34;color:#a6e22e&#34;&gt;chessPieceUnit&lt;/span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;]
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;board&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;output:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;RUN&lt;/span&gt;   &lt;span style=&#34;color:#f92672&#34;&gt;TestNewChessPieceUnitFactory&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;flyweight2_test&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#a6e22e&#34;&gt;13&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;{&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;車&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;紅&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;11&lt;/span&gt;}
+    &lt;span style=&#34;color:#f92672&#34;&gt;flyweight2_test&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#a6e22e&#34;&gt;14&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;{&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;車&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;紅&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;11&lt;/span&gt;}
+    &lt;span style=&#34;color:#f92672&#34;&gt;flyweight2_test&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#a6e22e&#34;&gt;15&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;true&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;---&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;PASS&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;TestNewChessPieceUnitFactory&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;00s&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;例中，通过一个ChessPieceUnit来缓存一个ChessBoard棋局的30+个ChessPiece棋子对象。原本如果是1万个ChessBoard棋局，需要创建【1万乘30】约30万个棋子对象。现在通过共享同一个ChessPieceUnit，那么需要创建约【30】个对象，大大节省了内存。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;设计模式之美 &lt;a href=&#34;https://item.jd.com/13174161.html&#34;&gt;https://item.jd.com/13174161.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

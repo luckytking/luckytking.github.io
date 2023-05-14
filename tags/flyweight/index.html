@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"",
+  "url":"https:\/\/luckytking.github.io\/tags\/flyweight\/",
+  "keywords":"[]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="">
+<meta name="description" content="">
+
+
+<meta property="og:description" content="">
+<meta property="og:type" content="website">
+<meta property="og:title" content="flyweight">
+<meta name="twitter:title" content="flyweight">
+<meta property="og:url" content="https://luckytking.github.io/tags/flyweight/">
+<meta property="twitter:url" content="https://luckytking.github.io/tags/flyweight/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="">
+<meta name="twitter:description" content="">
+<meta property="og:locale" content="en">
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>flyweight</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/tags/flyweight/index.xml">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/tags/flyweight/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="2">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="2">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+        
+
+      
+      <div id="main" data-behavior="2"
+        class="
+               hasCoverMetaIn
+               ">
+        
+          <section class="postShorten-group main-content-wrap">
+            
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/" aria-label="">
+      
+          设计模式  享元模式flyweight
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-05-14T16:06:36&#43;08:00">
+        
+   14, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/disignmode">DisignMode</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>本文主要介绍享元模式基础概念、实现原理和通过一个棋牌游戏例子简述实现过程。</p>
+<h3 id="享元模式">享元模式</h3>
+<p>所谓“享元”，顾名思义就是被共享的单元。享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象。
+具体来讲，当一个系统中存在大量重复对象的时候，如果这些重复的对象是不可变对象，我们就可以利用享元模式将对象设计成享元，在内存中只保留一份实例，供多处代码引用。</p>
+<p>享元的实现并不复杂，通过工厂模式，通过一个 Map 来缓存已经创建过的享元对象，来达到复用的目的。
+其中：</p>
+<ul>
+<li>Flyweight ： 享元类包含原始对象中部分能在多个对象中共享的状态。</li>
+<li>FlyweightFactory：享元工厂，会对已有享元的缓存池进行管理。</li>
+</ul>
+<p>接着，我们通过一个棋牌游戏的案例来演示。</p>
+<h3 id="案例-棋牌游戏">案例-棋牌游戏</h3>
+<p>这里以象棋为例，游戏大厅中有N个房间，那么每个房间会有一个棋局对象，和X个（将、相、士、炮）棋子对象。以下是go的具体实现flyweight.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">design_mode</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ChessPiece</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Name</span>      <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">Color</span>     <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">PositionX</span> <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">PositionY</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ChessBoard</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Cards</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">ChessPiece</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewChessBoard</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">ChessBoard</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ChessBoard</span>{
+		<span style="color:#a6e22e">Cards</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">ChessPiece</span>{
+			<span style="color:#ae81ff">1</span>: {
+				<span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;車&#34;</span>,
+				<span style="color:#a6e22e">Color</span>:     <span style="color:#e6db74">&#34;紅&#34;</span>,
+				<span style="color:#a6e22e">PositionX</span>: <span style="color:#ae81ff">1</span>,
+				<span style="color:#a6e22e">PositionY</span>: <span style="color:#ae81ff">11</span>,
+			},
+			<span style="color:#ae81ff">2</span>: {
+				<span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;馬&#34;</span>,
+				<span style="color:#a6e22e">Color</span>:     <span style="color:#e6db74">&#34;黑&#34;</span>,
+				<span style="color:#a6e22e">PositionX</span>: <span style="color:#ae81ff">2</span>,
+				<span style="color:#a6e22e">PositionY</span>: <span style="color:#ae81ff">2</span>,
+			},
+		},
+		<span style="color:#75715e">// 其他棋子
+</span><span style="color:#75715e"></span>	}
+}
+
+
+</code></pre></div><p>开N个房间flyweight_test.go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">design_mode</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;testing&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestNewChessBoard</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+	<span style="color:#a6e22e">game1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewChessBoard</span>()
+	<span style="color:#a6e22e">game2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewChessBoard</span>()
+	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">game1</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#ae81ff">1</span>])
+	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">game2</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#ae81ff">1</span>])
+	<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Log</span>(<span style="color:#a6e22e">game1</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">==</span> <span style="color:#a6e22e">game2</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#ae81ff">1</span>])
+}
+</code></pre></div><p>OutPut:</p>
+<pre tabindex="0"><code>=== RUN   TestNewChessBoard
+    flyweight_test.go:15: &amp;{車 紅 1 11}
+    flyweight_test.go:16: &amp;{車 紅 1 11}
+    flyweight_test.go:17: false
+--- PASS: TestNewChessBoard (0.00s)
+</code></pre><p>例中，每创建一个棋局就需要初始化对应的棋子，如果游戏大厅有百万人同时在线 ，那保存这么多棋局对象就会消耗大量的内存。</p>
+<h3 id="使用享元模式重构">使用享元模式重构</h3>
+<p>如何对上例进行优化呢，从例子中，每个大厅存在大量重复对象棋牌，利用享元模式把棋牌设计成共享的（map）详细如下。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">design_mode</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">chessPieceUnit</span> = <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">ChessPiece</span>{
+	<span style="color:#ae81ff">1</span>: {
+		<span style="color:#a6e22e">Name</span>:  <span style="color:#e6db74">&#34;車&#34;</span>,
+		<span style="color:#a6e22e">Color</span>: <span style="color:#e6db74">&#34;紅&#34;</span>,
+		<span style="color:#a6e22e">PositionX</span>: <span style="color:#ae81ff">1</span>,
+		<span style="color:#a6e22e">PositionY</span>: <span style="color:#ae81ff">11</span>,
+	},
+	<span style="color:#ae81ff">2</span>: {
+		<span style="color:#a6e22e">Name</span>:  <span style="color:#e6db74">&#34;馬&#34;</span>,
+		<span style="color:#a6e22e">Color</span>: <span style="color:#e6db74">&#34;黑&#34;</span>,
+		<span style="color:#a6e22e">PositionX</span>: <span style="color:#ae81ff">2</span>,
+		<span style="color:#a6e22e">PositionY</span>: <span style="color:#ae81ff">2</span>,
+	},
+	<span style="color:#75715e">// 其他棋子
+</span><span style="color:#75715e"></span>}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewChessPieceUnitFactory</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">ChessBoard</span> {
+	<span style="color:#a6e22e">board</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ChessBoard</span>{<span style="color:#a6e22e">Cards</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">ChessPiece</span>{}}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">id</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">chessPieceUnit</span> {
+		<span style="color:#a6e22e">board</span>.<span style="color:#a6e22e">Cards</span>[<span style="color:#a6e22e">id</span>] = <span style="color:#a6e22e">chessPieceUnit</span>[<span style="color:#a6e22e">id</span>]
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">board</span>
+}
+</code></pre></div><p>output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">===</span> <span style="color:#f92672">RUN</span>   <span style="color:#f92672">TestNewChessPieceUnitFactory</span>
+    <span style="color:#f92672">flyweight2_test</span>.<span style="color:#a6e22e">go</span>:<span style="color:#a6e22e">13</span><span style="color:#f92672">:</span> <span style="color:#f92672">&amp;</span>{<span style="color:#960050;background-color:#1e0010">車</span> <span style="color:#960050;background-color:#1e0010">紅</span> <span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#960050;background-color:#1e0010">11</span>}
+    <span style="color:#f92672">flyweight2_test</span>.<span style="color:#a6e22e">go</span>:<span style="color:#a6e22e">14</span><span style="color:#f92672">:</span> <span style="color:#f92672">&amp;</span>{<span style="color:#960050;background-color:#1e0010">車</span> <span style="color:#960050;background-color:#1e0010">紅</span> <span style="color:#960050;background-color:#1e0010">1</span> <span style="color:#960050;background-color:#1e0010">11</span>}
+    <span style="color:#f92672">flyweight2_test</span>.<span style="color:#a6e22e">go</span>:<span style="color:#a6e22e">15</span><span style="color:#f92672">:</span> <span style="color:#f92672">true</span>
+<span style="color:#f92672">---</span> <span style="color:#f92672">PASS</span><span style="color:#f92672">:</span> <span style="color:#f92672">TestNewChessPieceUnitFactory</span> <span style="color:#f92672">(</span><span style="color:#f92672">0</span>.<span style="color:#a6e22e">00s</span><span style="color:#f92672">)</span>
+</code></pre></div><p>例中，通过一个ChessPieceUnit来缓存一个ChessBoard棋局的30+个ChessPiece棋子对象。原本如果是1万个ChessBoard棋局，需要创建【1万乘30】约30万个棋子对象。现在通过共享同一个ChessPieceUnit，那么需要创建约【30】个对象，大大节省了内存。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>设计模式之美 <a href="https://item.jd.com/13174161.html">https://item.jd.com/13174161.html</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+            
+
+          </section>
+        
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

@@ -17,11 +17,11 @@
     </item>
     
     <item>
-      <title>observer</title>
-      <link>https://luckytking.github.io/tags/observer/</link>
+      <title>flyweight</title>
+      <link>https://luckytking.github.io/tags/flyweight/</link>
       <pubDate>Sun, 14 May 2023 16:06:36 +0800</pubDate>
       
-      <guid>https://luckytking.github.io/tags/observer/</guid>
+      <guid>https://luckytking.github.io/tags/flyweight/</guid>
       <description></description>
     </item>
     
@@ -382,6 +382,15 @@
       <pubDate>Fri, 21 Oct 2022 23:17:35 +0800</pubDate>
       
       <guid>https://luckytking.github.io/tags/goroutine-pool/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>observer</title>
+      <link>https://luckytking.github.io/tags/observer/</link>
+      <pubDate>Sun, 16 Oct 2022 12:10:03 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/observer/</guid>
       <description></description>
     </item>
     
