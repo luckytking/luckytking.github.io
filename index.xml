@@ -6,7 +6,98 @@
     <description>Recent content on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 14 May 2023 16:06:36 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 21 May 2023 15:51:14 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Nginx可视化管理平台Nginx Proxy Manager入门</title>
+      <link>https://luckytking.github.io/2023/05/nginx%E5%8F%AF%E8%A7%86%E5%8C%96%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0nginx-proxy-manager%E5%85%A5%E9%97%A8/</link>
+      <pubDate>Sun, 21 May 2023 15:51:14 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/05/nginx%E5%8F%AF%E8%A7%86%E5%8C%96%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0nginx-proxy-manager%E5%85%A5%E9%97%A8/</guid>
+      <description>&lt;p&gt;Nginx-Proxy-Manager 是Nginx  Web GUI( 可视化管理界面)，为新手快速设置反向代理提供帮助。
+它的主要目标是：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我创建这个项目是为了满足个人需要，为用户提供一种简单的方法来完成带有 SSL 终止的反向代理主机，而且它必须非常简单，以至于猴子都能做到。这个目标没有改变。虽然可能有高级选项，但它们是可选的，并且项目应该尽可能简单，以便进入这里的门槛很低。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;feature&#34;&gt;feature&lt;/h3&gt;
+&lt;p&gt;它主要的功能包括以下几个：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基于Tabler的美观安全的管理界面&lt;/li&gt;
+&lt;li&gt;在对 Nginx 一无所知的情况下轻松创建转发域、重定向、流和 404 主机&lt;/li&gt;
+&lt;li&gt;使用 Let&amp;rsquo;s Encrypt 的免费 SSL 或提供您自己的自定义 SSL 证书&lt;/li&gt;
+&lt;li&gt;主机的访问列表和基本 HTTP 身份验证&lt;/li&gt;
+&lt;li&gt;超级用户可用的高级 Nginx 配置&lt;/li&gt;
+&lt;li&gt;用户管理、权限和审计日志&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;安装&#34;&gt;安装&lt;/h3&gt;
+&lt;p&gt;这里我们Docker Compose安装启动。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;你需要预先安装了Docker Compose 环境。&lt;/li&gt;
+&lt;li&gt;创建docker-compose.yml&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;3.8&amp;#39;&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;app&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;jc21/nginx-proxy-manager:latest&amp;#39;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;restart&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;unless-stopped&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;8080:80&amp;#39;&lt;/span&gt;
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;81:81&amp;#39;&lt;/span&gt;
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;8443:443&amp;#39;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;volumes&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;./data:/data&lt;/span&gt;
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;./letsencrypt:/etc/letsencrypt&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;启动&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;docker-compose&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-d&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;4&#34;&gt;
+&lt;li&gt;Dashboard&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;访问web界面 http://127.0.0.1:81&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/nginx_proxy_manager_login.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;这么默认的用户名和密码是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;Email&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;admin&lt;/span&gt;@&lt;span style=&#34;color:#66d9ef&#34;&gt;example&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;com&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;Password&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;changeme&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;登入后，按提示重新设置用户名、密码即可。&lt;/p&gt;
+&lt;ol start=&#34;5&#34;&gt;
+&lt;li&gt;主页面 home page&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;如成功登入，可以看到主页面如下：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/nginx_proxy_manager_home.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;实战-反向代理nginx-proxy-manage后台&#34;&gt;实战 ：反向代理Nginx-Proxy-Manage后台&lt;/h3&gt;
+&lt;p&gt;如上述中，我们通过81端口可以访问GUI，下面，我们将通过反向代理，可以直接通过 http://your-site:8080即可访问GUI。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;点击 【Proxy Hosts】,在界面Details选项添加如下图所示：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/nginx_proxy_manager_details.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;访问 http://your-site:8080
+&lt;img src=&#34;https://luckytking.github.io/images/nginx_proxy_manager_test_ok.png&#34; alt=&#34;&#34;&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;说明成功了&lt;/p&gt;
+&lt;ol start=&#34;3&#34;&gt;
+&lt;li&gt;
+&lt;p&gt;如果想要关闭代理，点击编辑【Proxy Host】 的 Enable，详细如下
+&lt;img src=&#34;https://luckytking.github.io/images/nginx_proxy_manager_enable.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;再访问，会跳出404界面
+&lt;img src=&#34;https://luckytking.github.io/images/nginx_proxy_manager_disable.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;以上。&lt;/p&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;本文主要简介Nginx可视化管理平台Nginx-Proxy-Manager及主要功能，为配置强大Nginx代理功能降低门槛。通过一个实战案例：代理Manager后台，演示了基础使用方法。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://nginxproxymanager.com&#34;&gt; 官网 &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/gGoQGsuFVKemPNQ4Zfx4Hw&#34;&gt;Blog:
+超强大的 Nginx 可视化管理平台 Nginx-Proxy-Manager 中文入门指南 &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://sspai.com/post/76910&#34;&gt;Blog:
+Nginx Proxy Manager - Docker 建站最佳伴侣 &lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
     <item>
       <title>设计模式  享元模式flyweight</title>
       <link>https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/</link>

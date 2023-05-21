@@ -238,6 +238,148 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/05/nginx%E5%8F%AF%E8%A7%86%E5%8C%96%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0nginx-proxy-manager%E5%85%A5%E9%97%A8/" aria-label="">
+      
+          Nginx可视化管理平台Nginx Proxy Manager入门
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-05-21T15:51:14&#43;08:00">
+        
+   21, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/dockers">Dockers</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>Nginx-Proxy-Manager 是Nginx  Web GUI( 可视化管理界面)，为新手快速设置反向代理提供帮助。
+它的主要目标是：</p>
+<blockquote>
+<p>我创建这个项目是为了满足个人需要，为用户提供一种简单的方法来完成带有 SSL 终止的反向代理主机，而且它必须非常简单，以至于猴子都能做到。这个目标没有改变。虽然可能有高级选项，但它们是可选的，并且项目应该尽可能简单，以便进入这里的门槛很低。</p>
+</blockquote>
+<h3 id="feature">feature</h3>
+<p>它主要的功能包括以下几个：</p>
+<ul>
+<li>基于Tabler的美观安全的管理界面</li>
+<li>在对 Nginx 一无所知的情况下轻松创建转发域、重定向、流和 404 主机</li>
+<li>使用 Let&rsquo;s Encrypt 的免费 SSL 或提供您自己的自定义 SSL 证书</li>
+<li>主机的访问列表和基本 HTTP 身份验证</li>
+<li>超级用户可用的高级 Nginx 配置</li>
+<li>用户管理、权限和审计日志</li>
+</ul>
+<h3 id="安装">安装</h3>
+<p>这里我们Docker Compose安装启动。</p>
+<ol>
+<li>你需要预先安装了Docker Compose 环境。</li>
+<li>创建docker-compose.yml</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#39;3.8&#39;</span>
+<span style="color:#f92672">services</span>:
+  <span style="color:#f92672">app</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#e6db74">&#39;jc21/nginx-proxy-manager:latest&#39;</span>
+    <span style="color:#f92672">restart</span>: <span style="color:#ae81ff">unless-stopped</span>
+    <span style="color:#f92672">ports</span>:
+      - <span style="color:#e6db74">&#39;8080:80&#39;</span>
+      - <span style="color:#e6db74">&#39;81:81&#39;</span>
+      - <span style="color:#e6db74">&#39;8443:443&#39;</span>
+    <span style="color:#f92672">volumes</span>:
+      - <span style="color:#ae81ff">./data:/data</span>
+      - <span style="color:#ae81ff">./letsencrypt:/etc/letsencrypt</span>
+</code></pre></div><ol start="3">
+<li>启动</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">docker-compose</span> <span style="color:#f92672">-d</span>
+</code></pre></div><ol start="4">
+<li>Dashboard</li>
+</ol>
+<p>访问web界面 http://127.0.0.1:81</p>
+<p><img src="https://luckytking.github.io/images/nginx_proxy_manager_login.png" alt=""></p>
+<p>这么默认的用户名和密码是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">Email</span><span style="color:#f92672">:</span>    <span style="color:#f92672">admin</span>@<span style="color:#66d9ef">example</span>.<span style="color:#a6e22e">com</span>
+<span style="color:#f92672">Password</span><span style="color:#f92672">:</span> <span style="color:#f92672">changeme</span>
+</code></pre></div><p>登入后，按提示重新设置用户名、密码即可。</p>
+<ol start="5">
+<li>主页面 home page</li>
+</ol>
+<p>如成功登入，可以看到主页面如下：</p>
+<p><img src="https://luckytking.github.io/images/nginx_proxy_manager_home.png" alt=""></p>
+<h3 id="实战-反向代理nginx-proxy-manage后台">实战 ：反向代理Nginx-Proxy-Manage后台</h3>
+<p>如上述中，我们通过81端口可以访问GUI，下面，我们将通过反向代理，可以直接通过 http://your-site:8080即可访问GUI。</p>
+<ol>
+<li>点击 【Proxy Hosts】,在界面Details选项添加如下图所示：</li>
+</ol>
+<p><img src="https://luckytking.github.io/images/nginx_proxy_manager_details.png" alt=""></p>
+<ol start="2">
+<li>访问 http://your-site:8080
+<img src="https://luckytking.github.io/images/nginx_proxy_manager_test_ok.png" alt=""></li>
+</ol>
+<p>说明成功了</p>
+<ol start="3">
+<li>
+<p>如果想要关闭代理，点击编辑【Proxy Host】 的 Enable，详细如下
+<img src="https://luckytking.github.io/images/nginx_proxy_manager_enable.png" alt=""></p>
+</li>
+<li>
+<p>再访问，会跳出404界面
+<img src="https://luckytking.github.io/images/nginx_proxy_manager_disable.png" alt=""></p>
+</li>
+</ol>
+<p>以上。</p>
+<h3 id="小结">小结</h3>
+<p>本文主要简介Nginx可视化管理平台Nginx-Proxy-Manager及主要功能，为配置强大Nginx代理功能降低门槛。通过一个实战案例：代理Manager后台，演示了基础使用方法。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://nginxproxymanager.com"> 官网 </a></li>
+<li><a href="https://mp.weixin.qq.com/s/gGoQGsuFVKemPNQ4Zfx4Hw">Blog:
+超强大的 Nginx 可视化管理平台 Nginx-Proxy-Manager 中文入门指南 </a></li>
+<li><a href="https://sspai.com/post/76910">Blog:
+Nginx Proxy Manager - Docker 建站最佳伴侣 </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/05/nginx%E5%8F%AF%E8%A7%86%E5%8C%96%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0nginx-proxy-manager%E5%85%A5%E9%97%A8/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/05/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BA%AB%E5%85%83%E6%A8%A1%E5%BC%8Fflyweight/" aria-label="">
       
           设计模式  享元模式flyweight
@@ -1894,74 +2036,6 @@ Example：</p>
       <p>
         
           <a href="https://luckytking.github.io/2023/02/dockergopostgresql%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%97%B6%E5%8C%BA/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2023/02/go%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97asynq%E5%85%A5%E9%97%A8/" aria-label="">
-      
-          Go分布式任务队列Asynq入门
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2023-02-18T21:37:06&#43;08:00">
-        
-   18, 2023
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        分布式任务任务调度与管理在微服务开发中是很有必要的。例如，当需要执行一些计算密集型或网络I/O密集型操作时，为了不影响主线程的性能，我们可以将这些任务放到后台异步执行。此外，异步任务处理还可以改善应用程序的可伸缩性和可靠性，因为它可以将任务分布到多个处理器上并允许任务的重试。
-Asynq 介绍  Asynq Simple, reliable, and efficient distributed task queue in Go
- Asynq 是一个 Go 库，用于排队任务并与 worker 异步处理它们。它由Redis提供支持，旨在实现可扩展且易于上手。
-特性：
- 保证至少执行一次任务 任务调度 失败任务的重试 工作人员崩溃时自动恢复任务 加权优先级队列 严格的优先队列 添加任务的延迟低，因为 Redis 中的写入速度很快 使用唯一选项对任务进行重复数据删除 允许每个任务超时和截止日期 允许聚合任务组以批处理多个连续操作 支持中间件的灵活处理程序接口 能够暂停队列以停止处理队列中的任务 定期任务 支持 Redis Cluster实现自动分片和高可用 支持 Redis Sentinels以实现高可用性 与Prometheus集成以收集和可视化队列指标 用于检查和远程控制队列和任务的Web UI CLI检查和远程控制队列和任务  总的来说:
- 分布式任务队列：Asynq提供了一个任务队列，可以分布式地处理异步任务，使得任务可以在多个处理器之间分配。 可靠性：Asynq具有高可靠性，可以确保任务不会丢失或重复执行。 异常处理：Asynq提供了对任务异常的处理机制，以便在任务执行失败时进行重试或处理。 优先级和延迟任务：Asynq允许您为任务设置优先级和延迟执行，以便您可以控制任务的执行顺序。 Web UI和CLI：Asynq提供了一个易于使用的Web UI和CLI工具，可以方便地监控和管理异步任务。  本文主要记录Asynq的入门、基本使用和工作原理。
-安装 使用go get命令安装Asynq库
-go get -u github.com/hibiken/asynq工作原理 高级概述：
-  Client客户端将任务放入队列 Server服务器从队列中拉取任务并为每个任务启动一个工作协程 任务由多个worker同时处理   Client 创建异步任务 asynq.
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2023/02/go%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97asynq%E5%85%A5%E9%97%A8/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
