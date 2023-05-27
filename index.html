@@ -396,8 +396,9 @@ sealos exec -r master,node <span style="color:#e6db74">&#34;image-cri-shim -v&#3
 </code></pre></div><ol start="3">
 <li>可见，请求是还有，但并没有增加端口数，看来问题修复了。</li>
 </ol>
+<p>ps： 我们重现问题的Kubenetes版本是v1.23.9，在实际开发中发现其他版本的v1.25.7也会出现类似问题，验证此版本待后续更新。</p>
 <h3 id="小结">小结</h3>
-<p>本文主要记录排查、复现、处理【sealos安装的Kubenetes集群master节点大量占用端口】的过程，原因系image-cri-shim的版本问题，旧版本会频繁请求master，导致创建大量的socket链接，占用端口数。通过升级image-cri-shim版本可以解决该问题。</p>
+<p>本文主要记录排查、复现、处理【sealos安装的Kubenetes集群master节点大量占用端口】的过程，原因系image-cri-shim的版本问题，旧版本会频繁请求master，导致创建大量的连接，占用端口数。通过升级image-cri-shim版本可以解决该问题。</p>
 <h3 id="参考">参考</h3>
 <ul>
 <li><a href="https://sealos.io/zh-Hans/docs/design/image-cri-shim"> sealos Doc： image-cri-shim 介绍</a></li>
