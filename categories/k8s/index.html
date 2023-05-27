@@ -240,6 +240,204 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/05/kubernetes%E9%9B%86%E7%BE%A4image-cri-him%E5%A4%A7%E9%87%8F%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8/" aria-label="">
+      
+          Kubernetes集群image-cri-him大量端口占用
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-05-27T18:11:54&#43;08:00">
+        
+   27, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>背景：</p>
+<blockquote>
+<p>sealos安装的Kubernetes集群，master节点出现大量端口占用。</p>
+</blockquote>
+<p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>os</td>
+<td>Ubuntu</td>
+</tr>
+<tr>
+<td>sealos</td>
+<td>v4.1.7</td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>v1.23.9</td>
+</tr>
+</tbody>
+</table>
+<h3 id="排查问题">排查问题</h3>
+<p>按照本地端口对输出进行排序</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">netstat</span> <span style="color:#f92672">-anp</span> <span style="color:#f92672">|</span> <span style="color:#f92672">grep</span> <span style="color:#f92672">ESTABLISHED</span> <span style="color:#f92672">|</span> <span style="color:#f92672">awk</span> <span style="color:#e6db74">&#39;{print $4}&#39;</span> <span style="color:#f92672">|</span> <span style="color:#f92672">sort</span> <span style="color:#f92672">|</span> <span style="color:#f92672">uniq</span> <span style="color:#f92672">-c</span> <span style="color:#f92672">|</span> <span style="color:#f92672">sort</span> <span style="color:#f92672">-n</span>
+    <span style="color:#f92672">28</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">147</span>:<span style="color:#a6e22e">6443</span>
+    <span style="color:#f92672">111</span> <span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">2379</span>
+  <span style="color:#f92672">9009</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">147</span>:<span style="color:#a6e22e">5000</span>
+</code></pre></div><p>查找本地端口对应的应用程序</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css">  <span style="color:#f92672">lsof</span> <span style="color:#f92672">-i</span> :<span style="color:#a6e22e">5000</span>
+  <span style="color:#f92672">image-cri</span> <span style="color:#f92672">2811249</span> <span style="color:#f92672">root</span> <span style="color:#f92672">4120u</span>  <span style="color:#f92672">IPv4</span> <span style="color:#f92672">291818320</span>      <span style="color:#f92672">0t0</span>  <span style="color:#f92672">TCP</span> <span style="color:#f92672">master1</span>:<span style="color:#a6e22e">41710-</span><span style="color:#f92672">&gt;</span><span style="color:#f92672">master1</span>:<span style="color:#a6e22e">5000</span> <span style="color:#f92672">(</span><span style="color:#f92672">ESTABLISHED</span><span style="color:#f92672">)</span>
+</code></pre></div><p>可见，是image-cri-shim占用的端口数。</p>
+<h3 id="image-cri-shim-工作原理">image-cri-shim 工作原理</h3>
+<blockquote>
+<p>image-cri-shim 是一个基于 CRI (Container Runtime Interface) 和 kubelet 的 gRPC (Google Remote Procedure Call) shim。CRI 是 Kubernetes 中用于与容器运行时进行交互的接口，而 kubelet 是负责维护容器运行状态和节点级别的资源管理的 Kubernetes 组件。</p>
+</blockquote>
+<p>常用操作:</p>
+<ul>
+<li>启动服务： systemctl start image-cri-shim</li>
+<li>停止服务： systemctl stop image-cri-shim</li>
+<li>重启服务： systemctl restart image-cri-shim</li>
+<li>查看服务状态： systemctl status image-cri-shim</li>
+<li></li>
+<li>参考日志:  journalctl -u image-cri-shim -f</li>
+</ul>
+<h3 id="重现问题">重现问题</h3>
+<ol>
+<li>
+<p>在测试环境安装相同版本的sealos版本4.1.7，这里就不赘述，可以参考(<a href="https://sealos.io/zh-Hans/docs/getting-started/kuberentes-life-cycle">https://sealos.io/zh-Hans/docs/getting-started/kuberentes-life-cycle</a>)</p>
+</li>
+<li>
+<p>安装好之后，发现image-cri-shim的版本（4.1.3）不对，</p>
+</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">--version</span>
+<span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">version</span> <span style="color:#f92672">4</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">3-ed0a75b9</span>
+</code></pre></div><ol start="3">
+<li>更新image-cri-shim版本为4.1.7</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wget https://github.com/labring/sealos/releases/download/v4.1.7/sealos_4.1.7_linux_amd64.tar.gz <span style="color:#f92672">&amp;&amp;</span> tar xvf sealos_4.1.7_linux_amd64.tar.gz.1 image-cri-shim
+sealos exec -r master,node <span style="color:#e6db74">&#34;systemctl stop image-cri-shim&#34;</span>
+sealos scp <span style="color:#e6db74">&#34;./image-cri-shim&#34;</span> <span style="color:#e6db74">&#34;/usr/bin/image-cri-shim&#34;</span>
+sealos exec -r master,node <span style="color:#e6db74">&#34;systemctl start image-cri-shim&#34;</span>
+sealos exec -r master,node <span style="color:#e6db74">&#34;image-cri-shim -v&#34;</span>
+</code></pre></div><p>输出类似以下内容，表示成功:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">version</span> <span style="color:#f92672">4</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">7-ed0a75b9</span>
+<span style="color:#f92672">192</span>.<span style="color:#a6e22e">168</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">101</span>:<span style="color:#a6e22e">22</span><span style="color:#f92672">:</span> <span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">version</span> <span style="color:#f92672">4</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">7-ed0a75b9</span>
+<span style="color:#f92672">192</span>.<span style="color:#a6e22e">168</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">102</span>:<span style="color:#a6e22e">22</span><span style="color:#f92672">:</span> <span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">version</span> <span style="color:#f92672">4</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">7-ed0a75b9</span>
+</code></pre></div><ol start="3">
+<li>启动后，观察日志：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">root</span>@<span style="color:#66d9ef">master1</span><span style="color:#f92672">:~</span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">journalctl</span> <span style="color:#f92672">-u</span> <span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">-f</span>
+<span style="color:#f92672">--</span> <span style="color:#f92672">Logs</span> <span style="color:#f92672">begin</span> <span style="color:#f92672">at</span> <span style="color:#f92672">Wed</span> <span style="color:#f92672">2023-04-19</span> <span style="color:#f92672">22</span>:<span style="color:#a6e22e">42</span>:<span style="color:#a6e22e">32</span> <span style="color:#f92672">UTC</span><span style="color:#f92672">.</span> <span style="color:#f92672">--</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">actual</span> <span style="color:#f92672">imageName</span><span style="color:#f92672">:</span> <span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">actual</span> <span style="color:#f92672">imageName</span><span style="color:#f92672">:</span> <span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">actual</span> <span style="color:#f92672">imageName</span><span style="color:#f92672">:</span> <span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+</code></pre></div><ol start="4">
+<li>监控端口数的变化</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">netstat -na | grep <span style="color:#ae81ff">5000</span> | wc -l
+<span style="color:#ae81ff">96</span>
+<span style="color:#ae81ff">116</span>
+<span style="color:#ae81ff">120</span>
+...
+</code></pre></div><ol start="5">
+<li>可见，每个5分钟，占用的端口数就增加20左右。问题复现了，接着我们来看看怎么处理。</li>
+</ol>
+<h3 id="更新版本为420">更新版本为4.2.0</h3>
+<p>从sealos的github的issues有提供一个修复方案：升级image-cri-shim的版本为4.2.0</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wget https://github.com/labring/sealos/releases/download/v4.2.0/sealos_4.2.0_linux_amd64.tar.gz <span style="color:#f92672">&amp;&amp;</span> tar xvf sealos_4.2.0_linux_amd64.tar.gz image-cri-shim
+sealos exec -r master,node <span style="color:#e6db74">&#34;systemctl stop image-cri-shim&#34;</span>
+sealos scp <span style="color:#e6db74">&#34;./image-cri-shim&#34;</span> <span style="color:#e6db74">&#34;/usr/bin/image-cri-shim&#34;</span>
+sealos exec -r master,node <span style="color:#e6db74">&#34;systemctl start image-cri-shim&#34;</span>
+sealos exec -r master,node <span style="color:#e6db74">&#34;image-cri-shim -v&#34;</span>
+</code></pre></div><p>输出如下，表示成功：</p>
+<pre tabindex="0"><code>image-cri-shim version 4.2.0-f696a621
+192.168.1.101:22: image-cri-shim version 4.2.0-f696a621
+192.168.1.102:22: image-cri-shim version 4.2.0-f696a621
+</code></pre><h3 id="观察是否已修复">观察是否已修复</h3>
+<ol>
+<li>观察inamge-cri-shim日志：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">root</span>@<span style="color:#66d9ef">master1</span><span style="color:#f92672">:~</span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">journalctl</span> <span style="color:#f92672">-u</span> <span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">-f</span>
+<span style="color:#f92672">--</span> <span style="color:#f92672">Logs</span> <span style="color:#f92672">begin</span> <span style="color:#f92672">at</span> <span style="color:#f92672">Wed</span> <span style="color:#f92672">2023-04-19</span> <span style="color:#f92672">22</span>:<span style="color:#a6e22e">42</span>:<span style="color:#a6e22e">32</span> <span style="color:#f92672">UTC</span><span style="color:#f92672">.</span> <span style="color:#f92672">--</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">Timeout</span><span style="color:#f92672">:</span> {<span style="color:#f92672">15m0s</span>}
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">criRegistryAuth</span><span style="color:#f92672">:</span> <span style="color:#f92672">map</span><span style="color:#f92672">[]</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">criOfflineAuth</span><span style="color:#f92672">:</span> <span style="color:#f92672">map</span><span style="color:#f92672">[</span><span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">:</span>{Username:admin Password<span style="color:#f92672">:</span>passw0rd Auth<span style="color:#f92672">:</span> Email<span style="color:#f92672">:</span> ServerAddress<span style="color:#f92672">:</span>http<span style="color:#f92672">://</span>sealos<span style="color:#f92672">.</span>hub<span style="color:#f92672">:</span><span style="color:#ae81ff">5000</span> IdentityToken<span style="color:#f92672">:</span> RegistryToken<span style="color:#f92672">:</span>}<span style="color:#f92672">]</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">socket</span> <span style="color:#f92672">info</span> <span style="color:#f92672">shim</span><span style="color:#f92672">:</span> <span style="color:#f92672">/</span><span style="color:#f92672">var</span><span style="color:#f92672">/</span><span style="color:#f92672">run</span><span style="color:#f92672">/</span><span style="color:#f92672">image-cri-shim</span>.<span style="color:#a6e22e">sock</span> <span style="color:#f92672">,</span><span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">/</span><span style="color:#f92672">run</span><span style="color:#f92672">/</span><span style="color:#f92672">containerd</span><span style="color:#f92672">/</span><span style="color:#f92672">containerd</span>.<span style="color:#a6e22e">sock</span><span style="color:#f92672">,</span> <span style="color:#f92672">registry</span><span style="color:#f92672">:</span> <span style="color:#f92672">http</span><span style="color:#f92672">://</span><span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">changed</span> <span style="color:#f92672">ownership</span> <span style="color:#f92672">of</span> <span style="color:#f92672">socket</span> <span style="color:#e6db74">&#34;/var/run/image-cri-shim.sock&#34;</span> <span style="color:#f92672">to</span> <span style="color:#f92672">root</span><span style="color:#f92672">/</span><span style="color:#f92672">root</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">changed</span> <span style="color:#f92672">permissions</span> <span style="color:#f92672">of</span> <span style="color:#f92672">socket</span> <span style="color:#e6db74">&#34;/var/run/image-cri-shim.sock&#34;</span> <span style="color:#f92672">to</span> <span style="color:#f92672">-rw-rw----</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">41</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">41</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">42</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">42</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">42</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">42</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+</code></pre></div><ol start="2">
+<li>监控端口数的变化</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">root</span>@<span style="color:#66d9ef">master1</span><span style="color:#f92672">:~</span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">netstat</span> <span style="color:#f92672">-na</span> <span style="color:#f92672">|</span> <span style="color:#f92672">grep</span> <span style="color:#f92672">5000</span> <span style="color:#f92672">|</span> <span style="color:#f92672">wc</span> <span style="color:#f92672">-l</span>
+<span style="color:#f92672">1</span> 
+<span style="color:#f92672">6</span> 
+<span style="color:#f92672">1</span>
+</code></pre></div><ol start="3">
+<li>可见，请求是还有，但并没有增加端口数，看来问题修复了。</li>
+</ol>
+<h3 id="小结">小结</h3>
+<p>本文主要记录排查、复现、处理【sealos安装的Kubenetes集群master节点大量占用端口】的过程，原因系image-cri-shim的版本问题，旧版本会频繁请求master，导致创建大量的socket链接，占用端口数。通过升级image-cri-shim版本可以解决该问题。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://sealos.io/zh-Hans/docs/design/image-cri-shim"> sealos Doc： image-cri-shim 介绍</a></li>
+<li><a href="https://github.com/labring/sealos/issues/2965"> 为什么sealos4.2部分的群，注册表库连接数很高 </a></li>
+<li><a href="https://github.com/labring/sealos/issues/3052"> BUG: image-cri-shim导致端口大量占用，耗尽服务器socket资源 </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/05/kubernetes%E9%9B%86%E7%BE%A4image-cri-him%E5%A4%A7%E9%87%8F%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/04/apisix%E5%9F%BA%E4%BA%8Esni%E4%BB%A3%E7%90%86tcpudp/" aria-label="">
       
           Apisix基于SNI代理TCP、UDP
@@ -1688,209 +1886,24 @@ cattle-cluster-agent-79749...   1/1     Running   0          5m21s
 </article>
 
             
-              
-  
-    
+            
+  <div class="pagination-bar">
+    <ul class="pagination">
       
         
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/" aria-label="">
-      
-          K8s学习笔记  资源配置和声明式对象配置
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-07-31T18:04:12&#43;08:00">
         
-   31, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
-    
-  
-
+          <li class="pagination-next">
+            <a class="btn btn--default btn--small" href="https://luckytking.github.io/categories/k8s/page/2/" aria-label="">
+              <span></span>
+              <i class="fa fa-angle-right text-base icon-ml"></i>
+            </a>
+          </li>
+        
+      
+      <li class="pagination-number"> </li>
+    </ul>
   </div>
 
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要记录Kubernetes的资源管理，包括资源配置，声明式管理。</p>
-<blockquote>
-<p>Kubernetes提供了RESTful风格的API，它将各类组件均抽象为“资源”，并通过属性赋值完成实例化 。API主要由资源类型和控制器两部分组成，资源通常以json、yaml格式并写入集群的对象，控制器则在集群资源存储完成后自动创建并启动。</p>
-</blockquote>
-<p>常用的K8s资源有</p>
-<ul>
-<li>Pod</li>
-<li>Deployment</li>
-<li>Service</li>
-<li>Ingress</li>
-</ul>
-<h3 id="资源分类">资源分类</h3>
-<p>依据资源的主要功能作为分类标准，Kubernetes的API对象⼤体可分为</p>
-<ul>
-<li>
-<p>⼯作负载 （Workload）</p>
-<ul>
-<li>ReplicationController</li>
-<li>ReplicaSet</li>
-<li>Deploymen</li>
-<li>StatefulSet</li>
-<li>DaemonSet</li>
-<li>Job</li>
-</ul>
-</li>
-<li>
-<p>发现和负载均衡 （Discovery&amp;LB）</p>
-</li>
-<li>
-<p>配置和存储 （Config&amp;Storage</p>
-</li>
-<li>
-<p>集群 （Cluster）</p>
-<ul>
-<li>Namespace</li>
-<li>Node</li>
-<li>Role</li>
-<li>ClusterRole</li>
-</ul>
-</li>
-<li>
-<p>元数据 （Metadata）</p>
-</li>
-</ul>
-<p>它们基本上都是围绕⼀个核⼼⽬的⽽设计：如何更好地运⾏和丰富Pod资源，从⽽为容器化应⽤提供更灵活、更完善的操作与管理组件。</p>
-<h3 id="资源配置">资源配置</h3>
-<p>标准格式一般包括一级字段</p>
-<ul>
-<li>kind</li>
-<li>apiVersion</li>
-<li>metadata （对象元数据)</li>
-<li>spec（描述所期望的对象应该具有的状态）</li>
-<li>status（字段在对象创建后由系统⾃⾏维护）</li>
-</ul>
-<p>以一个nginx的pod.yaml为例</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
-<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
-<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
-<span style="color:#f92672">metadata</span>:
-  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-pod</span>
-  <span style="color:#f92672">labels</span>:
-    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
-<span style="color:#f92672">spec</span>:
-  <span style="color:#f92672">containers</span>:
-    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
-      <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx:1.7.9</span>
-      <span style="color:#f92672">ports</span>:
-          - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">80</span>
-</code></pre></div><ul>
-<li>metadata:
-<ul>
-<li>name 当前的对象名称</li>
-<li>labels： 当前对象的标签（键值对）</li>
-</ul>
-</li>
-<li>spec
-<ul>
-<li>containers，它的值是⼀个容器对象列表，⽀持嵌套创建⼀到
-多个容器。</li>
-</ul>
-</li>
-</ul>
-<h3 id="声明式对象配置">声明式对象配置</h3>
-<p>提供配置清单文件给k8s系统，并委托系统来跟踪活动对象的状态变动。管理操作的命令通过apply</p>
-<ul>
-<li>创建</li>
-</ul>
-<pre tabindex="0"><code>$kubectl apply -f &lt;directory&gt;/
-</code></pre><ul>
-<li>更新</li>
-</ul>
-<pre tabindex="0"><code>kubectl apply -f &lt;directory&gt;/
-</code></pre><ul>
-<li>删除</li>
-</ul>
-<pre tabindex="0"><code>kubectl apply -f &lt;directory&gt;/ --prune -l your-label 
-</code></pre><p>建议使用命令式的方法</p>
-<pre tabindex="0"><code>kubectl delete -f  &lt;filename&gt;
-</code></pre><h3 id="实战声明式部署nginx">实战声明式部署nginx</h3>
-<p>定义的deployment文件: nginx_dp.yaml</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">
-<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
-<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
-<span style="color:#f92672">metadata</span>:
-  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-deployment</span>
-  <span style="color:#f92672">labels</span>:
-    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-dp</span>
-<span style="color:#f92672">spec</span>:
-  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">3</span>
-  <span style="color:#f92672">selector</span>:
-    <span style="color:#f92672">matchLabels</span>:
-      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
-  <span style="color:#f92672">template</span>:
-    <span style="color:#f92672">metadata</span>:
-      <span style="color:#f92672">labels</span>:
-        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
-    <span style="color:#f92672">spec</span>:
-      <span style="color:#f92672">containers</span>:
-        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx</span>
-          <span style="color:#f92672">image</span>: <span style="color:#ae81ff">nginx:1.7.9</span>
-          <span style="color:#f92672">ports</span>:
-            - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">80</span>
-</code></pre></div><p>暴露服务，定义service文件nginx_svc.yaml</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
-<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Service</span>
-<span style="color:#f92672">metadata</span>:
-  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">nginx-svc</span>
-<span style="color:#f92672">spec</span>:
-  <span style="color:#f92672">type</span>: <span style="color:#ae81ff">NodePort</span>
-  <span style="color:#f92672">selector</span>:
-    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">nginx-pod</span>
-  <span style="color:#f92672">ports</span>:
-    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">default</span>
-      <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">TCP</span>
-      <span style="color:#f92672">port</span>: <span style="color:#ae81ff">80</span>
-      <span style="color:#f92672">targetPort</span>: <span style="color:#ae81ff">80</span>
-</code></pre></div><p>访问nginx，output
-<img src="https://luckytking.github.io/images/k8s-nginx.png" alt=""></p>
-<h3 id="参考">参考</h3>
-<ul>
-<li>Kubernetes进阶实战-第2版》  <a href="https://item.jd.com/13140598.html">https://item.jd.com/13140598.html</a></li>
-<li>k8s 部署nginx  <a href="https://github.com/kevinyan815/LearningKubernetes">https://github.com/kevinyan815/LearningKubernetes</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-            
 
           </section>
         

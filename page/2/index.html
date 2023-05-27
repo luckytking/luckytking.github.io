@@ -237,6 +237,172 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/02/dockergopostgresql%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%97%B6%E5%8C%BA/" aria-label="">
+      
+          Docker、Go、PostgreSQL如何修改时区
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-02-25T15:55:06&#43;08:00">
+        
+   25, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91">后端开发</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>本文主要介绍Docker、Go、PostgreSQL如何修改它们的时区。</p>
+<p>首先需要知道一些基础概念:</p>
+<ol>
+<li>Unix 时间戳 -是从1970年1月1日（UTC/GMT的午夜）开始所经过的秒数，不考虑闰秒。</li>
+<li>UTC &ndash;协调世界时，又称世界统一时间、世界标准时间、国际协调时间。</li>
+<li>CST&ndash;可视为中国、古巴的标准时间或美国、澳大利亚的中部时间。北京时间，也就是东八区时间。</li>
+</ol>
+<h3 id="docker">Docker</h3>
+<p>Docker 作为部署和运行应用程序的环境，默认使用 UTC 作为其容器的时区，但我们可以通过设置环境变量来修改时区。</p>
+<p>修改的方法</p>
+<ol>
+<li>在 Dockerfile 中添加以下行：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ae81ff">ENV TZ=Asia/Shanghai</span>
+</code></pre></div><ol start="2">
+<li>在 Kubernetes 中的 Pod 配置文件中，添加 env 字段，设置环境变量。Example:</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">containers</span>:
+  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-container</span>
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">my-image</span>
+    <span style="color:#f92672">env</span>:
+      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">TZ</span>
+        <span style="color:#f92672">value</span>: <span style="color:#ae81ff">Asia/Shanghai</span>
+</code></pre></div><ol start="3">
+<li>验证在容器中使用 env 命令查看环境变量，例如</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">env
+</code></pre></div><p>输出会有key为TZ，value为Asia/Shanghai表示成功</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">TZ<span style="color:#f92672">=</span>Asia/Shanghai
+</code></pre></div><h3 id="go">Go</h3>
+<p>在 Go 中修改时区需要使用标准库中的 time 包。我们可以通过FixedZone来修改时区。
+Example：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">utcZone</span> = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">FixedZone</span>(<span style="color:#e6db74">&#34;UTC&#34;</span>, <span style="color:#ae81ff">0</span><span style="color:#f92672">*</span><span style="color:#ae81ff">3600</span>) <span style="color:#75715e">// UTC
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Local</span> = <span style="color:#a6e22e">utcZone</span>
+	<span style="color:#a6e22e">utcNow</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+	<span style="color:#a6e22e">utcDate</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Date</span>(<span style="color:#a6e22e">utcNow</span>.<span style="color:#a6e22e">Year</span>(), <span style="color:#a6e22e">utcNow</span>.<span style="color:#a6e22e">Month</span>(), <span style="color:#a6e22e">utcNow</span>.<span style="color:#a6e22e">Day</span>(), <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">utcNow</span>.<span style="color:#a6e22e">Location</span>())
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;UTC time: %s\n&#34;</span>, <span style="color:#a6e22e">utcDate</span>.<span style="color:#a6e22e">String</span>())
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;UTC timestamp: %d\n&#34;</span>, <span style="color:#a6e22e">utcDate</span>.<span style="color:#a6e22e">Unix</span>())
+
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">cstZone</span> = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">FixedZone</span>(<span style="color:#e6db74">&#34;CST&#34;</span>, <span style="color:#ae81ff">8</span><span style="color:#f92672">*</span><span style="color:#ae81ff">3600</span>) <span style="color:#75715e">// 东八
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Local</span> = <span style="color:#a6e22e">cstZone</span>
+	<span style="color:#a6e22e">cstNow</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+	<span style="color:#a6e22e">cstDate</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Date</span>(<span style="color:#a6e22e">cstNow</span>.<span style="color:#a6e22e">Year</span>(), <span style="color:#a6e22e">cstNow</span>.<span style="color:#a6e22e">Month</span>(), <span style="color:#a6e22e">cstNow</span>.<span style="color:#a6e22e">Day</span>(), <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">cstNow</span>.<span style="color:#a6e22e">Location</span>())
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;CST time: %s\n&#34;</span>, <span style="color:#a6e22e">cstDate</span>.<span style="color:#a6e22e">String</span>())
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;CST timestamp: %d\n&#34;</span>, <span style="color:#a6e22e">cstDate</span>.<span style="color:#a6e22e">Unix</span>())
+}
+<span style="color:#75715e">//output
+</span><span style="color:#75715e">//UTC time: 2023-02-25 00:00:00 +0000 UTC
+</span><span style="color:#75715e">//UTC timestamp: 1677283200
+</span><span style="color:#75715e">//CST time: 2023-02-25 00:00:00 +0800 CST
+</span><span style="color:#75715e">//CST timestamp: 1677254400
+</span></code></pre></div><p>在上面的代码中，我们使用time.FixedZone分别设置UTC、上海时区，并获取当天零点的时间戳 _date。</p>
+<h3 id="postgresql">PostgreSQL</h3>
+<p><strong>在PostgreSQL系统内部，所有日期和时间都用全球统一时间UTC格式存储， 时间在发给客户前端前由数据库服务器根据TimeZone 配置参数声明的时区转换成本地时间</strong>。</p>
+<p>在 PostgreSQL 中，我们可以通过修改 postgresql.conf 文件来修改时区。
+以下是如何在 Docker运行 PostgreSQL 中修改时区的步骤：</p>
+<ol>
+<li>拷贝dockers中的 postgresql.conf到宿主主机</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker cp <span style="color:#f92672">[</span>your_docker_contariner_id<span style="color:#f92672">]</span>:/var/lib/postgresql/data/postgresql.conf /<span style="color:#f92672">[</span>your_work_space<span style="color:#f92672">]</span>/
+</code></pre></div><ol start="2">
+<li>修改配置</li>
+</ol>
+<pre tabindex="0"><code>sudo vi /[your_work_space]/postgresql.conf
+</code></pre><p>查找替换timezone为上海时区</p>
+<pre tabindex="0"><code class="language-conf" data-lang="conf">timezone = 'Asia/Shanghai'
+</code></pre><p>可以通过sql查找支持的时区：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> pg_timezone_names;
+</code></pre></div><ol start="3">
+<li>保存并覆盖dockers中配置</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker cp /<span style="color:#f92672">[</span>your_work_space<span style="color:#f92672">]</span>/postgresql.conf <span style="color:#f92672">[</span>your_docker_contariner_id<span style="color:#f92672">]</span>:/var/lib/postgresql/data/
+</code></pre></div><ol start="4">
+<li>重新容器</li>
+</ol>
+<pre tabindex="0"><code>sudo docker restart [your_docker_contariner_id
+</code></pre><p>现在，你的 PostgreSQL 数据库就使用了正确的时区。</p>
+<ol start="5">
+<li>检查是否设置成功
+通过sql获取设置：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> pg_db_role_setting;
+</code></pre></div><p>也可以查看数据库中表字段格式为TimestampTZ，Example
+修改前</p>
+<blockquote>
+<p>2023-02-25 00:00:00 +0000 +00</p>
+</blockquote>
+<p>修改后台</p>
+<blockquote>
+<p>2023-02-25 08:00:00 +0000 +08</p>
+</blockquote>
+<p>以上。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://yeasy.gitbook.io/docker_practice/image/dockerfile/env"> docker 修改Env</a></li>
+<li><a href="http://www.postgres.cn/docs/14/datatype-datetime.html">postgres.cn/docs</a></li>
+<li><a href="https://hjxlog.com/posts/20210902215616.html"> 博客dockers-postgre 修改TimeZone</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/02/dockergopostgresql%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%97%B6%E5%8C%BA/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/02/go%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97asynq%E5%85%A5%E9%97%A8/" aria-label="">
       
           Go分布式任务队列Asynq入门
@@ -1763,197 +1929,6 @@ ingressfoo   &lt;none&gt;   ingressfoo.io   192.168.1.100   80      1h
       <p>
         
           <a href="https://luckytking.github.io/2022/11/ingress%E4%B8%8Eingresscontroller/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/" aria-label="">
-      
-          Go网络抓包、引流工具GoReplay
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-11-12T22:57:15&#43;08:00">
-        
-   12, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e8%bd%af%e4%bb%b6%e6%b5%8b%e8%af%95">软件测试</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文简要介绍Go网络抓包、引流工具GoReplay。</p>
-<h3 id="前言">前言</h3>
-<p>在后端的实际开发中，会遇到以下一些场景：</p>
-<ul>
-<li>用户通过作弊手段绕过前端，利用抓包，进行破解，模拟，魔改交互数据进行伪装。后端程序需要对其操作记录进行重现和跟踪。</li>
-<li>某个bug在测试环境无法复现。</li>
-<li>服务压测数据和线上数据有偏差，压测数据希望能和线上接近 。</li>
-</ul>
-<p>GoReplay是Go语言编写的流量回放工具，侦听器服务器捕获http流量并将其发送到重放服务器或保存到文件。重播服务器将流量转发给给定的地址。</p>
-<h3 id="安装">安装</h3>
-<p>测试环境： Windows。
-版本： Version:1.3.0
-安装分2步骤：</p>
-<ol>
-<li>前置条件： 安装npcap 
-<a href="https://npcap.com">https://npcap.com</a></li>
-</ol>
-<blockquote>
-<p>GoReplay可以在Windows机器上工作，但由于Windows堆栈的不同网络层的性质，它有一些细节。
-默认情况下，Windows不像Unix系统那样有支持包捕获的网络驱动程序，如果您想捕获通信量，则必须单独安装它。其中一个选项是安装https://nmap.org/npcap/。</p>
-</blockquote>
-<ol start="2">
-<li>安装：这里测试使用的是 gor-1.3.3_windows.zip
-<a href="https://github.com/buger/goreplay/releases">https://github.com/buger/goreplay/releases</a> 
-下载解压即可。</li>
-</ol>
-<h3 id="捕获流量">捕获流量</h3>
-<blockquote>
-<p>启动两个http服务：</p>
-</blockquote>
-<ol>
-<li>httpServerA: http://localhost:8000 监听端口8000</li>
-<li>httpServerB: http://localhost:8001 监听端口8001</li>
-</ol>
-<p>路由为 “get: &ldquo;/helloworld/{name}&rdquo;</p>
-<blockquote>
-<p>监听端口8000，并输出到stdout</p>
-</blockquote>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell"> ./gor --input-raw <span style="color:#960050;background-color:#1e0010">:</span>8000 --output-stdout
-</code></pre></div><blockquote>
-<p>打开浏览器请求接口 http://localhost:8000/helloworld/lilei</p>
-</blockquote>
-<blockquote>
-<p>在gor的命令行窗口：</p>
-</blockquote>
-<pre tabindex="0"><code>1 db0a1f4000000001c344a1d3 1668261985986369000 0
-GET /helloworld/lilei HTTP/1.1
-Host: localhost:8000
-Connection: keep-alive
-sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot; 此处省略一些系数
-sec-ch-ua-mobile: ?0
-sec-ch-ua-platform: &quot;Windows&quot;
-Upgrade-Insecure-Requests: 1
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
-Sec-Fetch-Site: none
-此处省略一些参数
-</code></pre><p>可见，gor已经把整个http请求的完整信息记录下来。
-同时gor还支持输出到文件和ElasticSearch，进行回放和分析。记录到文件request.gor</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell"> ./gor --input-raw <span style="color:#960050;background-color:#1e0010">:</span>8000 --output<span style="color:#f92672">-file</span> request.gor --input-raw-track-response --input-raw-override-snaplen
-</code></pre></div><blockquote>
-<p>打开浏览器请求接口 http://localhost:8000/helloworld/hanmeimei</p>
-</blockquote>
-<p>写入到文件 request_0.gor</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ---- 
--a----        2022/11/12     21<span style="color:#960050;background-color:#1e0010">:</span>36           1876 request_0.gor
-</code></pre></div><p>request_0 内容如下:</p>
-<pre tabindex="0"><code class="language-gor" data-lang="gor">1 d4571f4000000001b7adc1a6 1668260139796335000 0
-GET /helloworld/lilei HTTP/1.1
-Host: localhost:8000
-Connection: keep-alive
-sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
-sec-ch-ua-mobile: ?0
-sec-ch-ua-platform: &quot;Windows&quot;
-Upgrade-Insecure-Requests: 1
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64), 此处省略一些参数
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
-Sec-Fetch-Site: none
-此处省略一些参数
-
-
-🐵🙈🙉
-2 d4571f4000000001b7adc1a6 1668260139796652000 0
-HTTP/1.1 200 OK
-Content-Type: application/json
-Date: Sat, 12 Nov 2022 13:35:39 GMT
-Content-Length: 25
-
-{&quot;message&quot;:&quot;Hello lilei&quot;}
-🐵🙈🙉
-1 d4571f4000000001b7adc22b 1668260148757949000 0
-GET /helloworld/hanmeimei HTTP/1.1
-Host: localhost:8000
-Connection: keep-alive
-sec-ch-ua: &quot; Not A;Brand&quot;;v=&quot;99&quot;, 此处省略一些参数
-sec-ch-ua-mobile: ?0
-sec-ch-ua-platform: &quot;Windows&quot;
-Upgrade-Insecure-Requests: 1
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) , 此处省略一些参数
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
-Sec-Fetch-Site: none
-此处省略一些参数
-
-
-🐵🙈🙉
-2 d4571f4000000001b7adc22b 1668260148758268000 0
-此处省略一些参数
-
-{&quot;message&quot;:&quot;Hello hanmeimei&quot;}
-🐵🙈🙉
-
-</code></pre><h3 id="流量回放">流量回放</h3>
-<p>接着将该文件request_0.gor 进行流量回放，并转发到另外一台服务器（HttpServerB）上：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">./gor --input<span style="color:#f92672">-file</span> request_0.gor --output-http http<span style="color:#960050;background-color:#1e0010">:</span>//localhost<span style="color:#960050;background-color:#1e0010">:</span>8001
-</code></pre></div><p>观察HttpServerB服务器控制台输出：</p>
-<pre tabindex="0"><code>INFO ts=2022-11-12T21:37:26+08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: lilei
-INFO ts=2022-11-12T21:37:34+08:00 caller=greeter.go:44 service.id=LAPTOP-H3HBMV8A service.name= service.version= trace.id= span.id= msg=CreateGreeter: hanmeimei
-
-</code></pre><p>从日志中可以看到两个请求（http://localhost:8000/helloworld/ilei、http://localhost:8000/helloworld/hanmeimei）分别重放请求到了HttpServerB。</p>
-<p>gor支持进行流量缩小、放大、倍速重放，实现真实流量的压测效果。
-更多命令 ./gor -help 查看</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li>官方GitHub  <a href="https://github.com/buger/goreplay">https://github.com/buger/goreplay</a></li>
-<li>安装包 <a href="https://github.com/buger/goreplay/releases">https://github.com/buger/goreplay/releases</a></li>
-<li>Windows 安装 <a href="https://github.com/buger/goreplay/wiki/Running-on-Windows">https://github.com/buger/goreplay/wiki/Running-on-Windows</a></li>
-<li>官方npcap <a href="https://npcap.com/">https://npcap.com/</a></li>
-<li>Goreplay详解 <a href="https://www.cnblogs.com/sunsky303/p/9072871.html">https://www.cnblogs.com/sunsky303/p/9072871.html</a></li>
-<li>入门和导入Es  <a href="https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA">https://mp.weixin.qq.com/s/mNjLiEBnHIZhOTrDwNkmvA</a></li>
-<li>简介  <a href="https://www.jianshu.com/p/0f3bcfbf7874">https://www.jianshu.com/p/0f3bcfbf7874</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

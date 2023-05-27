@@ -238,6 +238,204 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/05/kubernetes%E9%9B%86%E7%BE%A4image-cri-him%E5%A4%A7%E9%87%8F%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8/" aria-label="">
+      
+          Kubernetes集群image-cri-him大量端口占用
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-05-27T18:11:54&#43;08:00">
+        
+   27, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>背景：</p>
+<blockquote>
+<p>sealos安装的Kubernetes集群，master节点出现大量端口占用。</p>
+</blockquote>
+<p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>os</td>
+<td>Ubuntu</td>
+</tr>
+<tr>
+<td>sealos</td>
+<td>v4.1.7</td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>v1.23.9</td>
+</tr>
+</tbody>
+</table>
+<h3 id="排查问题">排查问题</h3>
+<p>按照本地端口对输出进行排序</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">netstat</span> <span style="color:#f92672">-anp</span> <span style="color:#f92672">|</span> <span style="color:#f92672">grep</span> <span style="color:#f92672">ESTABLISHED</span> <span style="color:#f92672">|</span> <span style="color:#f92672">awk</span> <span style="color:#e6db74">&#39;{print $4}&#39;</span> <span style="color:#f92672">|</span> <span style="color:#f92672">sort</span> <span style="color:#f92672">|</span> <span style="color:#f92672">uniq</span> <span style="color:#f92672">-c</span> <span style="color:#f92672">|</span> <span style="color:#f92672">sort</span> <span style="color:#f92672">-n</span>
+    <span style="color:#f92672">28</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">147</span>:<span style="color:#a6e22e">6443</span>
+    <span style="color:#f92672">111</span> <span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">2379</span>
+  <span style="color:#f92672">9009</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">147</span>:<span style="color:#a6e22e">5000</span>
+</code></pre></div><p>查找本地端口对应的应用程序</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css">  <span style="color:#f92672">lsof</span> <span style="color:#f92672">-i</span> :<span style="color:#a6e22e">5000</span>
+  <span style="color:#f92672">image-cri</span> <span style="color:#f92672">2811249</span> <span style="color:#f92672">root</span> <span style="color:#f92672">4120u</span>  <span style="color:#f92672">IPv4</span> <span style="color:#f92672">291818320</span>      <span style="color:#f92672">0t0</span>  <span style="color:#f92672">TCP</span> <span style="color:#f92672">master1</span>:<span style="color:#a6e22e">41710-</span><span style="color:#f92672">&gt;</span><span style="color:#f92672">master1</span>:<span style="color:#a6e22e">5000</span> <span style="color:#f92672">(</span><span style="color:#f92672">ESTABLISHED</span><span style="color:#f92672">)</span>
+</code></pre></div><p>可见，是image-cri-shim占用的端口数。</p>
+<h3 id="image-cri-shim-工作原理">image-cri-shim 工作原理</h3>
+<blockquote>
+<p>image-cri-shim 是一个基于 CRI (Container Runtime Interface) 和 kubelet 的 gRPC (Google Remote Procedure Call) shim。CRI 是 Kubernetes 中用于与容器运行时进行交互的接口，而 kubelet 是负责维护容器运行状态和节点级别的资源管理的 Kubernetes 组件。</p>
+</blockquote>
+<p>常用操作:</p>
+<ul>
+<li>启动服务： systemctl start image-cri-shim</li>
+<li>停止服务： systemctl stop image-cri-shim</li>
+<li>重启服务： systemctl restart image-cri-shim</li>
+<li>查看服务状态： systemctl status image-cri-shim</li>
+<li></li>
+<li>参考日志:  journalctl -u image-cri-shim -f</li>
+</ul>
+<h3 id="重现问题">重现问题</h3>
+<ol>
+<li>
+<p>在测试环境安装相同版本的sealos版本4.1.7，这里就不赘述，可以参考(<a href="https://sealos.io/zh-Hans/docs/getting-started/kuberentes-life-cycle">https://sealos.io/zh-Hans/docs/getting-started/kuberentes-life-cycle</a>)</p>
+</li>
+<li>
+<p>安装好之后，发现image-cri-shim的版本（4.1.3）不对，</p>
+</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">--version</span>
+<span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">version</span> <span style="color:#f92672">4</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">3-ed0a75b9</span>
+</code></pre></div><ol start="3">
+<li>更新image-cri-shim版本为4.1.7</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wget https://github.com/labring/sealos/releases/download/v4.1.7/sealos_4.1.7_linux_amd64.tar.gz <span style="color:#f92672">&amp;&amp;</span> tar xvf sealos_4.1.7_linux_amd64.tar.gz.1 image-cri-shim
+sealos exec -r master,node <span style="color:#e6db74">&#34;systemctl stop image-cri-shim&#34;</span>
+sealos scp <span style="color:#e6db74">&#34;./image-cri-shim&#34;</span> <span style="color:#e6db74">&#34;/usr/bin/image-cri-shim&#34;</span>
+sealos exec -r master,node <span style="color:#e6db74">&#34;systemctl start image-cri-shim&#34;</span>
+sealos exec -r master,node <span style="color:#e6db74">&#34;image-cri-shim -v&#34;</span>
+</code></pre></div><p>输出类似以下内容，表示成功:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">version</span> <span style="color:#f92672">4</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">7-ed0a75b9</span>
+<span style="color:#f92672">192</span>.<span style="color:#a6e22e">168</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">101</span>:<span style="color:#a6e22e">22</span><span style="color:#f92672">:</span> <span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">version</span> <span style="color:#f92672">4</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">7-ed0a75b9</span>
+<span style="color:#f92672">192</span>.<span style="color:#a6e22e">168</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">102</span>:<span style="color:#a6e22e">22</span><span style="color:#f92672">:</span> <span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">version</span> <span style="color:#f92672">4</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">7-ed0a75b9</span>
+</code></pre></div><ol start="3">
+<li>启动后，观察日志：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">root</span>@<span style="color:#66d9ef">master1</span><span style="color:#f92672">:~</span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">journalctl</span> <span style="color:#f92672">-u</span> <span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">-f</span>
+<span style="color:#f92672">--</span> <span style="color:#f92672">Logs</span> <span style="color:#f92672">begin</span> <span style="color:#f92672">at</span> <span style="color:#f92672">Wed</span> <span style="color:#f92672">2023-04-19</span> <span style="color:#f92672">22</span>:<span style="color:#a6e22e">42</span>:<span style="color:#a6e22e">32</span> <span style="color:#f92672">UTC</span><span style="color:#f92672">.</span> <span style="color:#f92672">--</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">actual</span> <span style="color:#f92672">imageName</span><span style="color:#f92672">:</span> <span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">actual</span> <span style="color:#f92672">imageName</span><span style="color:#f92672">:</span> <span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">actual</span> <span style="color:#f92672">imageName</span><span style="color:#f92672">:</span> <span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">06</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1116090</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T06</span>:<span style="color:#a6e22e">59</span>:<span style="color:#a6e22e">38</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+</code></pre></div><ol start="4">
+<li>监控端口数的变化</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">netstat -na | grep <span style="color:#ae81ff">5000</span> | wc -l
+<span style="color:#ae81ff">96</span>
+<span style="color:#ae81ff">116</span>
+<span style="color:#ae81ff">120</span>
+...
+</code></pre></div><ol start="5">
+<li>可见，每个5分钟，占用的端口数就增加20左右。问题复现了，接着我们来看看怎么处理。</li>
+</ol>
+<h3 id="更新版本为420">更新版本为4.2.0</h3>
+<p>从sealos的github的issues有提供一个修复方案：升级image-cri-shim的版本为4.2.0</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">wget https://github.com/labring/sealos/releases/download/v4.2.0/sealos_4.2.0_linux_amd64.tar.gz <span style="color:#f92672">&amp;&amp;</span> tar xvf sealos_4.2.0_linux_amd64.tar.gz image-cri-shim
+sealos exec -r master,node <span style="color:#e6db74">&#34;systemctl stop image-cri-shim&#34;</span>
+sealos scp <span style="color:#e6db74">&#34;./image-cri-shim&#34;</span> <span style="color:#e6db74">&#34;/usr/bin/image-cri-shim&#34;</span>
+sealos exec -r master,node <span style="color:#e6db74">&#34;systemctl start image-cri-shim&#34;</span>
+sealos exec -r master,node <span style="color:#e6db74">&#34;image-cri-shim -v&#34;</span>
+</code></pre></div><p>输出如下，表示成功：</p>
+<pre tabindex="0"><code>image-cri-shim version 4.2.0-f696a621
+192.168.1.101:22: image-cri-shim version 4.2.0-f696a621
+192.168.1.102:22: image-cri-shim version 4.2.0-f696a621
+</code></pre><h3 id="观察是否已修复">观察是否已修复</h3>
+<ol>
+<li>观察inamge-cri-shim日志：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">root</span>@<span style="color:#66d9ef">master1</span><span style="color:#f92672">:~</span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">journalctl</span> <span style="color:#f92672">-u</span> <span style="color:#f92672">image-cri-shim</span> <span style="color:#f92672">-f</span>
+<span style="color:#f92672">--</span> <span style="color:#f92672">Logs</span> <span style="color:#f92672">begin</span> <span style="color:#f92672">at</span> <span style="color:#f92672">Wed</span> <span style="color:#f92672">2023-04-19</span> <span style="color:#f92672">22</span>:<span style="color:#a6e22e">42</span>:<span style="color:#a6e22e">32</span> <span style="color:#f92672">UTC</span><span style="color:#f92672">.</span> <span style="color:#f92672">--</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">Timeout</span><span style="color:#f92672">:</span> {<span style="color:#f92672">15m0s</span>}
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">criRegistryAuth</span><span style="color:#f92672">:</span> <span style="color:#f92672">map</span><span style="color:#f92672">[]</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">criOfflineAuth</span><span style="color:#f92672">:</span> <span style="color:#f92672">map</span><span style="color:#f92672">[</span><span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">:</span>{Username:admin Password<span style="color:#f92672">:</span>passw0rd Auth<span style="color:#f92672">:</span> Email<span style="color:#f92672">:</span> ServerAddress<span style="color:#f92672">:</span>http<span style="color:#f92672">://</span>sealos<span style="color:#f92672">.</span>hub<span style="color:#f92672">:</span><span style="color:#ae81ff">5000</span> IdentityToken<span style="color:#f92672">:</span> RegistryToken<span style="color:#f92672">:</span>}<span style="color:#f92672">]</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">socket</span> <span style="color:#f92672">info</span> <span style="color:#f92672">shim</span><span style="color:#f92672">:</span> <span style="color:#f92672">/</span><span style="color:#f92672">var</span><span style="color:#f92672">/</span><span style="color:#f92672">run</span><span style="color:#f92672">/</span><span style="color:#f92672">image-cri-shim</span>.<span style="color:#a6e22e">sock</span> <span style="color:#f92672">,</span><span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">/</span><span style="color:#f92672">run</span><span style="color:#f92672">/</span><span style="color:#f92672">containerd</span><span style="color:#f92672">/</span><span style="color:#f92672">containerd</span>.<span style="color:#a6e22e">sock</span><span style="color:#f92672">,</span> <span style="color:#f92672">registry</span><span style="color:#f92672">:</span> <span style="color:#f92672">http</span><span style="color:#f92672">://</span><span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">changed</span> <span style="color:#f92672">ownership</span> <span style="color:#f92672">of</span> <span style="color:#f92672">socket</span> <span style="color:#e6db74">&#34;/var/run/image-cri-shim.sock&#34;</span> <span style="color:#f92672">to</span> <span style="color:#f92672">root</span><span style="color:#f92672">/</span><span style="color:#f92672">root</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">09</span> <span style="color:#f92672">info</span> <span style="color:#f92672">changed</span> <span style="color:#f92672">permissions</span> <span style="color:#f92672">of</span> <span style="color:#f92672">socket</span> <span style="color:#e6db74">&#34;/var/run/image-cri-shim.sock&#34;</span> <span style="color:#f92672">to</span> <span style="color:#f92672">-rw-rw----</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">41</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">44</span>:<span style="color:#a6e22e">41</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">42</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">49</span>:<span style="color:#a6e22e">42</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+<span style="color:#f92672">May</span> <span style="color:#f92672">25</span> <span style="color:#f92672">07</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">42</span> <span style="color:#f92672">master1</span> <span style="color:#f92672">image-cri-shim</span><span style="color:#f92672">[</span><span style="color:#f92672">1159432</span><span style="color:#f92672">]:</span> <span style="color:#f92672">2023-05-25T07</span>:<span style="color:#a6e22e">54</span>:<span style="color:#a6e22e">42</span> <span style="color:#f92672">info</span> <span style="color:#f92672">image</span><span style="color:#f92672">:</span> <span style="color:#f92672">k8s</span>.<span style="color:#a6e22e">gcr</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">newImage</span><span style="color:#f92672">:</span> <span style="color:#f92672">sealos</span>.<span style="color:#a6e22e">hub</span>:<span style="color:#a6e22e">5000</span><span style="color:#f92672">/</span><span style="color:#f92672">pause</span>:<span style="color:#a6e22e">3</span>.<span style="color:#a6e22e">6</span><span style="color:#f92672">,</span> <span style="color:#f92672">action</span><span style="color:#f92672">:</span> <span style="color:#f92672">ImageStatus</span>
+</code></pre></div><ol start="2">
+<li>监控端口数的变化</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">root</span>@<span style="color:#66d9ef">master1</span><span style="color:#f92672">:~</span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">netstat</span> <span style="color:#f92672">-na</span> <span style="color:#f92672">|</span> <span style="color:#f92672">grep</span> <span style="color:#f92672">5000</span> <span style="color:#f92672">|</span> <span style="color:#f92672">wc</span> <span style="color:#f92672">-l</span>
+<span style="color:#f92672">1</span> 
+<span style="color:#f92672">6</span> 
+<span style="color:#f92672">1</span>
+</code></pre></div><ol start="3">
+<li>可见，请求是还有，但并没有增加端口数，看来问题修复了。</li>
+</ol>
+<h3 id="小结">小结</h3>
+<p>本文主要记录排查、复现、处理【sealos安装的Kubenetes集群master节点大量占用端口】的过程，原因系image-cri-shim的版本问题，旧版本会频繁请求master，导致创建大量的socket链接，占用端口数。通过升级image-cri-shim版本可以解决该问题。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://sealos.io/zh-Hans/docs/design/image-cri-shim"> sealos Doc： image-cri-shim 介绍</a></li>
+<li><a href="https://github.com/labring/sealos/issues/2965"> 为什么sealos4.2部分的群，注册表库连接数很高 </a></li>
+<li><a href="https://github.com/labring/sealos/issues/3052"> BUG: image-cri-shim导致端口大量占用，耗尽服务器socket资源 </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/05/kubernetes%E9%9B%86%E7%BE%A4image-cri-him%E5%A4%A7%E9%87%8F%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/05/nginx%E5%8F%AF%E8%A7%86%E5%8C%96%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0nginx-proxy-manager%E5%85%A5%E9%97%A8/" aria-label="">
       
           Nginx可视化管理平台Nginx Proxy Manager入门
@@ -1870,172 +2068,6 @@ panic({0x7370c0, 0x75b930})
       <p>
         
           <a href="https://luckytking.github.io/2023/03/go%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%BA%93robfig-cron%E4%B8%80%E4%BA%9B%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2023/02/dockergopostgresql%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%97%B6%E5%8C%BA/" aria-label="">
-      
-          Docker、Go、PostgreSQL如何修改时区
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2023-02-25T15:55:06&#43;08:00">
-        
-   25, 2023
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91">后端开发</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要介绍Docker、Go、PostgreSQL如何修改它们的时区。</p>
-<p>首先需要知道一些基础概念:</p>
-<ol>
-<li>Unix 时间戳 -是从1970年1月1日（UTC/GMT的午夜）开始所经过的秒数，不考虑闰秒。</li>
-<li>UTC &ndash;协调世界时，又称世界统一时间、世界标准时间、国际协调时间。</li>
-<li>CST&ndash;可视为中国、古巴的标准时间或美国、澳大利亚的中部时间。北京时间，也就是东八区时间。</li>
-</ol>
-<h3 id="docker">Docker</h3>
-<p>Docker 作为部署和运行应用程序的环境，默认使用 UTC 作为其容器的时区，但我们可以通过设置环境变量来修改时区。</p>
-<p>修改的方法</p>
-<ol>
-<li>在 Dockerfile 中添加以下行：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ae81ff">ENV TZ=Asia/Shanghai</span>
-</code></pre></div><ol start="2">
-<li>在 Kubernetes 中的 Pod 配置文件中，添加 env 字段，设置环境变量。Example:</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">spec</span>:
-  <span style="color:#f92672">containers</span>:
-  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-container</span>
-    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">my-image</span>
-    <span style="color:#f92672">env</span>:
-      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">TZ</span>
-        <span style="color:#f92672">value</span>: <span style="color:#ae81ff">Asia/Shanghai</span>
-</code></pre></div><ol start="3">
-<li>验证在容器中使用 env 命令查看环境变量，例如</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">env
-</code></pre></div><p>输出会有key为TZ，value为Asia/Shanghai表示成功</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">TZ<span style="color:#f92672">=</span>Asia/Shanghai
-</code></pre></div><h3 id="go">Go</h3>
-<p>在 Go 中修改时区需要使用标准库中的 time 包。我们可以通过FixedZone来修改时区。
-Example：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">utcZone</span> = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">FixedZone</span>(<span style="color:#e6db74">&#34;UTC&#34;</span>, <span style="color:#ae81ff">0</span><span style="color:#f92672">*</span><span style="color:#ae81ff">3600</span>) <span style="color:#75715e">// UTC
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Local</span> = <span style="color:#a6e22e">utcZone</span>
-	<span style="color:#a6e22e">utcNow</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
-	<span style="color:#a6e22e">utcDate</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Date</span>(<span style="color:#a6e22e">utcNow</span>.<span style="color:#a6e22e">Year</span>(), <span style="color:#a6e22e">utcNow</span>.<span style="color:#a6e22e">Month</span>(), <span style="color:#a6e22e">utcNow</span>.<span style="color:#a6e22e">Day</span>(), <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">utcNow</span>.<span style="color:#a6e22e">Location</span>())
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;UTC time: %s\n&#34;</span>, <span style="color:#a6e22e">utcDate</span>.<span style="color:#a6e22e">String</span>())
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;UTC timestamp: %d\n&#34;</span>, <span style="color:#a6e22e">utcDate</span>.<span style="color:#a6e22e">Unix</span>())
-
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">cstZone</span> = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">FixedZone</span>(<span style="color:#e6db74">&#34;CST&#34;</span>, <span style="color:#ae81ff">8</span><span style="color:#f92672">*</span><span style="color:#ae81ff">3600</span>) <span style="color:#75715e">// 东八
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Local</span> = <span style="color:#a6e22e">cstZone</span>
-	<span style="color:#a6e22e">cstNow</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
-	<span style="color:#a6e22e">cstDate</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Date</span>(<span style="color:#a6e22e">cstNow</span>.<span style="color:#a6e22e">Year</span>(), <span style="color:#a6e22e">cstNow</span>.<span style="color:#a6e22e">Month</span>(), <span style="color:#a6e22e">cstNow</span>.<span style="color:#a6e22e">Day</span>(), <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">cstNow</span>.<span style="color:#a6e22e">Location</span>())
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;CST time: %s\n&#34;</span>, <span style="color:#a6e22e">cstDate</span>.<span style="color:#a6e22e">String</span>())
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;CST timestamp: %d\n&#34;</span>, <span style="color:#a6e22e">cstDate</span>.<span style="color:#a6e22e">Unix</span>())
-}
-<span style="color:#75715e">//output
-</span><span style="color:#75715e">//UTC time: 2023-02-25 00:00:00 +0000 UTC
-</span><span style="color:#75715e">//UTC timestamp: 1677283200
-</span><span style="color:#75715e">//CST time: 2023-02-25 00:00:00 +0800 CST
-</span><span style="color:#75715e">//CST timestamp: 1677254400
-</span></code></pre></div><p>在上面的代码中，我们使用time.FixedZone分别设置UTC、上海时区，并获取当天零点的时间戳 _date。</p>
-<h3 id="postgresql">PostgreSQL</h3>
-<p><strong>在PostgreSQL系统内部，所有日期和时间都用全球统一时间UTC格式存储， 时间在发给客户前端前由数据库服务器根据TimeZone 配置参数声明的时区转换成本地时间</strong>。</p>
-<p>在 PostgreSQL 中，我们可以通过修改 postgresql.conf 文件来修改时区。
-以下是如何在 Docker运行 PostgreSQL 中修改时区的步骤：</p>
-<ol>
-<li>拷贝dockers中的 postgresql.conf到宿主主机</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker cp <span style="color:#f92672">[</span>your_docker_contariner_id<span style="color:#f92672">]</span>:/var/lib/postgresql/data/postgresql.conf /<span style="color:#f92672">[</span>your_work_space<span style="color:#f92672">]</span>/
-</code></pre></div><ol start="2">
-<li>修改配置</li>
-</ol>
-<pre tabindex="0"><code>sudo vi /[your_work_space]/postgresql.conf
-</code></pre><p>查找替换timezone为上海时区</p>
-<pre tabindex="0"><code class="language-conf" data-lang="conf">timezone = 'Asia/Shanghai'
-</code></pre><p>可以通过sql查找支持的时区：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> pg_timezone_names;
-</code></pre></div><ol start="3">
-<li>保存并覆盖dockers中配置</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker cp /<span style="color:#f92672">[</span>your_work_space<span style="color:#f92672">]</span>/postgresql.conf <span style="color:#f92672">[</span>your_docker_contariner_id<span style="color:#f92672">]</span>:/var/lib/postgresql/data/
-</code></pre></div><ol start="4">
-<li>重新容器</li>
-</ol>
-<pre tabindex="0"><code>sudo docker restart [your_docker_contariner_id
-</code></pre><p>现在，你的 PostgreSQL 数据库就使用了正确的时区。</p>
-<ol start="5">
-<li>检查是否设置成功
-通过sql获取设置：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> pg_db_role_setting;
-</code></pre></div><p>也可以查看数据库中表字段格式为TimestampTZ，Example
-修改前</p>
-<blockquote>
-<p>2023-02-25 00:00:00 +0000 +00</p>
-</blockquote>
-<p>修改后台</p>
-<blockquote>
-<p>2023-02-25 08:00:00 +0000 +08</p>
-</blockquote>
-<p>以上。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://yeasy.gitbook.io/docker_practice/image/dockerfile/env"> docker 修改Env</a></li>
-<li><a href="http://www.postgres.cn/docs/14/datatype-datetime.html">postgres.cn/docs</a></li>
-<li><a href="https://hjxlog.com/posts/20210902215616.html"> 博客dockers-postgre 修改TimeZone</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2023/02/dockergopostgresql%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E6%97%B6%E5%8C%BA/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
