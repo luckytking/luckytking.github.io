@@ -238,6 +238,269 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/06/golang%E5%AE%9E%E7%8E%B0aes%E5%8A%A0%E8%A7%A3%E5%AF%86/" aria-label="">
+      
+          Golang实现AES加解密
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-06-10T21:30:32&#43;08:00">
+        
+   10, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>在数据的传输过程，为了安全，我们需要对其进行加密。加密算法分为双向加密和单向加密。单向加密包括MD5、SHA等摘要算法，它们是不可逆的。双向加密包括对称加密和非对称加密，对称加密包括AES加密、DES加密等。双向加密是可逆的，它使用相同的密钥进行加密和解密。本文主要介绍AES算法以及如何使用golang实现AES加解密。</p>
+<h3 id="aes简介">AES简介</h3>
+<blockquote>
+<p>AES是高级加密标准，在密码学中又称Rijndael加密法，是美国联邦政府采用的一种区块加密标准。这个标准用来替代原先的DES，目前已经被全世界广泛使用，同时AES已经成为对称密钥加密中最流行的算法之一。AES支持三种长度的密钥：128位，192位，256位。</p>
+</blockquote>
+<p>加解密过程为：字节代替、行移位、列混淆、轮密钥加。</p>
+<p>相关概念：</p>
+<ol>
+<li>
+<p>密钥：AES128，AES192，AES256，实际上就是指的AES算法对不同长度密钥的使用</p>
+</li>
+<li>
+<p>分组： 把明文拆分成一个个独立的明文块，每一个明文块长度128bit。加密生成一个个独立的密文块，这些密文块拼接在一起。填充模式有：</p>
+<ol>
+<li>NoPadding :不做任何填充，但是要求明文必须是16字节的整数倍。</li>
+<li>PKCS5Padding: 如果明文块少于16个字节（128bit），在明文块末尾补足相应数量的字符，且每个字节的值等于缺少的字符数。</li>
+<li>ISO10126Padding: 如果明文块少于16个字节（128bit），在明文块末尾补足相应数量的字节，最后一个字符值等于缺少的字符数，其他字符填充随机数</li>
+</ol>
+</li>
+<li>
+<p>加密模式：</p>
+<ol>
+<li>电码本模式（Electronic Codebook Book (ECB)） 模式是将整个明文分成若干段相同的小段，然后对每一小段进行加密。</li>
+<li>密码分组链接模式（Cipher Block Chaining (CBC)） 模式是先将明文切分成若干小段，然后每一小段与初始块或者上一段的密文段进行异或运算，再与密钥进行加密</li>
+<li>计算器模式（Counter (CTR)）不常用，在 CTR 模式中， 有一个自增的算子，这个算子用密钥加密之后输出和明文异或的结果得到密文，相当于一次一密</li>
+<li>密码反馈模式（Cipher FeedBack (CFB)）不常用</li>
+<li>输出反馈模式（Output FeedBack (OFB)）</li>
+</ol>
+</li>
+</ol>
+<h3 id="golang实现aes加解密">golang实现AES加解密</h3>
+<p>golang使用“crypto/aes”进行AES加解密 。接着我们通过一个使用CBC模式对原文进行加解密的例子来演示如何实现。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+    <span style="color:#e6db74">&#34;crypto/aes&#34;</span>
+    <span style="color:#e6db74">&#34;crypto/cipher&#34;</span>
+    <span style="color:#e6db74">&#34;encoding/base64&#34;</span>
+    <span style="color:#e6db74">&#34;fmt&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#75715e">// 原始数据
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">plaintext</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;Hello, world!&#34;</span>)
+
+    <span style="color:#75715e">// 密钥，长度必须为 16、24 或 32 字节(128位，192位，256位)
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">key</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;0123456789abcdef&#34;</span>)
+
+    <span style="color:#75715e">// 使用 AES 创建加密算法对象
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">block</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">aes</span>.<span style="color:#a6e22e">NewCipher</span>(<span style="color:#a6e22e">key</span>)
+    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        panic(<span style="color:#a6e22e">err</span>)
+    }
+
+    <span style="color:#75715e">// 对数据进行填充，使其长度为块大小的整数倍
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">plaintext</span> = <span style="color:#a6e22e">PKCS5Padding</span>(<span style="color:#a6e22e">plaintext</span>, <span style="color:#a6e22e">block</span>.<span style="color:#a6e22e">BlockSize</span>())
+
+    <span style="color:#75715e">// 创建 CBC 模式的加密算法对象
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">iv</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;0123456789abcdef&#34;</span>) <span style="color:#75715e">// 初始化向量，长度必须为块大小
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">mode</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cipher</span>.<span style="color:#a6e22e">NewCBCEncrypter</span>(<span style="color:#a6e22e">block</span>, <span style="color:#a6e22e">iv</span>)
+
+    <span style="color:#75715e">// 加密数据
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">ciphertext</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">byte</span>, len(<span style="color:#a6e22e">plaintext</span>))
+    <span style="color:#a6e22e">mode</span>.<span style="color:#a6e22e">CryptBlocks</span>(<span style="color:#a6e22e">ciphertext</span>, <span style="color:#a6e22e">plaintext</span>)
+
+    <span style="color:#75715e">// 将密文进行 base64 编码
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">encoded</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>(<span style="color:#a6e22e">ciphertext</span>)
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">encoded</span>)
+
+    <span style="color:#75715e">// 解码 base64 编码的密文
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">decoded</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">DecodeString</span>(<span style="color:#a6e22e">encoded</span>)
+
+    <span style="color:#75715e">// 创建 CBC 模式的解密算法对象
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">mode</span> = <span style="color:#a6e22e">cipher</span>.<span style="color:#a6e22e">NewCBCDecrypter</span>(<span style="color:#a6e22e">block</span>, <span style="color:#a6e22e">iv</span>)
+
+    <span style="color:#75715e">// 解密数据
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">decrypted</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">byte</span>, len(<span style="color:#a6e22e">decoded</span>))
+    <span style="color:#a6e22e">mode</span>.<span style="color:#a6e22e">CryptBlocks</span>(<span style="color:#a6e22e">decrypted</span>, <span style="color:#a6e22e">decoded</span>)
+
+    <span style="color:#75715e">// 去除填充数据
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">decrypted</span> = <span style="color:#a6e22e">PKCS5UnPadding</span>(<span style="color:#a6e22e">decrypted</span>)
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(string(<span style="color:#a6e22e">decrypted</span>))
+}
+
+<span style="color:#75715e">// 对数据进行填充，使其长度为 blockSize 的整数倍
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">PKCS5Padding</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>, <span style="color:#a6e22e">blockSize</span> <span style="color:#66d9ef">int</span>) []<span style="color:#66d9ef">byte</span> {
+    <span style="color:#a6e22e">padding</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">blockSize</span> <span style="color:#f92672">-</span> len(<span style="color:#a6e22e">data</span>)<span style="color:#f92672">%</span><span style="color:#a6e22e">blockSize</span>
+    <span style="color:#a6e22e">padtext</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Repeat</span>([]<span style="color:#66d9ef">byte</span>{byte(<span style="color:#a6e22e">padding</span>)}, <span style="color:#a6e22e">padding</span>)
+    <span style="color:#66d9ef">return</span> append(<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">padtext</span><span style="color:#f92672">...</span>)
+}
+
+<span style="color:#75715e">// 去除填充数据
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">PKCS5UnPadding</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) []<span style="color:#66d9ef">byte</span> {
+    <span style="color:#a6e22e">length</span> <span style="color:#f92672">:=</span> len(<span style="color:#a6e22e">data</span>)
+    <span style="color:#a6e22e">unpadding</span> <span style="color:#f92672">:=</span> int(<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">length</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>])
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>[:(<span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">unpadding</span>)]
+}
+</code></pre></div><p>输出:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">+</span><span style="color:#f92672">HzZQh0Do42Kg1PQsdhdcw</span><span style="color:#f92672">==</span>
+<span style="color:#f92672">Hello</span><span style="color:#f92672">,</span> <span style="color:#f92672">world</span><span style="color:#f92672">!</span>
+</code></pre></div><p>上例中，分别演示了</p>
+<ol>
+<li>对加密过程：创建加密对象、原文填充、创建CBC模式，加密。</li>
+<li>解密过程： 创建CBC解密模式，解密，去除填充。</li>
+</ol>
+<p>为了方便使用，我们对上例的加解密进行封装，详细如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;bytes&#34;</span>
+	<span style="color:#e6db74">&#34;crypto/aes&#34;</span>
+	<span style="color:#e6db74">&#34;crypto/cipher&#34;</span>
+	<span style="color:#e6db74">&#34;encoding/base64&#34;</span>
+	<span style="color:#e6db74">&#34;errors&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">plaintext</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;Hello, world!&#34;</span>)
+	<span style="color:#a6e22e">key</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;0123456789abcdef&#34;</span>)
+	<span style="color:#a6e22e">iv</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;0123456789abcdef&#34;</span>)
+
+	<span style="color:#75715e">// 加密数据
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">encoded</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">AesCBCEncrypt</span>(<span style="color:#a6e22e">plaintext</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">iv</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">encoded</span>)
+
+	<span style="color:#75715e">// 解密数据
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">decoded</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">AesCBCDecrypt</span>(<span style="color:#a6e22e">encoded</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">iv</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(string(<span style="color:#a6e22e">decoded</span>))
+}
+
+<span style="color:#75715e">// AesCBCEncrypt 使用 AES CBC 模式加密数据
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">AesCBCEncrypt</span>(<span style="color:#a6e22e">plaintext</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">iv</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">block</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">aes</span>.<span style="color:#a6e22e">NewCipher</span>(<span style="color:#a6e22e">key</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#a6e22e">plaintext</span> = <span style="color:#a6e22e">PKCS5Padding</span>(<span style="color:#a6e22e">plaintext</span>, <span style="color:#a6e22e">block</span>.<span style="color:#a6e22e">BlockSize</span>())
+
+	<span style="color:#a6e22e">mode</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cipher</span>.<span style="color:#a6e22e">NewCBCEncrypter</span>(<span style="color:#a6e22e">block</span>, <span style="color:#a6e22e">iv</span>)
+
+	<span style="color:#a6e22e">ciphertext</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">byte</span>, len(<span style="color:#a6e22e">plaintext</span>))
+	<span style="color:#a6e22e">mode</span>.<span style="color:#a6e22e">CryptBlocks</span>(<span style="color:#a6e22e">ciphertext</span>, <span style="color:#a6e22e">plaintext</span>)
+
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>(<span style="color:#a6e22e">ciphertext</span>), <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#75715e">// AesCBCDecrypt 使用 AES CBC 模式解密数据
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">AesCBCDecrypt</span>(<span style="color:#a6e22e">ciphertext</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">iv</span> []<span style="color:#66d9ef">byte</span>) ([]<span style="color:#66d9ef">byte</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">block</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">aes</span>.<span style="color:#a6e22e">NewCipher</span>(<span style="color:#a6e22e">key</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#a6e22e">decoded</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">DecodeString</span>(<span style="color:#a6e22e">ciphertext</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">decoded</span>)<span style="color:#f92672">%</span><span style="color:#a6e22e">block</span>.<span style="color:#a6e22e">BlockSize</span>() <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;ciphertext is not a multiple of the block size&#34;</span>)
+	}
+
+	<span style="color:#a6e22e">mode</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cipher</span>.<span style="color:#a6e22e">NewCBCDecrypter</span>(<span style="color:#a6e22e">block</span>, <span style="color:#a6e22e">iv</span>)
+
+	<span style="color:#a6e22e">decrypted</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">byte</span>, len(<span style="color:#a6e22e">decoded</span>))
+	<span style="color:#a6e22e">mode</span>.<span style="color:#a6e22e">CryptBlocks</span>(<span style="color:#a6e22e">decrypted</span>, <span style="color:#a6e22e">decoded</span>)
+
+	<span style="color:#a6e22e">decrypted</span> = <span style="color:#a6e22e">PKCS5UnPadding</span>(<span style="color:#a6e22e">decrypted</span>)
+
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">decrypted</span>, <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#75715e">// PKCS5Padding 对数据进行填充，使其长度为 blockSize 的整数倍
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">PKCS5Padding</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>, <span style="color:#a6e22e">blockSize</span> <span style="color:#66d9ef">int</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#a6e22e">padding</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">blockSize</span> <span style="color:#f92672">-</span> len(<span style="color:#a6e22e">data</span>)<span style="color:#f92672">%</span><span style="color:#a6e22e">blockSize</span>
+	<span style="color:#a6e22e">padtext</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Repeat</span>([]<span style="color:#66d9ef">byte</span>{byte(<span style="color:#a6e22e">padding</span>)}, <span style="color:#a6e22e">padding</span>)
+	<span style="color:#66d9ef">return</span> append(<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">padtext</span><span style="color:#f92672">...</span>)
+}
+
+<span style="color:#75715e">// PKCS5UnPadding 去除填充数据
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">PKCS5UnPadding</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#a6e22e">length</span> <span style="color:#f92672">:=</span> len(<span style="color:#a6e22e">data</span>)
+	<span style="color:#a6e22e">unpadding</span> <span style="color:#f92672">:=</span> int(<span style="color:#a6e22e">data</span>[<span style="color:#a6e22e">length</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>])
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>[:(<span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">unpadding</span>)]
+}
+
+</code></pre></div><h3 id="总结">总结</h3>
+<p>本文主要介绍对称加密算法AES，AES使用不同指定长度的密钥，对原文进行分组，可选用更安全的加密模式CBC。在 golang中，可以使用“crypto/aes”快速实现原文填充、加密模式、加密、解密、去除填充等AES加解密过程。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://github.com/golang/crypto">golang/crypto</a></li>
+<li><a href="https://xie.infoq.cn/article/1b405dfbe6d0acf06dea0f9f6">AES加密模式</a></li>
+<li><a href="https://www.liaoxuefeng.com/wiki/1022910821149312/1023025778520640">NodeJs-AES加密</a></li>
+<li><a href="https://overstarry.vip/posts/%E5%89%8D%E5%90%8E%E7%AB%AF%E4%BD%BF%E7%94%A8aes%E5%8A%A0%E5%AF%86%E4%BC%A0%E8%BE%93%E6%95%B0%E6%8D%AE/">前后端使用aes加密传输数据</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/562256846">什么是AES加密？详解AES加密算法原理流程</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/06/golang%E5%AE%9E%E7%8E%B0aes%E5%8A%A0%E8%A7%A3%E5%AF%86/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/05/kubernetes%E9%9B%86%E7%BE%A4image-cri-him%E5%A4%A7%E9%87%8F%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8/" aria-label="">
       
           Kubernetes集群image-cri-him大量端口占用
@@ -1811,264 +2074,6 @@ GLOBAL OPTIONS:
       <p>
         
           <a href="https://luckytking.github.io/2023/03/cri%E4%B8%8E%E4%BD%BF%E7%94%A8crictl%E8%B0%83%E8%AF%95k8s%E8%8A%82%E7%82%B9/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2023/03/go%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%BA%93robfig-cron%E4%B8%80%E4%BA%9B%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" aria-label="">
-      
-          Go定时任务库robfig Cron一些主要功能、实际应用场景
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2023-03-04T22:21:37&#43;08:00">
-        
-   4, 2023
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>github.com/robfig/cron/v3 是一个功能强大且易于使用的定时任务管理库。本文进一步介绍robfig/cron在定时任务一些主要功能、如何使用它以及一些实际应用场景的例子。主要包括</p>
-<ol>
-<li>添加任务方法AddJob</li>
-<li>指定执行时间</li>
-<li>动态添加和删除任务</li>
-<li>Option选项</li>
-<li>JobWrapper与DefaultWrapper</li>
-</ol>
-<h3 id="addjob添加任务">AddJob添加任务</h3>
-<p>Cron实例可以通过调用AddJob() 方法用于添加一个实现了 Job 接口的对象作为任务，Example:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/robfig/cron/v3&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-)
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GreetingJob</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">Name</span> <span style="color:#66d9ef">string</span>
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">g</span> <span style="color:#a6e22e">GreetingJob</span>) <span style="color:#a6e22e">Run</span>() {
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Hi: &#34;</span>, <span style="color:#a6e22e">g</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#e6db74">&#34;now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>()
-	<span style="color:#a6e22e">entityID</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddJob</span>(<span style="color:#e6db74">&#34;@every 2s&#34;</span>, <span style="color:#a6e22e">GreetingJob</span>{<span style="color:#e6db74">&#34;Greeter&#34;</span>})
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;error : %v&#34;</span>, <span style="color:#a6e22e">err</span>)
-		<span style="color:#66d9ef">return</span>
-	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;entityID:&#34;</span>, <span style="color:#a6e22e">entityID</span>)
-	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Stop</span>()
-	<span style="color:#66d9ef">select</span> {}
-}
-
-<span style="color:#75715e">//output:
-</span><span style="color:#75715e">//entityID: 1
-</span><span style="color:#75715e">//Hi:  Greeter now: 2023-03-04 17:50:07.0169185 +0800 CST m=+1.716253301
-</span><span style="color:#75715e">//Hi:  Greeter now: 2023-03-04 17:50:09.0068064 +0800 CST m=+3.706141201
-</span></code></pre></div><p>此例中，GreetingJob实现了cron.Job 接口，cron实例调用AddJob，加入一个每2秒执行的任务，务并传递参数。</p>
-<h3 id="指定执行时间">指定执行时间</h3>
-<p>可以通过修改 cron 表达式来指定任务的执行时间。Example：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithSeconds</span>()) 
-<span style="color:#a6e22e">entityID</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;0 05 18 * * *&#34;</span>, <span style="color:#66d9ef">func</span>() {
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;hi now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-})
-</code></pre></div><p>此例中，将在每天的傍晚18点5分执行指定的函数。</p>
-<h3 id="动态添加和删除任务">动态添加和删除任务</h3>
-<p>cron/v3 允许开发人员在运行时动态添加和删除任务。Example：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/robfig/cron/v3&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithSeconds</span>())
-	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Stop</span>()
-	<span style="color:#a6e22e">count</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
-     <span style="color:#75715e">// 添加第一个任务
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">entityID1</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;*/2 * * * * *&#34;</span>, <span style="color:#66d9ef">func</span>() {
-		<span style="color:#a6e22e">count</span><span style="color:#f92672">++</span>
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Job1: &#34;</span>, <span style="color:#a6e22e">count</span>, <span style="color:#e6db74">&#34;now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-	})
-	<span style="color:#a6e22e">must</span>(<span style="color:#a6e22e">err</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;entityID1:&#34;</span>, <span style="color:#a6e22e">entityID1</span>)
-     <span style="color:#75715e">// 等待 6 秒钟，让第一个任务执行3次
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">6</span>)
-    <span style="color:#75715e">// 添加第二个任务
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">entityID2</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;*/2 * * * * *&#34;</span>, <span style="color:#66d9ef">func</span>() {
-		<span style="color:#a6e22e">count</span><span style="color:#f92672">++</span>
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Job2: &#34;</span>, <span style="color:#a6e22e">count</span>, <span style="color:#e6db74">&#34;now:&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-	})
-	<span style="color:#a6e22e">must</span>(<span style="color:#a6e22e">err</span>)
-     <span style="color:#75715e">// 等待 10秒钟，让两个任务交替执行几次
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>)
-     <span style="color:#75715e">// 删除第2个任务
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Remove</span>(<span style="color:#a6e22e">entityID2</span>)
-     <span style="color:#75715e">// 等待 10秒钟，发现只有任务1在执行了
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>)
-     <span style="color:#75715e">// 删除第2个任务
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Remove</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">EntryID</span>(<span style="color:#ae81ff">1</span>))
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;entityID2&#34;</span>, <span style="color:#a6e22e">entityID2</span>)
-    <span style="color:#75715e">//发现只有没有任务在执行了 
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">select</span> {}
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">must</span>(<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">any</span>(<span style="color:#a6e22e">err</span>))
-	}
-}
-
-</code></pre></div><h3 id="option选项">Option选项</h3>
-<p>Option 是一种用于配置 Cron 实例的结构体类型。Option 类型有多个可选字段，可用于配置定时任务的行为，上例中有使用到的WithSeconds。</p>
-<p>以下是 Option 类型的一些字段及其说明：</p>
-<ul>
-<li>WithSeconds()：在 cron 表达式中包含秒（0-59），默认为不包含秒。</li>
-<li>WithLocation()：设置时区，可以使用标准时区名称或时区偏移量。</li>
-<li>WithChain()：将多个函数连接成单个函数。</li>
-<li>WithParser()：指定 cron 表达式的解析器，默认为 StandardParser。</li>
-<li>WithLogger()：指定日志记录器，默认为 DefaultLogger。</li>
-</ul>
-<p>下面 WithLogger Option Cron Example：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/robfig/cron/v3&#34;</span>
-	<span style="color:#e6db74">&#34;log&#34;</span>
-	<span style="color:#e6db74">&#34;os&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(
-		<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithLogger</span>(
-			<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">VerbosePrintfLogger</span>(<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>, <span style="color:#e6db74">&#34;cron: &#34;</span>, <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">LstdFlags</span>))))
-	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;@every 1s&#34;</span>, <span style="color:#66d9ef">func</span>() {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;hello world&#34;</span>)
-	})
-	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Stop</span>()
-
-	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">3</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
-}
-<span style="color:#75715e">//output:
-</span><span style="color:#75715e">//cron: 2023/03/04 21:31:17 start
-</span><span style="color:#75715e">//cron: 2023/03/04 21:31:17 schedule, now=2023-03-04T21:31:17+08:00, entry=1, next=2023-03-04T21:31:18+08:00
-</span><span style="color:#75715e">//cron: 2023/03/04 21:31:18 wake, now=2023-03-04T21:31:18+08:00
-</span><span style="color:#75715e">//cron: 2023/03/04 21:31:18 run, now=2023-03-04T21:31:18+08:00, entry=1, next=2023-03-04T21:31:19+08:00
-</span><span style="color:#75715e">//hello world
-</span></code></pre></div><p>上例中，调用cron.VerbosPrintfLogger()包装log.Logger，这个logger会详细记录cron内部的调度过程</p>
-<h3 id="jobwrapper与defaultwrapper">JobWrapper与DefaultWrapper</h3>
-<p>//NewChain返回一个由给定JobWrappers组成的Chain，类似中间件。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">JobWrapper</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">Job</span>) <span style="color:#a6e22e">Job</span>
-
-<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Chain</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">wrappers</span> []<span style="color:#a6e22e">JobWrapper</span>
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewChain</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">JobWrapper</span>) <span style="color:#a6e22e">Chain</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Chain</span>{<span style="color:#a6e22e">c</span>}
-}
-</code></pre></div><p>cron内置了 3 个用得比较多的JobWrapper</p>
-<ul>
-<li>Recover 捕获内部Job产生的 panic</li>
-<li>DelayIfStillRunning 序列化作业，延迟后续的运行直到前一个是完整的。</li>
-<li>SkipIfStillRunning 跳过Job的调用，如果之前的调用是仍在运行。 
-以Reover为例：</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/robfig/cron/v3&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">New</span>(
-		<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithSeconds</span>(),
-		<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">WithChain</span>(
-			<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">Recover</span>(<span style="color:#a6e22e">cron</span>.<span style="color:#a6e22e">DefaultLogger</span>),
-		),
-	)
-
-	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AddFunc</span>(<span style="color:#e6db74">&#34;@every 2s&#34;</span>, <span style="color:#66d9ef">func</span>() {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Start...&#34;</span>)
-		panic(<span style="color:#a6e22e">any</span>(<span style="color:#e6db74">&#34;ohno....&#34;</span>))
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;End...&#34;</span>)
-	})
-
-	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>()
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Stop</span>()
-
-	<span style="color:#66d9ef">select</span> {}
-}
-</code></pre></div><p>output:</p>
-<pre tabindex="0"><code>Start...
-cron: 2023/03/04 21:59:32 panic, error=ohno...., stack=...
-goroutine 7 [running]:
-github.com/robfig/cron/v3.Recover.func1.1.1()
-	E:/gopath/pkg/mod/github.com/robfig/cron/v3@v3.0.1/chain.go:45 +0xa5
-panic({0x7370c0, 0x75b930})
-	...
-</code></pre><p>在上例中，使用 cron.Recover() 方法来捕获任务执行过程中的 panic，并记录日志。如果不进行 panic 捕获的话，程序将会因为 panic 而退出。需要注意的是，当使用 Recover() 方法时，不应该让任务函数返回一个 error，否则它将不会被正确地捕获。如果任务函数可能会返回 error，建议使用 Try() 方法进行捕获。</p>
-<p>以上。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://github.com/robfig/cron/v3">github.com/robfig/cron/v3</a></li>
-<li><a href="https://darjun.github.io/2020/06/25/godailylib/cron/">一篇讲的比较详细的Blog</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2023/03/go%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E5%BA%93robfig-cron%E4%B8%80%E4%BA%9B%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
