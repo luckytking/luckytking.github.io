@@ -240,6 +240,145 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/06/%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%88%B0rancher%E6%8A%A5%E9%94%99no-secret-assigned-to-service-account-cattle-system/" aria-label="">
+      
+          导入k8s集群到rancher报错no Secret Assigned to Service Account Cattle System
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-06-18T15:30:58&#43;08:00">
+        
+   18, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>背景：</p>
+<blockquote>
+<p>在导入外部集群到rancher时，cattle-cluster-agent报错</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">level</span><span style="color:#f92672">=</span><span style="color:#f92672">fatal</span> <span style="color:#f92672">msg</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;looking up cattle-system/cattle ca/token: no secret exists for service account cattle-system/cattle&#34;</span>
+</code></pre></div><p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubernetes</td>
+<td>v1.25.7</td>
+</tr>
+<tr>
+<td>Rancher</td>
+<td>v2.6.6</td>
+</tr>
+</tbody>
+</table>
+<h3 id="解决">解决</h3>
+<p>经查，K8s在版本v1.24启用新测试功能特性-LegacyServiceAccountTokenNoAutoGeneration，默认是开启的。</p>
+<blockquote>
+<p>服务账号（Service Account）是一种自动被启用的用户认证机制，使用经过签名的持有者令牌来验证请求。</p>
+<p>服务账号通常由 API 服务器自动创建并通过 ServiceAccount 准入控制器关联到集群中运行的 Pod 上。 持有者令牌会挂载到 Pod 中可预知的位置，允许集群内进程与 API 服务器通信。 服务账号也可以使用 Pod 规约的 serviceAccountName 字段显式地关联到 Pod 上。</p>
+</blockquote>
+<p>我们可以通过k8s 组件上指定的各种特性开关控制 -
+【特性门控是描述 Kubernetes 特性的一组键值对。你可以在 Kubernetes 的各个组件中使用 &ndash;feature-gates 标志来启用或禁用这些特性。】
+关闭该特性：</p>
+<p>打开 /etc/kubernetes/manifest/kube-controller-manager.yml的
+spec.container.command中增加</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">-</span> <span style="color:#f92672">--feature-gates</span><span style="color:#f92672">=</span><span style="color:#f92672">LegacyServiceAccountTokenNoAutoGeneration</span><span style="color:#f92672">=</span><span style="color:#f92672">false</span>
+</code></pre></div><p>修改完，例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pod</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">creationTimestamp</span>: <span style="color:#66d9ef">null</span>
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">component</span>: <span style="color:#ae81ff">kube-controller-manager</span>
+    <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">control-plane</span>
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kube-controller-manager</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kube-system</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">containers</span>:
+  - <span style="color:#f92672">command</span>:
+    - <span style="color:#ae81ff">kube-controller-manager</span>
+    - --<span style="color:#ae81ff">allocate-node-cidrs=true</span>
+    - --<span style="color:#ae81ff">authentication-kubeconfig=/etc/kubernetes/controller-manager.conf</span>
+    - --<span style="color:#ae81ff">authorization-kubeconfig=/etc/kubernetes/controller-manager.conf</span>
+    - --<span style="color:#ae81ff">bind-address=0.0.0.0</span>
+    - --<span style="color:#ae81ff">client-ca-file=/etc/kubernetes/pki/ca.crt</span>
+    - --<span style="color:#ae81ff">cluster-cidr=1.2.0.0/10</span>
+    - --<span style="color:#ae81ff">cluster-name=kubernetes</span>
+    - --<span style="color:#ae81ff">cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt</span>
+    - --<span style="color:#ae81ff">cluster-signing-key-file=/etc/kubernetes/pki/ca.key</span>
+    - --<span style="color:#ae81ff">controllers=*,bootstrapsigner,tokencleaner</span>
+    - --<span style="color:#ae81ff">feature-gates=EphemeralContainers=true</span>
+    - --<span style="color:#ae81ff">kubeconfig=/etc/kubernetes/controller-manager.conf</span>
+    - --<span style="color:#ae81ff">leader-elect=true</span>
+    - --<span style="color:#ae81ff">requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt</span>
+    - --<span style="color:#ae81ff">root-ca-file=/etc/kubernetes/pki/ca.crt</span>
+    - --<span style="color:#ae81ff">service-account-private-key-file=/etc/kubernetes/pki/sa.key</span>
+    - --<span style="color:#ae81ff">service-cluster-ip-range=10.88.0.0/22</span>
+    - --<span style="color:#ae81ff">use-service-account-credentials=true</span>
+    - --<span style="color:#ae81ff">feature-gates=LegacyServiceAccountTokenNoAutoGeneration=false</span>
+    <span style="color:#ae81ff">...</span>
+</code></pre></div><p>重启 kube-controller-manager，ps：如果是多个master，需要每个都修改。</p>
+<h3 id="小结">小结</h3>
+<p>本文记录导入外部集群到rancher时，遇到的用户认证密钥不正确的问题。回顾k8s在1.23~1.25的更新日志，以及查阅issues，原因是1.24启用了新测试特性LegacyServiceAccountTokenNoAutoGeneration，该特性使用经过签名的持有者令牌来验证请求。可以通过k8s组件上指定的各种特性开关控制来关闭此特性来解决报错，最终正常导入到rancher。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://kubernetes.io/zh-cn/docs/reference/command-line-tools-reference/feature-gates/"> k8s-features </a></li>
+<li><a href="https://kubernetes.io/zh-cn/docs/reference/access-authn-authz/authentication/#service-account-tokens">service-account-tokens </a></li>
+<li><a href="htps://github.com/rancher/rancher/issues/37027"> issues </a></li>
+<li><a href="htps://blog.isweluiz.com.br/2022/09/kubenetes-v1244-rancher-agent-error-no.html"> blog 解决用户secret </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/06/%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%88%B0rancher%E6%8A%A5%E9%94%99no-secret-assigned-to-service-account-cattle-system/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/05/kubernetes%E9%9B%86%E7%BE%A4image-cri-him%E5%A4%A7%E9%87%8F%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8/" aria-label="">
       
           Kubernetes集群image-cri-him大量端口占用
@@ -1757,127 +1896,6 @@ cert.pem 和 key.pem</p>
       <p>
         
           <a href="https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" aria-label="">
-      
-          Rancher导入k8s集群后状态长时间处于Pending状态
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-08-03T22:02:43&#43;08:00">
-        
-   3, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <h4 id="问题描述">问题描述:</h4>
-<p>在Rancher导入外部k8s集群 ,导入的集群一直处于“pending”状态。</p>
-<p>这里简要记录一下排查过程和临时解决办法。</p>
-<h4 id="问题环境">问题环境</h4>
-<ul>
-<li>rancher v2.6.6</li>
-<li>kubernetes v1.24</li>
-<li>vm1 ubuntu （rancer）</li>
-<li>vm2-3-4 k8s集群</li>
-</ul>
-<p>导入步骤:“集群”&ndash;“添加”&ndash;“集群名称”&ndash;创建&ndash;</p>
-<h4 id="排查解决">排查&amp;解决</h4>
-<p>Rancher 通过 CusterAgent 与集群进行通信（通过cattle-cluster-agent调用 Kubernetes API 与集群通讯），并通过cattle-node-agent与节点进行通信。如果 cattle-cluster-agent 无法连接到已有的 Rancher Server 也就是server-url，集群将保留在 Pending 状态。</p>
-<h5 id="1--在k8smaster节点上面查看clusteragent的pod状态是否正常默认的namespace为cattle-system">1 . 在k8smaster节点上面，查看ClusterAgent的pod状态是否正常，默认的namespace为“cattle-system”</h5>
-<blockquote>
-<p>kubectl get pods -n cattle-system</p>
-</blockquote>
-<pre tabindex="0"><code>root@k8s-master:~# kubectl get pods -n cattle-system
-NAME                             READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
-cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
-</code></pre><p>看到pod未正常启动</p>
-<h5 id="2-进一步查看pod错误日志">2. 进一步查看pod错误日志</h5>
-<blockquote>
-<p>kubectl logs -f [contariner-id] -n cattle-system</p>
-</blockquote>
-<pre tabindex="0"><code>root@k8s-master:~# kubectl logs -f cattle-cluster-agent-79749... -n cattle-system
-...
-no secret assigned to service account cattle-system/rancher
-...
-</code></pre><h5 id="3-查找error处理办法">3. 查找error处理办法</h5>
-<p>通过查阅官方issures有提到</p>
-<blockquote>
-<p>2.6.6版本说明建议:</p>
-<p>Rancher v2.6.6是v2.6.5的镜像版本，只做了一个修改，以解决以下问题:</p>
-<p>-当Rancher试图控制来自下游集群的大量流量时，出现了一个主要的性能问题。这种机制没有正确地处理断开，并将导致无限锁定。看到# 37250。</p>
-<p>所以我猜他们没有在这个版本中添加K8S 1.24兼容性，因为v2.6.6中的兼容版本是:</p>
-<ul>
-<li>v1.18.20-rancher1-3</li>
-<li>v1.19.16-rancher1-5</li>
-<li>v1.20.15-rancher1-3</li>
-<li>v1.21.12-rancher1-1</li>
-<li>v1.22.9-rancher1-1</li>
-<li>v1.23.6-rancher1-1</li>
-</ul>
-</blockquote>
-<p>Rancher 2.6.6 不支持 1.24。根据在此问题上设置的里程碑，计划为 2.6.7 提供支持。</p>
-<h5 id="4尝试回滚版本">4.尝试回滚版本</h5>
-<p>回滚k8s版本v1.23，rancher重新导入集群，再查看pods状态</p>
-<pre tabindex="0"><code>kubectl get pods -n cattle-system
-NAME                                    READY   STATUS    RESTARTS   AGE
-cattle-cluster-agent-79749...   1/1     Running   0          8m52s
-cattle-cluster-agent-79749...   1/1     Running   0          5m21s
-</code></pre><p>回到rancher查看导入的k8s状态为 “Active”</p>
-<p>至此，问题已暂时解决。持续关注Rancher2.6.7版本。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index">https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index</a></li>
-<li><a href="https://github.com/rancher/rancher/issues/37027">https://github.com/rancher/rancher/issues/37027</a></li>
-<li><a href="https://github.com/rancher/rancher/issues/37711">https://github.com/rancher/rancher/issues/37711</a></li>
-<li><a href="https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html">https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
