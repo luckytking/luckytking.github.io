@@ -237,6 +237,129 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Btime/" aria-label="">
+      
+          Go开发常用第三方库之time
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-05-05T18:53:15&#43;08:00">
+        
+   5, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>本文主要介绍一个好用的时间工具库，主要功能：</p>
+<ul>
+<li>当前时间</li>
+<li>修改地区</li>
+<li>解析字符串 等</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;github.com/jinzhu/now&#34;</span>
+
+<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>() <span style="color:#75715e">// 2013-11-18 17:51:49.123456789 Mon
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfMinute</span>()        <span style="color:#75715e">// 2013-11-18 17:51:00 Mon
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfHour</span>()          <span style="color:#75715e">// 2013-11-18 17:00:00 Mon
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfDay</span>()           <span style="color:#75715e">// 2013-11-18 00:00:00 Mon
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfWeek</span>()          <span style="color:#75715e">// 2013-11-17 00:00:00 Sun
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfMonth</span>()         <span style="color:#75715e">// 2013-11-01 00:00:00 Fri
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfQuarter</span>()       <span style="color:#75715e">// 2013-10-01 00:00:00 Tue
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">BeginningOfYear</span>()          <span style="color:#75715e">// 2013-01-01 00:00:00 Tue
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfMinute</span>()              <span style="color:#75715e">// 2013-11-18 17:51:59.999999999 Mon
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfHour</span>()                <span style="color:#75715e">// 2013-11-18 17:59:59.999999999 Mon
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfDay</span>()                 <span style="color:#75715e">// 2013-11-18 23:59:59.999999999 Mon
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfWeek</span>()                <span style="color:#75715e">// 2013-11-23 23:59:59.999999999 Sat
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfMonth</span>()               <span style="color:#75715e">// 2013-11-30 23:59:59.999999999 Sat
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfQuarter</span>()             <span style="color:#75715e">// 2013-12-31 23:59:59.999999999 Tue
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfYear</span>()                <span style="color:#75715e">// 2013-12-31 23:59:59.999999999 Tue
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">WeekStartDay</span> = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Monday</span> <span style="color:#75715e">// Set Monday as first day, default is Sunday
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">EndOfWeek</span>()                <span style="color:#75715e">// 2013-11-24 23:59:59.999999999 Sun
+</span></code></pre></div><h2 id="修改地区">修改地区</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">location</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">LoadLocation</span>(<span style="color:#e6db74">&#34;Asia/Shanghai&#34;</span>)
+
+<span style="color:#a6e22e">myConfig</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Config</span>{
+	<span style="color:#a6e22e">WeekStartDay</span>: <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Monday</span>,
+	<span style="color:#a6e22e">TimeLocation</span>: <span style="color:#a6e22e">location</span>,
+	<span style="color:#a6e22e">TimeFormats</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;2006-01-02 15:04:05&#34;</span>},
+}
+
+<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Date</span>(<span style="color:#ae81ff">2013</span>, <span style="color:#ae81ff">11</span>, <span style="color:#ae81ff">18</span>, <span style="color:#ae81ff">17</span>, <span style="color:#ae81ff">51</span>, <span style="color:#ae81ff">49</span>, <span style="color:#ae81ff">123456789</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Location</span>()) <span style="color:#75715e">// // 2013-11-18 17:51:49.123456789 Mon
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">myConfig</span>.<span style="color:#a6e22e">With</span>(<span style="color:#a6e22e">t</span>).<span style="color:#a6e22e">BeginningOfWeek</span>()         <span style="color:#75715e">// 2013-11-18 00:00:00 Mon
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">myConfig</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2002-10-12 22:14:01&#34;</span>)     <span style="color:#75715e">// 2002-10-12 22:14:01
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">myConfig</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2002-10-12 22:14&#34;</span>)        <span style="color:#75715e">// returns error &#39;can&#39;t parse string as time: 2002-10-12 22:14&#39;
+</span></code></pre></div><h2 id="解析字符串">解析字符串</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>() <span style="color:#75715e">// 2013-11-18 17:51:49.123456789 Mon
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// Parse(string) (time.Time, error)
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2017&#34;</span>)                <span style="color:#75715e">// 2017-01-01 00:00:00, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2017-10&#34;</span>)             <span style="color:#75715e">// 2017-10-01 00:00:00, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;2017-10-13&#34;</span>)          <span style="color:#75715e">// 2017-10-13 00:00:00, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;1999-12-12 12&#34;</span>)       <span style="color:#75715e">// 1999-12-12 12:00:00, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;1999-12-12 12:20&#34;</span>)    <span style="color:#75715e">// 1999-12-12 12:20:00, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;1999-12-12 12:20:21&#34;</span>) <span style="color:#75715e">// 1999-12-12 12:20:21, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;10-13&#34;</span>)               <span style="color:#75715e">// 2013-10-13 00:00:00, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;12:20&#34;</span>)               <span style="color:#75715e">// 2013-11-18 12:20:00, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;12:20:13&#34;</span>)            <span style="color:#75715e">// 2013-11-18 12:20:13, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;14&#34;</span>)                  <span style="color:#75715e">// 2013-11-18 14:00:00, nil
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;99:99&#34;</span>)               <span style="color:#75715e">// 2013-11-18 12:20:00, Can&#39;t parse string as time: 99:99`
+</span><span style="color:#75715e"></span>
+</code></pre></div><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/jinzhu/now">https://github.com/jinzhu/now</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/05/go%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93%E4%B9%8Btime/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/04/go%E5%BE%AE%E6%9C%8D%E5%8A%A1-kratostransporter%E4%BC%A0%E8%BE%93%E5%B1%82/" aria-label="">
       
           Go微服务  KratosTransporter传输层

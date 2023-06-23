@@ -238,6 +238,174 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/" aria-label="">
+      
+          K8s安装metrics Server
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-06-23T18:17:24&#43;08:00">
+        
+   23, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/category">category</a>, 
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/subcategory">subcategory</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>Metrics Server是一个可扩展的、高效的容器资源度量源，用于Kubernetes内置的自动伸缩管道。</p>
+<p>kubectl top 可以查看node、pod 的实时资源使用情况：如CPU、内存。但需要预装 Metrics Server ，不然会出现如下错误提示：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">kubectl</span> <span style="color:#f92672">top</span> <span style="color:#f92672">pods</span>
+<span style="color:#f92672">error</span><span style="color:#f92672">:</span> <span style="color:#f92672">Metrics</span> <span style="color:#f92672">API</span> <span style="color:#f92672">not</span> <span style="color:#f92672">available</span>
+</code></pre></div><p>Metrics Server 从 Kubelet 收集资源指标，并通过Metrics API在 Kubernetes apiserver 中公开， 以供Horizo​​ntal Pod Autoscaler和Vertical Pod Autoscaler使用。指标 API 也可以通过 访问kubectl top，从而更容易调试自动缩放管道。</p>
+<p>今天主要介绍安装的过程，以及记录安装过程遇到一些问题。</p>
+<h3 id="开始安装">开始安装</h3>
+<p>这里我们采用官网给的清单 components.yaml安装最新的 Metrics Server 版本:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">kubectl</span> <span style="color:#f92672">apply</span> <span style="color:#f92672">-f</span> <span style="color:#f92672">https</span><span style="color:#f92672">://</span><span style="color:#f92672">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#f92672">kubernetes-sigs</span><span style="color:#f92672">/</span><span style="color:#f92672">metrics-server</span><span style="color:#f92672">/</span><span style="color:#f92672">releases</span><span style="color:#f92672">/</span><span style="color:#f92672">latest</span><span style="color:#f92672">/</span><span style="color:#f92672">download</span><span style="color:#f92672">/</span><span style="color:#f92672">components</span>.<span style="color:#a6e22e">yaml</span>
+</code></pre></div><p>查看是否安装成功:</p>
+<pre tabindex="0"><code># kubectl get deployment metrics-server -n kube-system
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+metrics-server   0/1     1            0           118s
+</code></pre><p>发现安装失败。</p>
+<h3 id="问题1镜像拉取失败">问题1：镜像拉取失败</h3>
+<p>查看pod详细信息：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">kubectl</span> <span style="color:#f92672">get</span> <span style="color:#f92672">pod</span>  <span style="color:#f92672">-n</span> <span style="color:#f92672">kube-system</span>
+<span style="color:#f92672">NAME</span>                              <span style="color:#f92672">READY</span>   <span style="color:#f92672">STATUS</span>         <span style="color:#f92672">RESTARTS</span>      <span style="color:#f92672">AGE</span>
+<span style="color:#f92672">metrics-server-55c774cdbb-jmfz8</span>   <span style="color:#f92672">0</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span>     <span style="color:#f92672">ErrImagePull</span>   <span style="color:#f92672">0</span>             <span style="color:#f92672">2m34s</span>
+</code></pre></div><p>查看pod日志:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">kubectl</span> <span style="color:#f92672">logs</span> <span style="color:#f92672">pods</span><span style="color:#f92672">/</span><span style="color:#f92672">metrics-server-55c774cdbb-jmfz8</span> <span style="color:#f92672">-n</span> <span style="color:#f92672">kube-system</span>
+<span style="color:#f92672">Error</span> <span style="color:#f92672">from</span> <span style="color:#f92672">server</span> <span style="color:#f92672">(</span><span style="color:#f92672">BadRequest</span><span style="color:#f92672">):</span> <span style="color:#f92672">container</span> <span style="color:#e6db74">&#34;metrics-server&#34;</span> <span style="color:#f92672">in</span> <span style="color:#f92672">pod</span> <span style="color:#e6db74">&#34;metrics-server-55c774cdbb-jmfz8&#34;</span> <span style="color:#f92672">is</span> <span style="color:#f92672">waiting</span> <span style="color:#f92672">to</span> <span style="color:#f92672">start</span><span style="color:#f92672">:</span> <span style="color:#f92672">trying</span> <span style="color:#f92672">and</span> <span style="color:#f92672">failing</span> <span style="color:#f92672">to</span> <span style="color:#f92672">pull</span> <span style="color:#f92672">image</span>
+</code></pre></div><p>从日志可知是镜像拉取不下来，我们可以修改镜像地址。可以从dockerhub，查找最新版本，如作者安装的版本是：metrics-server:v0.6.1。打开components.yaml , 修改Deployment，spec.containers.coimage 为搜索到的，如“registry.aliyuncs.com/google_containers/metrics-server:v0.6.1&quot;,修改完详细如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kube-system</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:
+      <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">strategy</span>:
+    <span style="color:#f92672">rollingUpdate</span>:
+      <span style="color:#f92672">maxUnavailable</span>: <span style="color:#ae81ff">0</span>
+  <span style="color:#f92672">template</span>:
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:
+        <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+    <span style="color:#f92672">spec</span>:
+      <span style="color:#f92672">containers</span>:
+      - <span style="color:#f92672">args</span>:
+        - --<span style="color:#ae81ff">cert-dir=/tmp</span>
+        - --<span style="color:#ae81ff">secure-port=4443</span>
+        - --<span style="color:#ae81ff">kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname</span>
+        - --<span style="color:#ae81ff">kubelet-use-node-status-port</span>
+        - --<span style="color:#ae81ff">metric-resolution=15s</span>
+        <span style="color:#f92672">image</span>: <span style="color:#ae81ff">registry.aliyuncs.com/google_containers/metrics-server:v0.6.1</span>
+</code></pre></div><p>更新部署deployment：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">kubectl</span> <span style="color:#f92672">delete</span>  <span style="color:#f92672">deployment</span> <span style="color:#f92672">metrics-server</span> <span style="color:#f92672">-n</span> <span style="color:#f92672">kube-system</span>
+<span style="color:#f92672">deployment</span>.<span style="color:#a6e22e">apps</span> <span style="color:#e6db74">&#34;metrics-server&#34;</span> <span style="color:#f92672">deleted</span>
+
+<span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">kubectl</span> <span style="color:#f92672">apply</span> <span style="color:#f92672">-f</span> <span style="color:#f92672">components</span>.<span style="color:#a6e22e">yaml</span>
+</code></pre></div><h3 id="问题2证书">问题2：证书</h3>
+<p>更新后，发现另外一个问题：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">server</span>.<span style="color:#a6e22e">go</span>:<span style="color:#a6e22e">132</span><span style="color:#f92672">]</span> <span style="color:#f92672">unable</span> <span style="color:#f92672">to</span> <span style="color:#f92672">fully</span> <span style="color:#f92672">scrape</span> <span style="color:#f92672">metrics</span><span style="color:#f92672">:</span> <span style="color:#f92672">unable</span> <span style="color:#f92672">to</span> <span style="color:#f92672">fully</span> <span style="color:#f92672">scrape</span> <span style="color:#f92672">metrics</span> <span style="color:#f92672">from</span> <span style="color:#f92672">node</span> <span style="color:#f92672">docker-desktop</span><span style="color:#f92672">:</span> <span style="color:#f92672">unable</span> <span style="color:#f92672">to</span> <span style="color:#f92672">fetch</span> <span style="color:#f92672">metrics</span> <span style="color:#f92672">from</span> <span style="color:#f92672">node</span> <span style="color:#f92672">docker-desktop</span><span style="color:#f92672">:</span> <span style="color:#f92672">Get</span> <span style="color:#e6db74">&#34;https://192.168.1.88:10250/stats/summary?only_cpu_and_memory=true&#34;</span><span style="color:#f92672">:</span> <span style="color:#f92672">x509</span><span style="color:#f92672">:</span> <span style="color:#f92672">cannot</span> <span style="color:#f92672">validate</span> <span style="color:#f92672">certificate</span> <span style="color:#f92672">for</span> <span style="color:#f92672">192</span>.<span style="color:#a6e22e">168</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">88</span> <span style="color:#f92672">because</span> <span style="color:#f92672">it</span> <span style="color:#f92672">doesn</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#f92672">t</span> <span style="color:#f92672">contain</span> <span style="color:#f92672">any</span> <span style="color:#f92672">IP</span> <span style="color:#f92672">SANs</span>
+</code></pre></div><p>从日志可知是权限验证（证书）出了问题，通过搜索github issues ，issue回复里提供了一个解决方法是在可以关闭证书验证，详细如下：</p>
+<p>修改清单components.yam, 增加：</p>
+<pre tabindex="0"><code>- --kubelet-insecure-tls
+</code></pre><p>修改完 Deplyment详细如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kube-system</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:
+      <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">strategy</span>:
+    <span style="color:#f92672">rollingUpdate</span>:
+      <span style="color:#f92672">maxUnavailable</span>: <span style="color:#ae81ff">0</span>
+  <span style="color:#f92672">template</span>:
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:
+        <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+    <span style="color:#f92672">spec</span>:
+      <span style="color:#f92672">containers</span>:
+      - <span style="color:#f92672">args</span>:
+        - --<span style="color:#ae81ff">cert-dir=/tmp</span>
+        - --<span style="color:#ae81ff">secure-port=4443</span>
+        - --<span style="color:#ae81ff">kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname</span>
+        - --<span style="color:#ae81ff">kubelet-use-node-status-port</span>
+        - --<span style="color:#ae81ff">kubelet-insecure-tls</span>
+        - --<span style="color:#ae81ff">metric-resolution=15s</span>
+</code></pre></div><p>其中：</p>
+<blockquote>
+<p>&ndash;kubelet-preferred-address-types：
+优先使用 InternalIP 来访问 kubelet，这样可以避免节点名称没有 DNS 解析记录时，通过节点名称调用节点 kubelet API 失败的情况（未配置时默认的情况）；</p>
+<p>&ndash;kubelet-insecure-tls：
+kubelet 的 10250 端口使用的是 https 协议，连接需要验证 tls 证书。&ndash;kubelet-insecure-tls 不验证客户端证书。</p>
+</blockquote>
+<p>然后，检查是否启动成功：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css">#kubectl <span style="color:#f92672">get</span> <span style="color:#f92672">deployment</span> <span style="color:#f92672">metrics-server</span> <span style="color:#f92672">-n</span> <span style="color:#f92672">kube-system</span>
+<span style="color:#f92672">NAME</span>             <span style="color:#f92672">READY</span>   <span style="color:#f92672">UP-TO-DATE</span>   <span style="color:#f92672">AVAILABLE</span>   <span style="color:#f92672">AGE</span>
+<span style="color:#f92672">metrics-server</span>   <span style="color:#f92672">1</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span>     <span style="color:#f92672">1</span>            <span style="color:#f92672">1</span>           <span style="color:#f92672">14m</span>
+</code></pre></div><p>success。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://github.com/kubernetes-sigs/metrics-server"> 官网 </a></li>
+<li><a href="https://cloud.tencent.com/developer/article/1818865"> 容器 &amp; 服务：metrics-server 安装探索   </a></li>
+<li><a href="https://github.com/kubernetes-sigs/metrics-server/issues/131"> github issues 关闭证书  </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/06/%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%88%B0rancher%E6%8A%A5%E9%94%99no-secret-assigned-to-service-account-cattle-system/" aria-label="">
       
           导入k8s集群到rancher报错no Secret Assigned to Service Account Cattle System
@@ -1830,214 +1998,6 @@ tx2 Bob's age is 5
       <p>
         
           <a href="https://luckytking.github.io/2023/03/postgres%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E4%B8%8Emvcc/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2023/03/gor%E5%92%8Capisixproxymirror%E5%AE%9E%E7%8E%B0%E6%8D%95%E8%8E%B7%E5%A4%8D%E5%88%B6%E6%B5%81%E9%87%8F/" aria-label="">
-      
-          Gor和ApisixProxyMirror实现捕获复制流量
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2023-03-19T16:09:13&#43;08:00">
-        
-   19, 2023
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e8%bd%af%e4%bb%b6%e6%b5%8b%e8%af%95">软件测试</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>在上一篇  <a href="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/">Go网络抓包、引流工具GoReplay</a> 介绍了Gor的一些基础和实际开发中对 HTTP 流量进行复制，以用于测试、性能监测等用途。而Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。结合使用 Gor 和 Apisix 可以轻松地实现流量复制，并将其应用于各种场景中。</p>
-<p>本篇文章将介绍如何使用 Gor 和 Apisix 实现流量复制，具体包括以下几个部分：</p>
-<ol>
-<li>测试环境介绍</li>
-<li>安装和配置 Gor</li>
-<li>安装和配置 Apisix</li>
-<li>配置 Apisix 的 proxy-mirror 插件</li>
-<li>测试流量复制</li>
-</ol>
-<h3 id="测试环境介绍">测试环境介绍</h3>
-<ol>
-<li>OS: 两台 Ubuntu 虚拟机（Gateway、Node）
-<blockquote>
-<p>a.  Gateway 安装 ApiSix</p>
-<p>b.  Node 安装节点服务</p>
-</blockquote>
-</li>
-<li>Docker &amp; DockerCompose</li>
-</ol>
-<h3 id="安装和配置-gor">安装和配置 Gor</h3>
-<p>首先，需要在Node上安装 Gor 工具。可以从 Gor 的<a href="https://apisix.apache.org/zh/docs/apisix/installation-guide/">官网下载</a>相应的二进制文件，然后将其解压到服务器上即可。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># tar xvf gor_1.3.3_x64.tar.gz</span>
-<span style="color:#75715e"># cp gor /usr/local/bin/gor</span>
-<span style="color:#75715e"># sudo chmod +x /usr/local/bin/gor</span>
-</code></pre></div><p>安装完成后，可以使用以下命令启动 Gor：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># gor version</span>
-</code></pre></div><p>输出</p>
-<pre tabindex="0"><code># Version:1.3.0 
-</code></pre><h3 id="安装和配置-apisix">安装和配置 Apisix</h3>
-<p>ApiSix: 这里使用 DockerCompose安装</p>
-<blockquote>
-<p>git clone <a href="https://github.com/apache/apisix-docker.git">https://github.com/apache/apisix-docker.git</a></p>
-<p>cd apisix-docker/example</p>
-<p>docker-compose up -d</p>
-</blockquote>
-<p>这个命令会启动 Apisix 并监听在本地的 80 端口。</p>
-<h3 id="配置-apisix-的-proxy-mirror-插件">配置 Apisix 的 proxy-mirror 插件</h3>
-<p>Apisix 的 proxy-mirror 插件可以用于流量复制。
-增加一个路由hello-proxy-mirror, Upstream为Node主机的服务A(端口9696)，流量复制到Node主机的服务B(端口9797)，其中</p>
-<ol>
-<li>host 为 指定镜像服务地址</li>
-<li>sample_ratio 镜像请求采样率，本例中为1，表示全量复制</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
-  <span style="color:#f92672">&#34;uri&#34;</span>: <span style="color:#e6db74">&#34;/hello&#34;</span>,
-  <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;hello-proxy-mirror&#34;</span>,
-  <span style="color:#f92672">&#34;methods&#34;</span>: [
-    <span style="color:#e6db74">&#34;GET&#34;</span>,
-    <span style="color:#e6db74">&#34;POST&#34;</span>,
-    <span style="color:#e6db74">&#34;PUT&#34;</span>,
-    <span style="color:#e6db74">&#34;DELETE&#34;</span>,
-    <span style="color:#e6db74">&#34;PATCH&#34;</span>,
-    <span style="color:#e6db74">&#34;HEAD&#34;</span>,
-    <span style="color:#e6db74">&#34;OPTIONS&#34;</span>,
-    <span style="color:#e6db74">&#34;CONNECT&#34;</span>,
-    <span style="color:#e6db74">&#34;TRACE&#34;</span>
-  ],
-  <span style="color:#f92672">&#34;plugins&#34;</span>: {
-    <span style="color:#f92672">&#34;proxy-mirror&#34;</span>: {
-      <span style="color:#f92672">&#34;disable&#34;</span>: <span style="color:#66d9ef">false</span>,
-      <span style="color:#f92672">&#34;host&#34;</span>: <span style="color:#e6db74">&#34;http://192.168.1.101:9797&#34;</span>,
-      <span style="color:#f92672">&#34;sample_ratio&#34;</span>: <span style="color:#ae81ff">1</span>
-    }
-  },
-  <span style="color:#f92672">&#34;upstream&#34;</span>: {
-    <span style="color:#f92672">&#34;nodes&#34;</span>: [
-      {
-        <span style="color:#f92672">&#34;host&#34;</span>: <span style="color:#e6db74">&#34;192.168.1.101&#34;</span>,
-        <span style="color:#f92672">&#34;port&#34;</span>: <span style="color:#ae81ff">9696</span>,
-        <span style="color:#f92672">&#34;weight&#34;</span>: <span style="color:#ae81ff">1</span>
-      }
-    ],
-    <span style="color:#f92672">&#34;timeout&#34;</span>: {
-      <span style="color:#f92672">&#34;connect&#34;</span>: <span style="color:#ae81ff">6</span>,
-      <span style="color:#f92672">&#34;send&#34;</span>: <span style="color:#ae81ff">6</span>,
-      <span style="color:#f92672">&#34;read&#34;</span>: <span style="color:#ae81ff">6</span>
-    },
-    <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;roundrobin&#34;</span>,
-    <span style="color:#f92672">&#34;scheme&#34;</span>: <span style="color:#e6db74">&#34;http&#34;</span>,
-    <span style="color:#f92672">&#34;pass_host&#34;</span>: <span style="color:#e6db74">&#34;pass&#34;</span>,
-    <span style="color:#f92672">&#34;keepalive_pool&#34;</span>: {
-      <span style="color:#f92672">&#34;idle_timeout&#34;</span>: <span style="color:#ae81ff">60</span>,
-      <span style="color:#f92672">&#34;requests&#34;</span>: <span style="color:#ae81ff">1000</span>,
-      <span style="color:#f92672">&#34;size&#34;</span>: <span style="color:#ae81ff">320</span>
-    }
-  },
-  <span style="color:#f92672">&#34;status&#34;</span>: <span style="color:#ae81ff">1</span>
-}
-</code></pre></div><p>这个配置会开启 proxy-mirror 插件，并将其配置为将流量发送到本地的 8080 端口，即 Gor 监听的地址。</p>
-<h3 id="测试流量复制">测试流量复制</h3>
-<p>接着可开始测试流量复制。</p>
-<h4 id="启动-http-服务a监听9696端口">启动 HTTP 服务A监听9696端口：</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">python3 -m http.server <span style="color:#ae81ff">9696</span>
-</code></pre></div><p>正常启动输出</p>
-<pre tabindex="0"><code>Serving HTTP on 0.0.0.0 port 9696 (http://0.0.0.0:9696/) ...
-</code></pre><h4 id="启动-镜像服务b监听9797端口">启动 镜像服务B监听9797端口：</h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">python3 -m http.server <span style="color:#ae81ff">9797</span>
-</code></pre></div><p>正常启动输出</p>
-<pre tabindex="0"><code>Serving HTTP on 0.0.0.0 port 9797 (http://0.0.0.0:9797/) ...
-</code></pre><h4 id="启动-gor-监听在本地的-9797-端口">启动 Gor 监听在本地的 9797 端口</h4>
-<pre tabindex="0"><code>sudo gor --input-raw :9797 --output-stdout  
-</code></pre><p>此命令将监听镜像服务B端口9797， 将 HTTP 流量输出到控制台</p>
-<p>接着，curl测试</p>
-<pre tabindex="0"><code class="language-curl" data-lang="curl">curl http://192.168.1.100:80/hello -i
-</code></pre><p>输出</p>
-<pre tabindex="0"><code>HTTP/1.1 404 File not found
-Content-Type: text/html;charset=utf-8
-Content-Length: 469
-Connection: keep-alive
-Date: Sun, 19 Mar 2023 06:55:42 GMT
-Server: APISIX/3.2.0
-
-&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;
-        &quot;http://www.w3.org/TR/html4/strict.dtd&quot;&gt;
-&lt;html&gt;
-    &lt;head&gt;
-        &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html;charset=utf-8&quot;&gt;
-        &lt;title&gt;Error response&lt;/title&gt;
-    &lt;/head&gt;
-    &lt;body&gt;
-        &lt;h1&gt;Error response&lt;/h1&gt;
-        &lt;p&gt;Error code: 404&lt;/p&gt;
-        &lt;p&gt;Message: File not found.&lt;/p&gt;
-        &lt;p&gt;Error code explanation: HTTPStatus.NOT_FOUND - Nothing matches the given URI.&lt;/p&gt;
-    &lt;/body&gt;
-&lt;/html&gt;
-</code></pre><p>测试会发送一个 HTTP 请求到Apisix开放的Http端口80，可以到达下游服务（Node主机的ServerA 9696端口），输出如下：</p>
-<pre tabindex="0"><code>192.168.1.100 - - [19/Mar/2023 06:47:44] code 404, message File not found
-192.168.1.100 - - [19/Mar/2023 06:47:44] &quot;GET /hello HTTP/1.1&quot; 404 -
-</code></pre><p>而且，ApiSix Proxy Mirror复制Http请求到端口 9797的镜像服务， 输出如下:</p>
-<pre tabindex="0"><code>192.168.1.100 - - [19/Mar/2023 06:49:07] code 404, message File not found
-192.168.1.100 - - [19/Mar/2023 06:49:07] &quot;GET /hello HTTP/1.1&quot; 404 -
-</code></pre><p>可见和目标服务的的完全一致。 
-接着，观察Gor是否正常记录http请求，正常输出如下：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#ae81ff">1</span> af0c2645c0a801c7399d6efb <span style="color:#ae81ff">1679212462567906772</span> <span style="color:#ae81ff">0</span>
-GET /hello HTTP/1.1
-Host: 192.168.1.100
-Connection: close
-User-Agent: curl/7.64.1
-Accept: */*
-</code></pre></div><p>说明Gor已经成功从镜像服务捕获流量。
-再结合使用Gor的流量回放功能可以应用于例如测试、性能监测等场景。 
-以上。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://apisix.apache.org/zh/docs/apisix/getting-started">ApiSix Wiki</a></li>
-<li><a href="https://625a9090d04b9a6953165811--2-11-old-docs-apache-apisix.netlify.app/zh/docs/apisix/plugins/proxy-mirror">Proxy Mirror</a></li>
-<li><a href="https://luckytking.github.io/2022/11/go%E7%BD%91%E7%BB%9C%E6%8A%93%E5%8C%85%E5%BC%95%E6%B5%81%E5%B7%A5%E5%85%B7goreplay/">go网络抓包引流工具 </a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2023/03/gor%E5%92%8Capisixproxymirror%E5%AE%9E%E7%8E%B0%E6%8D%95%E8%8E%B7%E5%A4%8D%E5%88%B6%E6%B5%81%E9%87%8F/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>
