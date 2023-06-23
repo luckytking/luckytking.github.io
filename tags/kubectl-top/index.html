@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"",
+  "url":"https:\/\/luckytking.github.io\/tags\/kubectl-top\/",
+  "keywords":"[]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="">
+<meta name="description" content="">
+
+
+<meta property="og:description" content="">
+<meta property="og:type" content="website">
+<meta property="og:title" content="kubectl top">
+<meta name="twitter:title" content="kubectl top">
+<meta property="og:url" content="https://luckytking.github.io/tags/kubectl-top/">
+<meta property="twitter:url" content="https://luckytking.github.io/tags/kubectl-top/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="">
+<meta name="twitter:description" content="">
+<meta property="og:locale" content="en">
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>kubectl top</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/tags/kubectl-top/index.xml">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/tags/kubectl-top/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="2">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="2">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+        
+
+      
+      <div id="main" data-behavior="2"
+        class="
+               hasCoverMetaIn
+               ">
+        
+          <section class="postShorten-group main-content-wrap">
+            
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/" aria-label="">
+      
+          K8s安装metrics Server
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-06-23T18:17:24&#43;08:00">
+        
+   23, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>Metrics Server是一个可扩展的、高效的容器资源度量源，用于Kubernetes内置的自动伸缩管道。</p>
+<p>kubectl top 可以查看node、pod 的实时资源使用情况：如CPU、内存。但需要预装 Metrics Server ，不然会出现如下错误提示：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">kubectl</span> <span style="color:#f92672">top</span> <span style="color:#f92672">pods</span>
+<span style="color:#f92672">error</span><span style="color:#f92672">:</span> <span style="color:#f92672">Metrics</span> <span style="color:#f92672">API</span> <span style="color:#f92672">not</span> <span style="color:#f92672">available</span>
+</code></pre></div><p>Metrics Server 从 Kubelet 收集资源指标，并通过Metrics API在 Kubernetes apiserver 中公开， 以供Horizo​​ntal Pod Autoscaler和Vertical Pod Autoscaler使用。指标 API 也可以通过 访问kubectl top，从而更容易调试自动缩放管道。</p>
+<p>今天主要介绍安装的过程，以及记录安装过程遇到一些问题。</p>
+<h3 id="开始安装">开始安装</h3>
+<p>这里我们采用官网给的清单 components.yaml安装最新的 Metrics Server 版本:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">kubectl</span> <span style="color:#f92672">apply</span> <span style="color:#f92672">-f</span> <span style="color:#f92672">https</span><span style="color:#f92672">://</span><span style="color:#f92672">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#f92672">kubernetes-sigs</span><span style="color:#f92672">/</span><span style="color:#f92672">metrics-server</span><span style="color:#f92672">/</span><span style="color:#f92672">releases</span><span style="color:#f92672">/</span><span style="color:#f92672">latest</span><span style="color:#f92672">/</span><span style="color:#f92672">download</span><span style="color:#f92672">/</span><span style="color:#f92672">components</span>.<span style="color:#a6e22e">yaml</span>
+</code></pre></div><p>查看是否安装成功:</p>
+<pre tabindex="0"><code># kubectl get deployment metrics-server -n kube-system
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+metrics-server   0/1     1            0           118s
+</code></pre><p>发现安装失败。</p>
+<h3 id="问题1镜像拉取失败">问题1：镜像拉取失败</h3>
+<p>查看pod详细信息：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">kubectl</span> <span style="color:#f92672">get</span> <span style="color:#f92672">pod</span>  <span style="color:#f92672">-n</span> <span style="color:#f92672">kube-system</span>
+<span style="color:#f92672">NAME</span>                              <span style="color:#f92672">READY</span>   <span style="color:#f92672">STATUS</span>         <span style="color:#f92672">RESTARTS</span>      <span style="color:#f92672">AGE</span>
+<span style="color:#f92672">metrics-server-55c774cdbb-jmfz8</span>   <span style="color:#f92672">0</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span>     <span style="color:#f92672">ErrImagePull</span>   <span style="color:#f92672">0</span>             <span style="color:#f92672">2m34s</span>
+</code></pre></div><p>查看pod日志:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">kubectl</span> <span style="color:#f92672">logs</span> <span style="color:#f92672">pods</span><span style="color:#f92672">/</span><span style="color:#f92672">metrics-server-55c774cdbb-jmfz8</span> <span style="color:#f92672">-n</span> <span style="color:#f92672">kube-system</span>
+<span style="color:#f92672">Error</span> <span style="color:#f92672">from</span> <span style="color:#f92672">server</span> <span style="color:#f92672">(</span><span style="color:#f92672">BadRequest</span><span style="color:#f92672">):</span> <span style="color:#f92672">container</span> <span style="color:#e6db74">&#34;metrics-server&#34;</span> <span style="color:#f92672">in</span> <span style="color:#f92672">pod</span> <span style="color:#e6db74">&#34;metrics-server-55c774cdbb-jmfz8&#34;</span> <span style="color:#f92672">is</span> <span style="color:#f92672">waiting</span> <span style="color:#f92672">to</span> <span style="color:#f92672">start</span><span style="color:#f92672">:</span> <span style="color:#f92672">trying</span> <span style="color:#f92672">and</span> <span style="color:#f92672">failing</span> <span style="color:#f92672">to</span> <span style="color:#f92672">pull</span> <span style="color:#f92672">image</span>
+</code></pre></div><p>从日志可知是镜像拉取不下来，我们可以修改镜像地址。可以从dockerhub，查找最新版本，如作者安装的版本是：metrics-server:v0.6.1。打开components.yaml , 修改Deployment，spec.containers.coimage 为搜索到的，如“registry.aliyuncs.com/google_containers/metrics-server:v0.6.1&quot;,修改完详细如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kube-system</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:
+      <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">strategy</span>:
+    <span style="color:#f92672">rollingUpdate</span>:
+      <span style="color:#f92672">maxUnavailable</span>: <span style="color:#ae81ff">0</span>
+  <span style="color:#f92672">template</span>:
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:
+        <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+    <span style="color:#f92672">spec</span>:
+      <span style="color:#f92672">containers</span>:
+      - <span style="color:#f92672">args</span>:
+        - --<span style="color:#ae81ff">cert-dir=/tmp</span>
+        - --<span style="color:#ae81ff">secure-port=4443</span>
+        - --<span style="color:#ae81ff">kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname</span>
+        - --<span style="color:#ae81ff">kubelet-use-node-status-port</span>
+        - --<span style="color:#ae81ff">metric-resolution=15s</span>
+        <span style="color:#f92672">image</span>: <span style="color:#ae81ff">registry.aliyuncs.com/google_containers/metrics-server:v0.6.1</span>
+</code></pre></div><p>更新部署deployment：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">kubectl</span> <span style="color:#f92672">delete</span>  <span style="color:#f92672">deployment</span> <span style="color:#f92672">metrics-server</span> <span style="color:#f92672">-n</span> <span style="color:#f92672">kube-system</span>
+<span style="color:#f92672">deployment</span>.<span style="color:#a6e22e">apps</span> <span style="color:#e6db74">&#34;metrics-server&#34;</span> <span style="color:#f92672">deleted</span>
+
+<span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">kubectl</span> <span style="color:#f92672">apply</span> <span style="color:#f92672">-f</span> <span style="color:#f92672">components</span>.<span style="color:#a6e22e">yaml</span>
+</code></pre></div><h3 id="问题2证书">问题2：证书</h3>
+<p>更新后，发现另外一个问题：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">server</span>.<span style="color:#a6e22e">go</span>:<span style="color:#a6e22e">132</span><span style="color:#f92672">]</span> <span style="color:#f92672">unable</span> <span style="color:#f92672">to</span> <span style="color:#f92672">fully</span> <span style="color:#f92672">scrape</span> <span style="color:#f92672">metrics</span><span style="color:#f92672">:</span> <span style="color:#f92672">unable</span> <span style="color:#f92672">to</span> <span style="color:#f92672">fully</span> <span style="color:#f92672">scrape</span> <span style="color:#f92672">metrics</span> <span style="color:#f92672">from</span> <span style="color:#f92672">node</span> <span style="color:#f92672">docker-desktop</span><span style="color:#f92672">:</span> <span style="color:#f92672">unable</span> <span style="color:#f92672">to</span> <span style="color:#f92672">fetch</span> <span style="color:#f92672">metrics</span> <span style="color:#f92672">from</span> <span style="color:#f92672">node</span> <span style="color:#f92672">docker-desktop</span><span style="color:#f92672">:</span> <span style="color:#f92672">Get</span> <span style="color:#e6db74">&#34;https://192.168.1.88:10250/stats/summary?only_cpu_and_memory=true&#34;</span><span style="color:#f92672">:</span> <span style="color:#f92672">x509</span><span style="color:#f92672">:</span> <span style="color:#f92672">cannot</span> <span style="color:#f92672">validate</span> <span style="color:#f92672">certificate</span> <span style="color:#f92672">for</span> <span style="color:#f92672">192</span>.<span style="color:#a6e22e">168</span>.<span style="color:#a6e22e">1</span>.<span style="color:#a6e22e">88</span> <span style="color:#f92672">because</span> <span style="color:#f92672">it</span> <span style="color:#f92672">doesn</span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#f92672">t</span> <span style="color:#f92672">contain</span> <span style="color:#f92672">any</span> <span style="color:#f92672">IP</span> <span style="color:#f92672">SANs</span>
+</code></pre></div><p>从日志可知是权限验证（证书）出了问题，通过搜索github issues ，issue回复里提供了一个解决方法是在可以关闭证书验证，详细如下：</p>
+<p>修改清单components.yam, 增加：</p>
+<pre tabindex="0"><code>- --kubelet-insecure-tls
+</code></pre><p>修改完 Deplyment详细如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">labels</span>:
+    <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kube-system</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">selector</span>:
+    <span style="color:#f92672">matchLabels</span>:
+      <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+  <span style="color:#f92672">strategy</span>:
+    <span style="color:#f92672">rollingUpdate</span>:
+      <span style="color:#f92672">maxUnavailable</span>: <span style="color:#ae81ff">0</span>
+  <span style="color:#f92672">template</span>:
+    <span style="color:#f92672">metadata</span>:
+      <span style="color:#f92672">labels</span>:
+        <span style="color:#f92672">k8s-app</span>: <span style="color:#ae81ff">metrics-server</span>
+    <span style="color:#f92672">spec</span>:
+      <span style="color:#f92672">containers</span>:
+      - <span style="color:#f92672">args</span>:
+        - --<span style="color:#ae81ff">cert-dir=/tmp</span>
+        - --<span style="color:#ae81ff">secure-port=4443</span>
+        - --<span style="color:#ae81ff">kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname</span>
+        - --<span style="color:#ae81ff">kubelet-use-node-status-port</span>
+        - --<span style="color:#ae81ff">kubelet-insecure-tls</span>
+        - --<span style="color:#ae81ff">metric-resolution=15s</span>
+</code></pre></div><p>其中：</p>
+<blockquote>
+<p>&ndash;kubelet-preferred-address-types：
+优先使用 InternalIP 来访问 kubelet，这样可以避免节点名称没有 DNS 解析记录时，通过节点名称调用节点 kubelet API 失败的情况（未配置时默认的情况）；</p>
+<p>&ndash;kubelet-insecure-tls：
+kubelet 的 10250 端口使用的是 https 协议，连接需要验证 tls 证书。&ndash;kubelet-insecure-tls 不验证客户端证书。</p>
+</blockquote>
+<p>然后，检查是否启动成功：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css">#kubectl <span style="color:#f92672">get</span> <span style="color:#f92672">deployment</span> <span style="color:#f92672">metrics-server</span> <span style="color:#f92672">-n</span> <span style="color:#f92672">kube-system</span>
+<span style="color:#f92672">NAME</span>             <span style="color:#f92672">READY</span>   <span style="color:#f92672">UP-TO-DATE</span>   <span style="color:#f92672">AVAILABLE</span>   <span style="color:#f92672">AGE</span>
+<span style="color:#f92672">metrics-server</span>   <span style="color:#f92672">1</span><span style="color:#f92672">/</span><span style="color:#f92672">1</span>     <span style="color:#f92672">1</span>            <span style="color:#f92672">1</span>           <span style="color:#f92672">14m</span>
+</code></pre></div><p>success。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://github.com/kubernetes-sigs/metrics-server"> 官网 </a></li>
+<li><a href="https://cloud.tencent.com/developer/article/1818865"> 容器 &amp; 服务：metrics-server 安装探索   </a></li>
+<li><a href="https://github.com/kubernetes-sigs/metrics-server/issues/131"> github issues 关闭证书  </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+            
+
+          </section>
+        
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

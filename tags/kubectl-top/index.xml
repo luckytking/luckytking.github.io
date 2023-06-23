@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>kubectl top on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/kubectl-top/</link>
+    <description>Recent content in kubectl top on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 23 Jun 2023 18:17:24 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/kubectl-top/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>K8s安装metrics Server</title>
+      <link>https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/</link>
+      <pubDate>Fri, 23 Jun 2023 18:17:24 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/</guid>
+      <description>&lt;p&gt;Metrics Server是一个可扩展的、高效的容器资源度量源，用于Kubernetes内置的自动伸缩管道。&lt;/p&gt;
+&lt;p&gt;kubectl top 可以查看node、pod 的实时资源使用情况：如CPU、内存。但需要预装 Metrics Server ，不然会出现如下错误提示：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kubectl&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;top&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;pods&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;error&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;Metrics&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;API&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;available&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Metrics Server 从 Kubelet 收集资源指标，并通过Metrics API在 Kubernetes apiserver 中公开， 以供Horizo​​ntal Pod Autoscaler和Vertical Pod Autoscaler使用。指标 API 也可以通过 访问kubectl top，从而更容易调试自动缩放管道。&lt;/p&gt;
+&lt;p&gt;今天主要介绍安装的过程，以及记录安装过程遇到一些问题。&lt;/p&gt;
+&lt;h3 id=&#34;开始安装&#34;&gt;开始安装&lt;/h3&gt;
+&lt;p&gt;这里我们采用官网给的清单 components.yaml安装最新的 Metrics Server 版本:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kubectl&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;apply&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-f&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;https&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;://&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;github&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;com&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kubernetes-sigs&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metrics-server&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;releases&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;latest&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;download&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;components&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;yaml&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看是否安装成功:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# kubectl get deployment metrics-server -n kube-system
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+metrics-server   0/1     1            0           118s
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;发现安装失败。&lt;/p&gt;
+&lt;h3 id=&#34;问题1镜像拉取失败&#34;&gt;问题1：镜像拉取失败&lt;/h3&gt;
+&lt;p&gt;查看pod详细信息：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;#&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;kubectl&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;get&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;pod&lt;/span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;-n&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;kube-system&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;NAME&lt;/span&gt;                              &lt;span style=&#34;color:#f92672&#34;&gt;READY&lt;/span&gt;   &lt;span style=&#34;color:#f92672&#34;&gt;STATUS&lt;/span&gt;         &lt;span style=&#34;color:#f92672&#34;&gt;RESTARTS&lt;/span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;AGE&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metrics-server-55c774cdbb-jmfz8&lt;/span&gt;   &lt;span style=&#34;color:#f92672&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;1&lt;/span&gt;     &lt;span style=&#34;color:#f92672&#34;&gt;ErrImagePull&lt;/span&gt;   &lt;span style=&#34;color:#f92672&#34;&gt;0&lt;/span&gt;             &lt;span style=&#34;color:#f92672&#34;&gt;2m34s&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;查看pod日志:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;#&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;kubectl&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;logs&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;pods&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metrics-server-55c774cdbb-jmfz8&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-n&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;kube-system&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;Error&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;server&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;BadRequest&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;):&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;container&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;metrics-server&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;pod&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;metrics-server-55c774cdbb-jmfz8&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;is&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;waiting&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;to&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;start&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;trying&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;failing&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;to&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;pull&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;从日志可知是镜像拉取不下来，我们可以修改镜像地址。可以从dockerhub，查找最新版本，如作者安装的版本是：metrics-server:v0.6.1。打开components.yaml , 修改Deployment，spec.containers.coimage 为搜索到的，如“registry.aliyuncs.com/google_containers/metrics-server:v0.6.1&amp;quot;,修改完详细如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;apps/v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Deployment&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;k8s-app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;metrics-server&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;metrics-server&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;kube-system&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;selector&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;matchLabels&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;k8s-app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;metrics-server&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;strategy&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;rollingUpdate&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;maxUnavailable&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+        &lt;span style=&#34;color:#f92672&#34;&gt;k8s-app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;metrics-server&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;containers&lt;/span&gt;:
+      - &lt;span style=&#34;color:#f92672&#34;&gt;args&lt;/span&gt;:
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;cert-dir=/tmp&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;secure-port=4443&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;kubelet-use-node-status-port&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;metric-resolution=15s&lt;/span&gt;
+        &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;registry.aliyuncs.com/google_containers/metrics-server:v0.6.1&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;更新部署deployment：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;#&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;kubectl&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;delete&lt;/span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;deployment&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;metrics-server&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-n&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;kube-system&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;deployment&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;apps&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;metrics-server&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;deleted&lt;/span&gt;
+
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;#&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;kubectl&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;apply&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-f&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;components&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;yaml&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;问题2证书&#34;&gt;问题2：证书&lt;/h3&gt;
+&lt;p&gt;更新后，发现另外一个问题：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;#&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;server&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;go&lt;/span&gt;:&lt;span style=&#34;color:#a6e22e&#34;&gt;132&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;unable&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;to&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;fully&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;scrape&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;metrics&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;unable&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;to&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;fully&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;scrape&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;metrics&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;node&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;docker-desktop&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;unable&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;to&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;fetch&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;metrics&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;node&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;docker-desktop&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;Get&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;https://192.168.1.88:10250/stats/summary?only_cpu_and_memory=true&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;x509&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;cannot&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;validate&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;certificate&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;192&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;168&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;1&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;88&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;because&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;it&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;doesn&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;contain&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;any&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;IP&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;SANs&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;从日志可知是权限验证（证书）出了问题，通过搜索github issues ，issue回复里提供了一个解决方法是在可以关闭证书验证，详细如下：&lt;/p&gt;
+&lt;p&gt;修改清单components.yam, 增加：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;- --kubelet-insecure-tls
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;修改完 Deplyment详细如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;apps/v1&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Deployment&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;k8s-app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;metrics-server&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;metrics-server&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;kube-system&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;selector&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;matchLabels&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;k8s-app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;metrics-server&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;strategy&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;rollingUpdate&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;maxUnavailable&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;template&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;labels&lt;/span&gt;:
+        &lt;span style=&#34;color:#f92672&#34;&gt;k8s-app&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;metrics-server&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+      &lt;span style=&#34;color:#f92672&#34;&gt;containers&lt;/span&gt;:
+      - &lt;span style=&#34;color:#f92672&#34;&gt;args&lt;/span&gt;:
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;cert-dir=/tmp&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;secure-port=4443&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;kubelet-use-node-status-port&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;kubelet-insecure-tls&lt;/span&gt;
+        - --&lt;span style=&#34;color:#ae81ff&#34;&gt;metric-resolution=15s&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其中：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&amp;ndash;kubelet-preferred-address-types：
+优先使用 InternalIP 来访问 kubelet，这样可以避免节点名称没有 DNS 解析记录时，通过节点名称调用节点 kubelet API 失败的情况（未配置时默认的情况）；&lt;/p&gt;
+&lt;p&gt;&amp;ndash;kubelet-insecure-tls：
+kubelet 的 10250 端口使用的是 https 协议，连接需要验证 tls 证书。&amp;ndash;kubelet-insecure-tls 不验证客户端证书。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;然后，检查是否启动成功：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;#kubectl &lt;span style=&#34;color:#f92672&#34;&gt;get&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;deployment&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;metrics-server&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-n&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;kube-system&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;NAME&lt;/span&gt;             &lt;span style=&#34;color:#f92672&#34;&gt;READY&lt;/span&gt;   &lt;span style=&#34;color:#f92672&#34;&gt;UP-TO-DATE&lt;/span&gt;   &lt;span style=&#34;color:#f92672&#34;&gt;AVAILABLE&lt;/span&gt;   &lt;span style=&#34;color:#f92672&#34;&gt;AGE&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;metrics-server&lt;/span&gt;   &lt;span style=&#34;color:#f92672&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;1&lt;/span&gt;     &lt;span style=&#34;color:#f92672&#34;&gt;1&lt;/span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;1&lt;/span&gt;           &lt;span style=&#34;color:#f92672&#34;&gt;14m&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;success。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/kubernetes-sigs/metrics-server&#34;&gt; 官网 &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://cloud.tencent.com/developer/article/1818865&#34;&gt; 容器 &amp;amp; 服务：metrics-server 安装探索   &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/kubernetes-sigs/metrics-server/issues/131&#34;&gt; github issues 关闭证书  &lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

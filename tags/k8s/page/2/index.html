@@ -240,6 +240,106 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/" aria-label="">
+      
+          Rancher2.6.6更新ssl为公认CA证书
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-08-13T17:34:12&#43;08:00">
+        
+   13, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>访问Rancher后台提示“证书无效”。</p>
+<p>排查原因是由于挂载的ssl证书失败，rancher启用了生成的默认 CA 证书。这里打算
+更新为公认的 CA 签名证书，其中</p>
+<ol>
+<li>Rancher版本 v2.6.6</li>
+<li>Racher为Docker单节点安装</li>
+</ol>
+<h3 id="解决步骤">解决步骤</h3>
+<p>考虑到单机版是没有Volume的，为了保证数据不丢失。处理大致分为以下几个步骤</p>
+<ol>
+<li>从你的 Rancher 服务器容器创建数据的副本</li>
+<li>创建一个备份压缩包</li>
+<li>使用新的证书 启动新的Rancher服务器容器</li>
+</ol>
+<h4 id="1-从你的-rancher-服务器容器创建数据的副本">1. 从你的 Rancher 服务器容器创建数据的副本</h4>
+<h5 id="11-停止当前运行-rancher-服务器的容器替换rancher_container_name为您的-rancher-容器的名称">1.1 停止当前运行 Rancher 服务器的容器。替换&lt;RANCHER_CONTAINER_NAME&gt;为您的 Rancher 容器的名称</h5>
+<p><img src="https://luckytking.github.io/images/rancher-ssl.png" alt="">
+运行停止RancherDocker</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">docker stop &lt;RANCHER_CONTAINER_NAME&gt;
+</code></pre></div><h5 id="12-使用以下命令替换每个占位符从您刚刚停止的-rancher-容器创建一个数据容器">1.2 使用以下命令替换每个占位符，从您刚刚停止的 Rancher 容器创建一个数据容器。</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">docker create --volumes-from &lt;RANCHER_CONTAINER_NAME&gt; --name rancher-data rancher/rancher<span style="color:#960050;background-color:#1e0010">:</span>&lt;RANCHER_CONTAINER_TAG&gt;
+</code></pre></div><h4 id="2-创建一个备份压缩包">2. 创建一个备份压缩包</h4>
+<p>从您刚刚创建的数据容器 ( rancher-data)，创建一个备份 tarball ( rancher-data-backup-&lt;RANCHER_VERSION&gt;-<!-- raw HTML omitted -->.tar.gz)。如果升级期间出现问题，此 tarball 将用作回滚点。使用以下命令，替换每个占位符。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-powershell" data-lang="powershell">docker run --volumes-from rancher-data -v <span style="color:#e6db74">&#34;$PWD:/backup&#34;</span> --rm busybox tar zcvf /backup/rancher-data-backup-&lt;RANCHER_VERSION&gt;-&lt;DATE&gt;.tar.gz /var/lib/rancher
+</code></pre></div><h4 id="3-启动新的rancher服务器容器">3. 启动新的Rancher服务器容器</h4>
+<p>如果您选择使用由公认的 CA 签名的证书，您将添加&ndash;volumes-from rancher-data到您启动原始 Rancher 服务器容器的命令中，并且需要访问您最初安装时使用的相同证书。请记住将&ndash;no-cacerts作为参数包含在容器中以禁用 Rancher 生成的默认 CA 证书。</p>
+<pre tabindex="0"><code>docker run -d --volumes-from rancher-data \
+  --restart=unless-stopped \
+  -p 80:80 -p 443:443 \
+  -v /[your-workspace]/certs:/etc/rancher/ssl \ 
+  --privileged \
+  rancher/rancher:v2.6.6 \
+  --no-cacerts
+</code></pre><p>这里的 [your-workspace]替换为你的证书存放路径。其中包括 
+cert.pem 和 key.pem</p>
+<p>再访问rancher dashboard，提示“有效证书”。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li>使用 Docker 在单节点上安装 Rancher <a href="https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/">https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/</a></li>
+<li>升级安装了Docker的Rancher <a href="https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/">https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/08/rancher2.6.6%E6%9B%B4%E6%96%B0ssl%E4%B8%BA%E5%85%AC%E8%AE%A4ca%E8%AF%81%E4%B9%A6/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" aria-label="">
       
           Rancher导入k8s集群后状态长时间处于Pending状态
