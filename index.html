@@ -237,6 +237,123 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/" aria-label="">
+      
+          Sealos V4.2.2删除节点后再增加节点失败
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-07-02T14:38:29&#43;08:00">
+        
+   2, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>背景：</p>
+<blockquote>
+<p>sealos安装的Kubernetes集群，删除后增加节点失败。</p>
+</blockquote>
+<pre tabindex="0"><code>Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+</code></pre><p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>os</td>
+<td>Ubuntu</td>
+</tr>
+<tr>
+<td>sealos</td>
+<td>v4.2.2</td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>v1.25.7</td>
+</tr>
+</tbody>
+</table>
+<h3 id="问题1文件时md5校验失败">问题1：文件时md5校验失败</h3>
+<p>操作步骤：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">sealos</span> <span style="color:#f92672">delete</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span> 
+<span style="color:#f92672">sealos</span> <span style="color:#f92672">add</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span> 
+</code></pre></div><p>执行报错:</p>
+<pre tabindex="0"><code>sha256 sum not match
+</code></pre><p>Sealos 的 &ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">sealos</span> <span style="color:#f92672">add</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span>  <span style="color:#f92672">--debug</span>
+</code></pre></div><p>Sealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。</p>
+<pre tabindex="0"><code>#  export SEALOS_SCP_CHECKSUM=false
+</code></pre><p>修改完，出现了另外一个问题：</p>
+<h3 id="问题2sealctl-增加host失败">问题2：sealctl 增加host失败</h3>
+<pre tabindex="0"><code>Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+</code></pre><p> debug模式查看详细</p>
+<pre tabindex="0"><code>2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: /var/lib/registry2023-06-28T09:56:43 debug start to exec /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: /root/.sealos/default/Clusterfile, objects: [apiVersion: apps.sealos.io/v1beta1kind: Cluster
+</code></pre><p>可见，是seactl执行&quot;sealctl hosts add &ndash;ip 10.0.0.X &ndash;domain sealos.hub&quot; 失败。此文件是从master拷贝过来的：</p>
+<pre tabindex="0"><code>/var/lib/containers/storage/overlay/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:40 debug remote copy files src /var/lib/containers/storage/overlay/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:42 debug remote copy files src
+</code></pre><p>我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 &ldquo;sha256 sum not match&rdquo;。无效。</p>
+<h3 id="解决">解决</h3>
+<p>这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群</p>
+<pre tabindex="0"><code># sealos reset 
+</code></pre><p>我尝试重置集群，再加入node是可行的。</p>
+<h3 id="小结">小结</h3>
+<p>本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://sealos.io/docs/lifecycle-management/reference/sealos/commands/#%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4"> sealos env 命令 </a></li>
+<li><a href="https://github.com/labring/sealos/issues/2605"> sha256 not match</a></li>
+<li><a href="https://github.com/labring/sealos/issues/3413"> sealos delete &ndash;nodes XXX sealos add &ndash;nodes XXX failed </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/" aria-label="">
       
           K8s安装metrics Server
@@ -1816,185 +1933,6 @@ XADD mystream * name Foo age 10此命令将向名为 mystream 的消息流中�
       <p>
         
           <a href="https://luckytking.github.io/2023/04/redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2023/03/postgres%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E4%B8%8Emvcc/" aria-label="">
-      
-          Postgres事务隔离级别与MVCC
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2023-03-26T16:30:12&#43;08:00">
-        
-   26, 2023
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>在 Postgres 中基于 MVCC（多版本并发控制）技术 ,使用一种称为“版本链”的技术来维护对数据库中行的并发访问, 来实现事务隔离级别的。</p>
-<h3 id="mvcc-多版本并发控制">MVCC-多版本并发控制</h3>
-<p>在 Postgres 中，每当一行被修改时，Postgres 就会创建一个新版本的该行，并将其添加到版本链的末尾。版本链包含了所有当前和以前的行版本，这样可以避免并发读写时的数据竞争和数据不一致问题。</p>
-<p>MVCC避免了传统的数据库系统的锁定方法，将锁争夺最小化来允许多用户环境中的合理性能。</p>
-<h3 id="常见并发问题">常见并发问题</h3>
-<ol>
-<li>脏读: 
-一个事务读取了另一个并行未提交事务写入的数据</li>
-<li>不可重复读
-一个事务重新读取之前读取过的数据，发现该数据已经被另一个事务（在初始读之后提交）修改。</li>
-<li>幻读
-一个事务重新执行一个返回符合一个搜索条件的行集合的查询， 发现满足条件的行集合因为另一个最近提交的事务而发生了改变。</li>
-<li>序列化异常
-成功提交一组事务的结果与这些事务所有可能的串行执行结果都不一致。</li>
-</ol>
-<h3 id="事务隔离级解决方案">事务隔离级（解决方案）</h3>
-<p>事务隔离级别指的是多个并发事务之间的可见性和可操作性，SQL标准定义了四种隔离级别，分别是：</p>
-<ol>
-<li>Read Uncommitted（读未提交）
-这是最低的事务隔离级别，它允许一个事务读取其他事务未提交的数据。这可能会导致脏读、不可重复读和幻读问题。</li>
-<li>Read Committed（读提交）
-在该隔离级别下，事务只能看到已经提交的数据。它解决了脏读问题，但仍然存在不可重复读和幻读问题。</li>
-<li>Repeatable Read（可重复读）
-在该隔离级别下，事务在执行期间看到的所有数据都是一致的。它解决了不可重复读问题，但仍然存在幻读问题。</li>
-<li>Serializable（可串行化）
-在该隔离级别下，事务看到的所有数据都是一致的，并且完全避免了脏读、不可重复读和幻读问题。这是最高的事务隔离级别，但也是最慢的，因为它会导致大量的锁竞争。</li>
-</ol>
-<p>在PostgreSQL中，你可以请求四种标准事务隔离级别中的任意一种，但是内部只实现了三种不同的隔离级别，即 PostgreSQL 的读未提交模式的行为和读已提交相同。</p>
-<h3 id="golang-libpq设置隔离等级">golang lib/pq设置隔离等级</h3>
-<p>在golang中，使用lib/pq包，通过执行“SET TRANSACTION ISOLATION LEVEL &hellip;”来设置隔离等级。以下测试脏读的例子：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;database/sql&#34;</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#a6e22e">_</span> <span style="color:#e6db74">&#34;github.com/lib/pq&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#75715e">// 连接数据库
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">db</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sql</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#e6db74">&#34;postgres&#34;</span>, <span style="color:#a6e22e">dsn</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">Close</span>()
-
-	<span style="color:#75715e">// 设置隔离级别为读未提交
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">Exec</span>(<span style="color:#e6db74">&#34;SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED&#34;</span>)
-	<span style="color:#75715e">//_, err = db.Exec(&#34;SET TRANSACTION ISOLATION LEVEL READ COMMITTED&#34;)
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#75715e">// 开始第一个事务，修改用户 &#34;Bob&#34; 的年龄
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx1</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">Begin</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx1</span>.<span style="color:#a6e22e">Exec</span>(<span style="color:#e6db74">&#34;UPDATE users SET age = 6 WHERE name = &#39;Bob&#39;&#34;</span>)
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-			panic(<span style="color:#a6e22e">err</span>)
-		}
-		<span style="color:#a6e22e">rows</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx1</span>.<span style="color:#a6e22e">Query</span>(<span style="color:#e6db74">&#34;SELECT age FROM users WHERE name = &#39;Bob&#39;&#34;</span>)
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-			panic(<span style="color:#a6e22e">err</span>)
-		}
-		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">rows</span>.<span style="color:#a6e22e">Next</span>() {
-			<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rows</span>.<span style="color:#a6e22e">Scan</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">age</span>)
-			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-				panic(<span style="color:#a6e22e">err</span>)
-			}
-		}
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;tx1 Bob&#39;s age is %d\n&#34;</span>, <span style="color:#a6e22e">age</span>)
-	}()
-
-	<span style="color:#75715e">// 暂停 1 秒钟，以便让第二个事务读取到未提交的数据
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
-	<span style="color:#75715e">// 开始第二个事务，读取用户 &#34;Bob&#34; 的年龄
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">tx2</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">Begin</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#a6e22e">rows</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx2</span>.<span style="color:#a6e22e">Query</span>(<span style="color:#e6db74">&#34;SELECT age FROM users WHERE name = &#39;Bob&#39;&#34;</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">rows</span>.<span style="color:#a6e22e">Next</span>() {
-		<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rows</span>.<span style="color:#a6e22e">Scan</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">age</span>)
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-			panic(<span style="color:#a6e22e">err</span>)
-		}
-	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;tx2 Bob&#39;s age is %d\n&#34;</span>, <span style="color:#a6e22e">age</span>)
-	<span style="color:#75715e">// 提交第一个事务
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">tx1</span>.<span style="color:#a6e22e">Commit</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#75715e">// 提交第二个事务
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">tx2</span>.<span style="color:#a6e22e">Commit</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-}
-
-</code></pre></div><p>执行输出如下:</p>
-<pre tabindex="0"><code>tx1 Bob's age is 6
-tx2 Bob's age is 5
-</code></pre><p>上例中，分别开启两个隔离级别为“读未提交”事务tx1、tx2，其中tx1对一行数据（Bob）的字段（Age）进行了修改，接着两个事务分别读取，即使在tx1提交之前，tx2也不会读取到未提交的数据,有效避免脏读等并发问题。</p>
-<h3 id="小结">小结</h3>
-<p>PostgreSQL 的事务隔离级别和 MVCC 技术为开发人员提供了强大的并发性能和数据一致性保证。同时MVCC并发控制模型，降低了锁竞争和死锁的风险，允许并发事务访问相同的数据而不会相互干扰。对查询（读）数据的锁请求与写数据的锁请求不冲突，所以读不会阻塞写，而写也从不阻塞读。但是，在选择事务隔离级别时，需要考虑不同事务隔离级别的性能以及<strong>应用程序的需求和性能特征</strong>，并根据实际情况进行权衡，充分利用 MVCC 技术的优点。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li>postgres.cn  <a href="http://postgres.cn/docs/14/transaction-iso.html">http://postgres.cn/docs/14/transaction-iso.html</a></li>
-<li>设置隔离级别blog <a href="https://juejin.cn/post/6992097803778392077">https://juejin.cn/post/6992097803778392077</a></li>
-<li>go实例脏读、可不重复读、序列化异常 blog  <a href="https://blog.csdn.net/dfsgwe1231/article/details/107261355">https://blog.csdn.net/dfsgwe1231/article/details/107261355</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2023/03/postgres%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E4%B8%8Emvcc/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

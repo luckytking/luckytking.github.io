@@ -6,7 +6,73 @@
     <description>Recent content in sealos on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 27 May 2023 18:11:54 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/sealos/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 02 Jul 2023 14:38:29 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/sealos/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Sealos V4.2.2删除节点后再增加节点失败</title>
+      <link>https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/</link>
+      <pubDate>Sun, 02 Jul 2023 14:38:29 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/</guid>
+      <description>&lt;p&gt;背景：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;sealos安装的Kubernetes集群，删除后增加节点失败。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;环境：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;应用&lt;/th&gt;
+&lt;th&gt;信息&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;os&lt;/td&gt;
+&lt;td&gt;Ubuntu&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;sealos&lt;/td&gt;
+&lt;td&gt;v4.2.2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Kubernetes&lt;/td&gt;
+&lt;td&gt;v1.25.7&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;问题1文件时md5校验失败&#34;&gt;问题1：文件时md5校验失败&lt;/h3&gt;
+&lt;p&gt;操作步骤：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;sealos&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;delete&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;--nodes&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;10&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;X&lt;/span&gt; 
+&lt;span style=&#34;color:#f92672&#34;&gt;sealos&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;add&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;--nodes&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;10&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;X&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;执行报错:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;sha256 sum not match
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Sealos 的 &amp;ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;sealos&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;add&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;--nodes&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;10&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;0&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;X&lt;/span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;--debug&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Sealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;#  export SEALOS_SCP_CHECKSUM=false
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;修改完，出现了另外一个问题：&lt;/p&gt;
+&lt;h3 id=&#34;问题2sealctl-增加host失败&#34;&gt;问题2：sealctl 增加host失败&lt;/h3&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt; debug模式查看详细&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: /var/lib/registry2023-06-28T09:56:43 debug start to exec /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: /root/.sealos/default/Clusterfile, objects: [apiVersion: apps.sealos.io/v1beta1kind: Cluster
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;可见，是seactl执行&amp;quot;sealctl hosts add &amp;ndash;ip 10.0.0.X &amp;ndash;domain sealos.hub&amp;quot; 失败。此文件是从master拷贝过来的：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;/var/lib/containers/storage/overlay/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:40 debug remote copy files src /var/lib/containers/storage/overlay/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:42 debug remote copy files src
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 &amp;ldquo;sha256 sum not match&amp;rdquo;。无效。&lt;/p&gt;
+&lt;h3 id=&#34;解决&#34;&gt;解决&lt;/h3&gt;
+&lt;p&gt;这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# sealos reset 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;我尝试重置集群，再加入node是可行的。&lt;/p&gt;
+&lt;h3 id=&#34;小结&#34;&gt;小结&lt;/h3&gt;
+&lt;p&gt;本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://sealos.io/docs/lifecycle-management/reference/sealos/commands/#%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4&#34;&gt; sealos env 命令 &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/labring/sealos/issues/2605&#34;&gt; sha256 not match&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/labring/sealos/issues/3413&#34;&gt; sealos delete &amp;ndash;nodes XXX sealos add &amp;ndash;nodes XXX failed &lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
     <item>
       <title>Kubernetes集群image-cri-him大量端口占用</title>
       <link>https://luckytking.github.io/2023/05/kubernetes%E9%9B%86%E7%BE%A4image-cri-him%E5%A4%A7%E9%87%8F%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8/</link>

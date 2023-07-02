@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003e背景：\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003esealos安装的Kubernetes集群，删除后增加节点失败。\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eError: failed to add hosts: run command \/var\/lib\/sealos\/data\/default\/rootfs\/opt\/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e环境：\u003c\/p\u003e\n\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e应用\u003c\/th\u003e\n\u003cth\u003e信息\u003c\/th\u003e\n\u003c\/tr\u003e\n\u003c\/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003eos\u003c\/td\u003e\n\u003ctd\u003eUbuntu\u003c\/td\u003e\n\u003c\/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003esealos\u003c\/td\u003e\n\u003ctd\u003ev4.2.2\u003c\/td\u003e\n\u003c\/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003eKubernetes\u003c\/td\u003e\n\u003ctd\u003ev1.25.7\u003c\/td\u003e\n\u003c\/tr\u003e\n\u003c\/tbody\u003e\n\u003c\/table\u003e\n\u003ch3 id=\u0022问题1文件时md5校验失败\u0022\u003e问题1：文件时md5校验失败\u003c\/h3\u003e\n\u003cp\u003e操作步骤：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003esealos\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003edelete\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e--nodes\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e10\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eX\u003c\/span\u003e \n\u003cspan style=\u0022color:#f92672\u0022\u003esealos\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eadd\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e--nodes\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e10\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eX\u003c\/span\u003e \n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e执行报错:\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003esha256 sum not match\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003eSealos 的 \u0026ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003esealos\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eadd\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e--nodes\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e10\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003e0\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eX\u003c\/span\u003e  \u003cspan style=\u0022color:#f92672\u0022\u003e--debug\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eSealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e#  export SEALOS_SCP_CHECKSUM=false\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e修改完，出现了另外一个问题：\u003c\/p\u003e\n\u003ch3 id=\u0022问题2sealctl-增加host失败\u0022\u003e问题2：sealctl 增加host失败\u003c\/h3\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003eError: failed to add hosts: run command \/var\/lib\/sealos\/data\/default\/rootfs\/opt\/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e debug模式查看详细\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: \/var\/lib\/registry2023-06-28T09:56:43 debug start to exec \/var\/lib\/sealos\/data\/default\/rootfs\/opt\/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command \/var\/lib\/sealos\/data\/default\/rootfs\/opt\/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: \/root\/.sealos\/default\/Clusterfile, objects: [apiVersion: apps.sealos.io\/v1beta1kind: Cluster\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e可见，是seactl执行\u0026quot;sealctl hosts add \u0026ndash;ip 10.0.0.X \u0026ndash;domain sealos.hub\u0026quot; 失败。此文件是从master拷贝过来的：\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e\/var\/lib\/containers\/storage\/overlay\/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4\/merged\/opt to dst \/var\/lib\/sealos\/data\/default\/rootfs\/opt2023-06-28T09:56:40 debug remote copy files src \/var\/lib\/containers\/storage\/overlay\/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65\/merged\/opt to dst \/var\/lib\/sealos\/data\/default\/rootfs\/opt2023-06-28T09:56:42 debug remote copy files src\r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 \u0026ldquo;sha256 sum not match\u0026rdquo;。无效。\u003c\/p\u003e\n\u003ch3 id=\u0022解决\u0022\u003e解决\u003c\/h3\u003e\n\u003cp\u003e这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群\u003c\/p\u003e\n\u003cpre tabindex=\u00220\u0022\u003e\u003ccode\u003e# sealos reset \r\n\u003c\/code\u003e\u003c\/pre\u003e\u003cp\u003e我尝试重置集群，再加入node是可行的。\u003c\/p\u003e\n\u003ch3 id=\u0022小结\u0022\u003e小结\u003c\/h3\u003e\n\u003cp\u003e本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/sealos.io\/docs\/lifecycle-management\/reference\/sealos\/commands\/#%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4\u0022\u003e sealos env 命令 \u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/labring\/sealos\/issues\/2605\u0022\u003e sha256 not match\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/github.com\/labring\/sealos\/issues\/3413\u0022\u003e sealos delete \u0026ndash;nodes XXX sealos add \u0026ndash;nodes XXX failed \u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2023\/07\/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5\/",
+  "keywords":"[k8s, sealos, SEGV]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="k8s, sealos, SEGV">
+<meta name="description" content="背景：
+
+sealos安装的Kubernetes集群，删除后增加节点失败。
+
+Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+环境：
+
+
+
+应用
+信息
+
+
+
+
+os
+Ubuntu
+
+
+sealos
+v4.2.2
+
+
+Kubernetes
+v1.25.7
+
+
+
+问题1：文件时md5校验失败
+操作步骤：
+sealos delete --nodes 10.0.0.X 
+sealos add --nodes 10.0.0.X 
+执行报错:
+sha256 sum not match
+Sealos 的 &ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。
+sealos add --nodes 10.0.0.X  --debug
+Sealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。
+#  export SEALOS_SCP_CHECKSUM=false
+修改完，出现了另外一个问题：
+问题2：sealctl 增加host失败
+Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+ debug模式查看详细
+2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: /var/lib/registry2023-06-28T09:56:43 debug start to exec /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: /root/.sealos/default/Clusterfile, objects: [apiVersion: apps.sealos.io/v1beta1kind: Cluster
+可见，是seactl执行&quot;sealctl hosts add &ndash;ip 10.0.0.X &ndash;domain sealos.hub&quot; 失败。此文件是从master拷贝过来的：
+/var/lib/containers/storage/overlay/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:40 debug remote copy files src /var/lib/containers/storage/overlay/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:42 debug remote copy files src
+我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 &ldquo;sha256 sum not match&rdquo;。无效。
+解决
+这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群
+# sealos reset 
+我尝试重置集群，再加入node是可行的。
+小结
+本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。
+参考
+
+ sealos env 命令 
+ sha256 not match
+ sealos delete &ndash;nodes XXX sealos add &ndash;nodes XXX failed 
+">
+
+
+<meta property="og:description" content="背景：
+
+sealos安装的Kubernetes集群，删除后增加节点失败。
+
+Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+环境：
+
+
+
+应用
+信息
+
+
+
+
+os
+Ubuntu
+
+
+sealos
+v4.2.2
+
+
+Kubernetes
+v1.25.7
+
+
+
+问题1：文件时md5校验失败
+操作步骤：
+sealos delete --nodes 10.0.0.X 
+sealos add --nodes 10.0.0.X 
+执行报错:
+sha256 sum not match
+Sealos 的 &ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。
+sealos add --nodes 10.0.0.X  --debug
+Sealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。
+#  export SEALOS_SCP_CHECKSUM=false
+修改完，出现了另外一个问题：
+问题2：sealctl 增加host失败
+Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+ debug模式查看详细
+2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: /var/lib/registry2023-06-28T09:56:43 debug start to exec /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: /root/.sealos/default/Clusterfile, objects: [apiVersion: apps.sealos.io/v1beta1kind: Cluster
+可见，是seactl执行&quot;sealctl hosts add &ndash;ip 10.0.0.X &ndash;domain sealos.hub&quot; 失败。此文件是从master拷贝过来的：
+/var/lib/containers/storage/overlay/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:40 debug remote copy files src /var/lib/containers/storage/overlay/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:42 debug remote copy files src
+我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 &ldquo;sha256 sum not match&rdquo;。无效。
+解决
+这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群
+# sealos reset 
+我尝试重置集群，再加入node是可行的。
+小结
+本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。
+参考
+
+ sealos env 命令 
+ sha256 not match
+ sealos delete &ndash;nodes XXX sealos add &ndash;nodes XXX failed 
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sealos V4.2.2删除节点后再增加节点失败">
+<meta name="twitter:title" content="Sealos V4.2.2删除节点后再增加节点失败">
+<meta property="og:url" content="https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/">
+<meta property="twitter:url" content="https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="背景：
+
+sealos安装的Kubernetes集群，删除后增加节点失败。
+
+Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+环境：
+
+
+
+应用
+信息
+
+
+
+
+os
+Ubuntu
+
+
+sealos
+v4.2.2
+
+
+Kubernetes
+v1.25.7
+
+
+
+问题1：文件时md5校验失败
+操作步骤：
+sealos delete --nodes 10.0.0.X 
+sealos add --nodes 10.0.0.X 
+执行报错:
+sha256 sum not match
+Sealos 的 &ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。
+sealos add --nodes 10.0.0.X  --debug
+Sealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。
+#  export SEALOS_SCP_CHECKSUM=false
+修改完，出现了另外一个问题：
+问题2：sealctl 增加host失败
+Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+ debug模式查看详细
+2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: /var/lib/registry2023-06-28T09:56:43 debug start to exec /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: /root/.sealos/default/Clusterfile, objects: [apiVersion: apps.sealos.io/v1beta1kind: Cluster
+可见，是seactl执行&quot;sealctl hosts add &ndash;ip 10.0.0.X &ndash;domain sealos.hub&quot; 失败。此文件是从master拷贝过来的：
+/var/lib/containers/storage/overlay/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:40 debug remote copy files src /var/lib/containers/storage/overlay/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:42 debug remote copy files src
+我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 &ldquo;sha256 sum not match&rdquo;。无效。
+解决
+这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群
+# sealos reset 
+我尝试重置集群，再加入node是可行的。
+小结
+本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。
+参考
+
+ sealos env 命令 
+ sha256 not match
+ sealos delete &ndash;nodes XXX sealos add &ndash;nodes XXX failed 
+">
+<meta name="twitter:description" content="背景：
+
+sealos安装的Kubernetes集群，删除后增加节点失败。
+
+Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+环境：
+
+
+
+应用
+信息
+
+
+
+
+os
+Ubuntu
+
+
+sealos
+v4.2.2
+
+
+Kubernetes
+v1.25.7
+
+
+
+问题1：文件时md5校验失败
+操作步骤：
+sealos delete --nodes 10.0.0.X 
+sealos add --nodes 10.0.0.X 
+执行报错:
+sha256 sum not match
+Sealos 的 &ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。
+sealos add --nodes 10.0.0.X  --debug
+Sealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。
+#  export SEALOS_SCP_CHECKSUM=false
+修改完，出现了另外一个问题：
+问题2：sealctl 增加host失败
+Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+ debug模式查看详细
+2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: /var/lib/registry2023-06-28T09:56:43 debug start to exec /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: /root/.sealos/default/Clusterfile, objects: [apiVersion: apps.sealos.io/v1beta1kind: Cluster
+可见，是seactl执行&quot;sealctl hosts add &ndash;ip 10.0.0.X &ndash;domain sealos.hub&quot; 失败。此文件是从master拷贝过来的：
+/var/lib/containers/storage/overlay/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:40 debug remote copy files src /var/lib/containers/storage/overlay/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:42 debug remote copy files src
+我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 &ldquo;sha256 sum not match&rdquo;。无效。
+解决
+这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群
+# sealos reset 
+我尝试重置集群，再加入node是可行的。
+小结
+本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。
+参考
+
+ sealos env 命令 
+ sha256 not match
+ sealos delete &ndash;nodes XXX sealos add &ndash;nodes XXX failed 
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2023-07-02T14:38:29">
+  
+  
+    <meta property="article:modified_time" content="2023-07-02T14:38:29">
+  
+  
+  
+    
+      <meta property="article:section" content="k8s">
+    
+  
+  
+    
+      <meta property="article:tag" content="k8s">
+    
+      <meta property="article:tag" content="sealos">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Sealos V4.2.2删除节点后再增加节点失败</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Sealos V4.2.2删除节点后再增加节点失败
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-07-02T14:38:29&#43;08:00">
+        
+   2, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>背景：</p>
+<blockquote>
+<p>sealos安装的Kubernetes集群，删除后增加节点失败。</p>
+</blockquote>
+<pre tabindex="0"><code>Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+</code></pre><p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>os</td>
+<td>Ubuntu</td>
+</tr>
+<tr>
+<td>sealos</td>
+<td>v4.2.2</td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>v1.25.7</td>
+</tr>
+</tbody>
+</table>
+<h3 id="问题1文件时md5校验失败">问题1：文件时md5校验失败</h3>
+<p>操作步骤：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">sealos</span> <span style="color:#f92672">delete</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span> 
+<span style="color:#f92672">sealos</span> <span style="color:#f92672">add</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span> 
+</code></pre></div><p>执行报错:</p>
+<pre tabindex="0"><code>sha256 sum not match
+</code></pre><p>Sealos 的 &ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">sealos</span> <span style="color:#f92672">add</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span>  <span style="color:#f92672">--debug</span>
+</code></pre></div><p>Sealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。</p>
+<pre tabindex="0"><code>#  export SEALOS_SCP_CHECKSUM=false
+</code></pre><p>修改完，出现了另外一个问题：</p>
+<h3 id="问题2sealctl-增加host失败">问题2：sealctl 增加host失败</h3>
+<pre tabindex="0"><code>Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+</code></pre><p> debug模式查看详细</p>
+<pre tabindex="0"><code>2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: /var/lib/registry2023-06-28T09:56:43 debug start to exec /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: /root/.sealos/default/Clusterfile, objects: [apiVersion: apps.sealos.io/v1beta1kind: Cluster
+</code></pre><p>可见，是seactl执行&quot;sealctl hosts add &ndash;ip 10.0.0.X &ndash;domain sealos.hub&quot; 失败。此文件是从master拷贝过来的：</p>
+<pre tabindex="0"><code>/var/lib/containers/storage/overlay/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:40 debug remote copy files src /var/lib/containers/storage/overlay/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:42 debug remote copy files src
+</code></pre><p>我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 &ldquo;sha256 sum not match&rdquo;。无效。</p>
+<h3 id="解决">解决</h3>
+<p>这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群</p>
+<pre tabindex="0"><code># sealos reset 
+</code></pre><p>我尝试重置集群，再加入node是可行的。</p>
+<h3 id="小结">小结</h3>
+<p>本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://sealos.io/docs/lifecycle-management/reference/sealos/commands/#%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4"> sealos env 命令 </a></li>
+<li><a href="https://github.com/labring/sealos/issues/2605"> sha256 not match</a></li>
+<li><a href="https://github.com/labring/sealos/issues/3413"> sealos delete &ndash;nodes XXX sealos add &ndash;nodes XXX failed </a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/k8s/">k8s</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/sealos/">sealos</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/" data-tooltip="K8s安装metrics Server" aria-label=": K8s安装metrics Server">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/06/k8s%E5%AE%89%E8%A3%85metrics-server/" data-tooltip="K8s安装metrics Server" aria-label=": K8s安装metrics Server">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

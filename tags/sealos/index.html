@@ -240,6 +240,123 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/" aria-label="">
+      
+          Sealos V4.2.2删除节点后再增加节点失败
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-07-02T14:38:29&#43;08:00">
+        
+   2, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>背景：</p>
+<blockquote>
+<p>sealos安装的Kubernetes集群，删除后增加节点失败。</p>
+</blockquote>
+<pre tabindex="0"><code>Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+</code></pre><p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>os</td>
+<td>Ubuntu</td>
+</tr>
+<tr>
+<td>sealos</td>
+<td>v4.2.2</td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>v1.25.7</td>
+</tr>
+</tbody>
+</table>
+<h3 id="问题1文件时md5校验失败">问题1：文件时md5校验失败</h3>
+<p>操作步骤：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">sealos</span> <span style="color:#f92672">delete</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span> 
+<span style="color:#f92672">sealos</span> <span style="color:#f92672">add</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span> 
+</code></pre></div><p>执行报错:</p>
+<pre tabindex="0"><code>sha256 sum not match
+</code></pre><p>Sealos 的 &ndash;debug 参数是一个全局参数，用于开启调试模式，以便在出现问题时能更详细地了解系统的运行情况。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">sealos</span> <span style="color:#f92672">add</span> <span style="color:#f92672">--nodes</span> <span style="color:#f92672">10</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">X</span>  <span style="color:#f92672">--debug</span>
+</code></pre></div><p>Sealos传输文件时比较md5查看是否报错，issues给了一个解决办法：可以关闭校验。</p>
+<pre tabindex="0"><code>#  export SEALOS_SCP_CHECKSUM=false
+</code></pre><p>修改完，出现了另外一个问题：</p>
+<h3 id="问题2sealctl-增加host失败">问题2：sealctl 增加host失败</h3>
+<pre tabindex="0"><code>Error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.Master --domain sealos.hub on 10.0.0.Node:22, output: , error: Process exited with status 139 from signal SEGV,
+</code></pre><p> debug模式查看详细</p>
+<pre tabindex="0"><code>2023-06-28T09:56:43 debug show registry info, IP: 10.0.0.X:22, Domain: sealos.hub, Data: /var/lib/registry2023-06-28T09:56:43 debug start to exec /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:222023-06-28T09:56:44 error Applied to cluster error: failed to add hosts: run command /var/lib/sealos/data/default/rootfs/opt/sealctl hosts add --ip 10.0.0.X --domain sealos.hub on 10.0.0.M:22, output: , error: Process exited with status 139 from signal SEGV,2023-06-28T09:56:44 debug save objects into local: /root/.sealos/default/Clusterfile, objects: [apiVersion: apps.sealos.io/v1beta1kind: Cluster
+</code></pre><p>可见，是seactl执行&quot;sealctl hosts add &ndash;ip 10.0.0.X &ndash;domain sealos.hub&quot; 失败。此文件是从master拷贝过来的：</p>
+<pre tabindex="0"><code>/var/lib/containers/storage/overlay/5dd64dde7bc046cfd7554458e2950c41c0d86536e4e96532cfa2ee60685404d4/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:40 debug remote copy files src /var/lib/containers/storage/overlay/44ce75c1b3e483c61ecfbc07a72f87da8627ce40d9df9451f2d04dfad8dffc65/merged/opt to dst /var/lib/sealos/data/default/rootfs/opt2023-06-28T09:56:42 debug remote copy files src
+</code></pre><p>我们试着手动拷贝过去，执行是正常的。初步判断是传输的文件出错 ,issure沟通,建议试着“scp进程可能有问题，比较md5查看是否有问题。export SEALOS_SCP_CHECKSUM = true”，还是出现 &ldquo;sha256 sum not match&rdquo;。无效。</p>
+<h3 id="解决">解决</h3>
+<p>这个v4.2.2 的一个bug，希望下个版本能修复。最终一个临时处理办法：重置集群</p>
+<pre tabindex="0"><code># sealos reset 
+</code></pre><p>我尝试重置集群，再加入node是可行的。</p>
+<h3 id="小结">小结</h3>
+<p>本文主要记录排查、复现、处理【sealos-v4.2.2删除节点后再增加节点失败】的过程，原因sealos的版本v4.2.2 问题，，其一，旧版本在拷贝seactl文件到node时会抛出失败：sha256比较文件时，经排查判断是传输过程文件出错了。其二,可以临时通过重置集群来恢复。  希望对你有所帮助。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://sealos.io/docs/lifecycle-management/reference/sealos/commands/#%E5%85%B6%E4%BB%96%E5%91%BD%E4%BB%A4"> sealos env 命令 </a></li>
+<li><a href="https://github.com/labring/sealos/issues/2605"> sha256 not match</a></li>
+<li><a href="https://github.com/labring/sealos/issues/3413"> sealos delete &ndash;nodes XXX sealos add &ndash;nodes XXX failed </a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9%E5%90%8E%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/05/kubernetes%E9%9B%86%E7%BE%A4image-cri-him%E5%A4%A7%E9%87%8F%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8/" aria-label="">
       
           Kubernetes集群image-cri-him大量端口占用
