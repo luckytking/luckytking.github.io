@@ -6,7 +6,61 @@
     <description>Recent content in Tags on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 02 Jul 2023 14:47:46 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 07 Jul 2023 22:43:53 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>mac</title>
+      <link>https://luckytking.github.io/tags/mac/</link>
+      <pubDate>Fri, 07 Jul 2023 22:43:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/mac/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>postgreSQL</title>
+      <link>https://luckytking.github.io/tags/postgresql/</link>
+      <pubDate>Fri, 07 Jul 2023 22:43:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/postgresql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>python</title>
+      <link>https://luckytking.github.io/tags/python/</link>
+      <pubDate>Fri, 07 Jul 2023 22:43:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/python/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rds</title>
+      <link>https://luckytking.github.io/tags/rds/</link>
+      <pubDate>Fri, 07 Jul 2023 22:43:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/rds/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rds PostgreSQL</title>
+      <link>https://luckytking.github.io/tags/rds-postgresql/</link>
+      <pubDate>Fri, 07 Jul 2023 22:43:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/rds-postgresql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>restore_pg.py</title>
+      <link>https://luckytking.github.io/tags/restore_pg.py/</link>
+      <pubDate>Fri, 07 Jul 2023 22:43:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/restore_pg.py/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>k8s</title>
       <link>https://luckytking.github.io/tags/k8s/</link>

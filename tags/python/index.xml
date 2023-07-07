@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>python on jefffff&#39;s Blog</title>
+    <link>https://luckytking.github.io/tags/python/</link>
+    <description>Recent content in python on jefffff&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 07 Jul 2023 22:43:53 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/python/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RDS PostgreSQL备份SQL恢复到Mac本地数据库</title>
+      <link>https://luckytking.github.io/2023/07/rds-postgresql%E5%A4%87%E4%BB%BDsql%E6%81%A2%E5%A4%8D%E5%88%B0mac%E6%9C%AC%E5%9C%B0%E6%95%B0%E6%8D%AE%E5%BA%93/</link>
+      <pubDate>Fri, 07 Jul 2023 22:43:53 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/2023/07/rds-postgresql%E5%A4%87%E4%BB%BDsql%E6%81%A2%E5%A4%8D%E5%88%B0mac%E6%9C%AC%E5%9C%B0%E6%95%B0%E6%8D%AE%E5%BA%93/</guid>
+      <description>&lt;p&gt;本文主要记录通过云盘实例的备份数据转换成的SQL文件, 恢复到PostgreSQL自建数据库的过程和遇到的问题。&lt;/p&gt;
+&lt;p&gt;恢复过程主要包括：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;下载备份：通过生成的外部连接下载&lt;/li&gt;
+&lt;li&gt;下载python脚本restore_pg.py&lt;/li&gt;
+&lt;li&gt;执行脚本恢复到PostgreSQL&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;接着，下文将描述恢复到数据库:fooDatabase表:geeker的过程。&lt;/p&gt;
+&lt;h4 id=&#34;下载备份&#34;&gt;下载备份&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;通过下载备份功能将云盘实例的备份文件转换成CSV文件或SQL文件下载到本地或ECS&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img src=&#34;https://luckytking.github.io/images/rds-postgresql.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;解压下载的文件。
+解压缩命令格式为 tar -zxvf&amp;lt;压缩包文件名&amp;gt;.tar.gz -C &amp;lt;解压缩后的文件位置&amp;gt; 。
+示例如下：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;# tar -zxvf fooDatabase.tar.gz -C ./home/abs/exports
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;解压后的文件目录&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;#tree
+|____.DS_Store
+|____fooDatabase
+| |____structure.sql
+| |____public
+| | |____geeker
+| | | |____column_structure.sql
+| | | |____constraint_structure.sql
+| | | |____data
+| | | | |____0-1.sql
+| | |____structure.sql
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;./fooDatabase/structure..sql 为创建数据库，详细：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;CREATE&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;DATABASE&lt;/span&gt; fooDatabase;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;\&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt; fooDatabase;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;./fooDatabase/public/structure..sql  创建模式， 详细 ：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;CREATE&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;SCHEMA&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;IF&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;NOT&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;EXISTS&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;public&amp;#34;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;下载restore_pgpy&#34;&gt;下载restore_pg.py&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;下载Python脚本。&lt;a href=&#34;https://static-aliyun-doc.oss-cn-hangzhou.aliyuncs.com/file-manage-files/zh-CN/20230111/lvmx/restore_pg.py?spm=a2c4g.456306.0.0.14f359aeqChZwi&amp;amp;file=restore_pg.py&#34;&gt;https://static-aliyun-doc.oss-cn-hangzhou.aliyuncs.com/file-manage-files/zh-CN/20230111/lvmx/restore_pg.py?spm=a2c4g.456306.0.0.14f359aeqChZwi&amp;amp;file=restore_pg.py&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;ps: 如果数据名包含大写，需要修改脚本。可以参考&lt;a href=&#34;https://github.com/easytking/database/blob/main/restore_pg.py&#34;&gt;https://github.com/easytking/database/blob/main/restore_pg.py&lt;/a&gt;&lt;/p&gt;
+&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;执行如下命令对Python脚本文件restore_pg.py添加执行权限。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# chmod +x ./restore_pg.py&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;恢复到数据库&#34;&gt;恢复到数据库&lt;/h4&gt;
+&lt;h5 id=&#34;搭建数据库&#34;&gt;搭建数据库&lt;/h5&gt;
+&lt;p&gt;这里使用Dockers搭建&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;version&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;3.5&amp;#39;&lt;/span&gt; 
+
+&lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+  &lt;span style=&#34;color:#f92672&#34;&gt;pg2&lt;/span&gt;:
+    &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;postgres:14&amp;#34;&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;container_name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;pg2&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;restart&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;always   &lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+      - &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;5432:5432&amp;#34;&lt;/span&gt;       
+    &lt;span style=&#34;color:#f92672&#34;&gt;environment&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;POSTGRES_USER=postgres&lt;/span&gt;
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;POSTGRES_PASSWORD=123456&lt;/span&gt;
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;POSTGRES_DB=test&lt;/span&gt;
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;PGDATA=/var/lib/postgresql/data&lt;/span&gt;
+    &lt;span style=&#34;color:#f92672&#34;&gt;volumes&lt;/span&gt;:
+      - &lt;span style=&#34;color:#ae81ff&#34;&gt;./data/pg2/postgresql:/var/lib/postgresql/data  &lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id=&#34;postgres客户端安装&#34;&gt;Postgres客户端安装&lt;/h5&gt;
+&lt;p&gt;macOS下使用brew安装：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;brew&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;install&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;postgres&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;执行脚本恢复&#34;&gt;执行脚本恢复&lt;/h3&gt;
+&lt;p&gt;执行如下命令将CSV文件或SQL文件恢复至目标数据库。
+命令格式为&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;python3 restore_pg&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;py &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;CSV文件或SQL文件路径&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;数据库主机&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;数据库端口&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;数据库账号&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;数据库密码&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;例如：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;python3 restore_pg&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;py &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;exports  &lt;span style=&#34;color:#ae81ff&#34;&gt;127.0.0.1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5432&lt;/span&gt; postgres &lt;span style=&#34;color:#ae81ff&#34;&gt;123456&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;此时，127.0.0.1:5432将会新增数据fooDatabase，表geeker。&lt;/p&gt;
+&lt;p&gt;Succee。&lt;/p&gt;
+&lt;h3 id=&#34;遇到的问题-数据库名大小写&#34;&gt;遇到的问题-数据库名大小写&lt;/h3&gt;
+&lt;p&gt;由于的数据库名中包含大写【fooDatabase】，在导入的过程中，抛出错误：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;restore structure database
+[ERROR]: execute SQL failed. command: 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在 PostgreSQL 中，数据库名称默认情况下是不区分大小写的，但是在创建数据库时，如果您使用了双引号引用数据库名称，则 PostgreSQL 会将其视为区分大小写的标识符。&lt;/p&gt;
+&lt;h4 id=&#34;解决方法1-手动修改databasestructuresql&#34;&gt;解决方法1： 手动修改Database/structure.sql&lt;/h4&gt;
+&lt;p&gt;或者手动建库的sql: ./exports/structure.sql&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;CREATE&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;DATABASE&lt;/span&gt; fooDatabse;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;\&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt; fooDatabse;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;修改为&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sql&#34; data-lang=&#34;sql&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;CREATE&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;DATABASE&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;fooDatabse&amp;#34;&lt;/span&gt;;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;\&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt; fooDatabse;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;解决方法2-修改python脚本&#34;&gt;解决方法2： 修改python脚本&lt;/h4&gt;
+&lt;p&gt;分析一些restore_pg.py ，主要包含了以下方法：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;create_database：创建数据库。&lt;/span&gt;
+&lt;span style=&#34;color:#ae81ff&#34;&gt;create_schema：创建模式。&lt;/span&gt;
+&lt;span style=&#34;color:#ae81ff&#34;&gt;import_file_csv：从 CSV 文件导入数据。&lt;/span&gt;
+&lt;span style=&#34;color:#ae81ff&#34;&gt;import_file_sql：从 SQL 文件导入数据。&lt;/span&gt;
+&lt;span style=&#34;color:#ae81ff&#34;&gt;print_usage：输出脚本使用方法。&lt;/span&gt;
+&lt;span style=&#34;color:#ae81ff&#34;&gt;__main__ 脚本的主要逻辑是，遍历备份数据目录，对每个数据库和每个模式执行相应的恢复操作，包括创建数据库、创建模式、创建表和导入数据。在导入数据时，脚本支持从 CSV 文件和 SQL 文件中导入数据。同时，脚本还支持导入表的约束、索引和继承关系等结构信息。&lt;/span&gt;
+
+&lt;span style=&#34;color:#ae81ff&#34;&gt;脚本的运行需要传入 5 个参数，分别是备份数据所在目录、数据库主机名、数据库端口、数据库用户名和数据库密码。如果参数不足 5 个，则会输出使用方法并退出。&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;那么显然我们需要修改的是create_database，原始的是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;create_database&lt;/span&gt;(db_host, db_port, db_user, db_pass, db_name, create_stmt_file):
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; db_name &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;postgres&amp;#34;&lt;/span&gt;:
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+    cmd &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;PGPASSWORD=&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_pass &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34; psql -h&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_host &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34; -p&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_port &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34; -U&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_user &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34; -d&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;postgres&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34; &amp;lt;&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; create_stmt_file
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; os&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;system(cmd) &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[ERROR]: execute SQL failed. command: &amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; cmd)
+        exit(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;要修改上面的 Python 代码以区分大小写地创建数据库，您需要在使用 psql 命令创建数据库时将数据库名称用双引号引用起来。以下是修改后的代码：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;create_database&lt;/span&gt;(db_host, db_port, db_user, db_pass, db_name, create_stmt_file):
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; db_name&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;lower() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;postgres&amp;#34;&lt;/span&gt;:  &lt;span style=&#34;color:#75715e&#34;&gt;# 将 db_name 转换为小写，以便检查是否为 &amp;#34;postgres&amp;#34;&lt;/span&gt;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+    cmd &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;PGPASSWORD=&amp;#34;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_pass &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#34; psql -h &amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_host &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; -p &amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_port &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; -U &amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_user &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; -d postgres -c &amp;#34;CREATE DATABASE &lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; db_name &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;;&amp;#34;&amp;#39;&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; os&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;system(cmd) &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[ERROR]: execute SQL failed. command: &amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; cmd)
+        exit(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;完成脚本上传到：&lt;a href=&#34;https://github.com/easytking/database/blob/main/restore_pg.py&#34;&gt;https://github.com/easytking/database/blob/main/restore_pg.py&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://blog.csdn.net/liumiaocn/article/details/108314207&#34;&gt;PostgreSQL：客户端安装&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://help.aliyun.com/document_detail/96774.html?spm=a2c4g.456306.0.0.14f359aeqChZwi#section-ojf-3ux-3no&#34;&gt;RDS 下载备份&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://help.aliyun.com/document_detail/456306.html?spm=5176.19908310.0.0.236b1450fV0OvI&#34;&gt;RDS PostgreSQL CSV或SQL文件恢复到自建数据库&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/easytking/database/blob/main/restore_pg.py&#34;&gt;https://github.com/easytking/database/blob/main/restore_pg.py&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

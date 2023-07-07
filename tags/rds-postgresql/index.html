@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"",
+  "url":"https:\/\/luckytking.github.io\/tags\/rds-postgresql\/",
+  "keywords":"[]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="">
+<meta name="description" content="">
+
+
+<meta property="og:description" content="">
+<meta property="og:type" content="website">
+<meta property="og:title" content="rds PostgreSQL">
+<meta name="twitter:title" content="rds PostgreSQL">
+<meta property="og:url" content="https://luckytking.github.io/tags/rds-postgresql/">
+<meta property="twitter:url" content="https://luckytking.github.io/tags/rds-postgresql/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="">
+<meta name="twitter:description" content="">
+<meta property="og:locale" content="en">
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>rds PostgreSQL</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://luckytking.github.io/tags/rds-postgresql/index.xml">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/tags/rds-postgresql/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="2">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="2">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+        
+
+      
+      <div id="main" data-behavior="2"
+        class="
+               hasCoverMetaIn
+               ">
+        
+          <section class="postShorten-group main-content-wrap">
+            
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/07/rds-postgresql%E5%A4%87%E4%BB%BDsql%E6%81%A2%E5%A4%8D%E5%88%B0mac%E6%9C%AC%E5%9C%B0%E6%95%B0%E6%8D%AE%E5%BA%93/" aria-label="">
+      
+          RDS PostgreSQL备份SQL恢复到Mac本地数据库
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-07-07T22:43:53&#43;08:00">
+        
+   7, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/database">Database</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>本文主要记录通过云盘实例的备份数据转换成的SQL文件, 恢复到PostgreSQL自建数据库的过程和遇到的问题。</p>
+<p>恢复过程主要包括：</p>
+<ol>
+<li>下载备份：通过生成的外部连接下载</li>
+<li>下载python脚本restore_pg.py</li>
+<li>执行脚本恢复到PostgreSQL</li>
+</ol>
+<p>接着，下文将描述恢复到数据库:fooDatabase表:geeker的过程。</p>
+<h4 id="下载备份">下载备份</h4>
+<ol>
+<li>通过下载备份功能将云盘实例的备份文件转换成CSV文件或SQL文件下载到本地或ECS</li>
+</ol>
+<p><img src="https://luckytking.github.io/images/rds-postgresql.png" alt=""></p>
+<ol start="2">
+<li>解压下载的文件。
+解压缩命令格式为 tar -zxvf&lt;压缩包文件名&gt;.tar.gz -C &lt;解压缩后的文件位置&gt; 。
+示例如下：</li>
+</ol>
+<pre tabindex="0"><code># tar -zxvf fooDatabase.tar.gz -C ./home/abs/exports
+</code></pre><p>解压后的文件目录</p>
+<pre tabindex="0"><code>#tree
+|____.DS_Store
+|____fooDatabase
+| |____structure.sql
+| |____public
+| | |____geeker
+| | | |____column_structure.sql
+| | | |____constraint_structure.sql
+| | | |____data
+| | | | |____0-1.sql
+| | |____structure.sql
+</code></pre><ul>
+<li>./fooDatabase/structure..sql 为创建数据库，详细：</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">DATABASE</span> fooDatabase;
+<span style="color:#960050;background-color:#1e0010">\</span><span style="color:#66d9ef">c</span> fooDatabase;
+</code></pre></div><ul>
+<li>./fooDatabase/public/structure..sql  创建模式， 详细 ：</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">SCHEMA</span> <span style="color:#66d9ef">IF</span> <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">EXISTS</span> <span style="color:#e6db74">&#34;public&#34;</span>
+</code></pre></div><h4 id="下载restore_pgpy">下载restore_pg.py</h4>
+<ol>
+<li>下载Python脚本。<a href="https://static-aliyun-doc.oss-cn-hangzhou.aliyuncs.com/file-manage-files/zh-CN/20230111/lvmx/restore_pg.py?spm=a2c4g.456306.0.0.14f359aeqChZwi&amp;file=restore_pg.py">https://static-aliyun-doc.oss-cn-hangzhou.aliyuncs.com/file-manage-files/zh-CN/20230111/lvmx/restore_pg.py?spm=a2c4g.456306.0.0.14f359aeqChZwi&amp;file=restore_pg.py</a></li>
+</ol>
+<p>ps: 如果数据名包含大写，需要修改脚本。可以参考<a href="https://github.com/easytking/database/blob/main/restore_pg.py">https://github.com/easytking/database/blob/main/restore_pg.py</a></p>
+<ol start="2">
+<li>执行如下命令对Python脚本文件restore_pg.py添加执行权限。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e"># chmod +x ./restore_pg.py</span>
+</code></pre></div><h4 id="恢复到数据库">恢复到数据库</h4>
+<h5 id="搭建数据库">搭建数据库</h5>
+<p>这里使用Dockers搭建</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#39;3.5&#39;</span> 
+
+<span style="color:#f92672">services</span>:
+  <span style="color:#f92672">pg2</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#e6db74">&#34;postgres:14&#34;</span>
+    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">pg2</span>
+    <span style="color:#f92672">restart</span>: <span style="color:#ae81ff">always   </span>
+    <span style="color:#f92672">ports</span>:
+      - <span style="color:#e6db74">&#34;5432:5432&#34;</span>       
+    <span style="color:#f92672">environment</span>:
+      - <span style="color:#ae81ff">POSTGRES_USER=postgres</span>
+      - <span style="color:#ae81ff">POSTGRES_PASSWORD=123456</span>
+      - <span style="color:#ae81ff">POSTGRES_DB=test</span>
+      - <span style="color:#ae81ff">PGDATA=/var/lib/postgresql/data</span>
+    <span style="color:#f92672">volumes</span>:
+      - <span style="color:#ae81ff">./data/pg2/postgresql:/var/lib/postgresql/data  </span>
+</code></pre></div><h5 id="postgres客户端安装">Postgres客户端安装</h5>
+<p>macOS下使用brew安装：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">brew</span> <span style="color:#f92672">install</span> <span style="color:#f92672">postgres</span>
+</code></pre></div><h3 id="执行脚本恢复">执行脚本恢复</h3>
+<p>执行如下命令将CSV文件或SQL文件恢复至目标数据库。
+命令格式为</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">python3 restore_pg<span style="color:#f92672">.</span>py <span style="color:#f92672">&lt;</span>CSV文件或SQL文件路径<span style="color:#f92672">&gt;</span> <span style="color:#f92672">&lt;</span>数据库主机<span style="color:#f92672">&gt;</span> <span style="color:#f92672">&lt;</span>数据库端口<span style="color:#f92672">&gt;</span> <span style="color:#f92672">&lt;</span>数据库账号<span style="color:#f92672">&gt;</span> <span style="color:#f92672">&lt;</span>数据库密码<span style="color:#f92672">&gt;</span>
+</code></pre></div><p>例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">python3 restore_pg<span style="color:#f92672">.</span>py <span style="color:#f92672">/</span>exports  <span style="color:#ae81ff">127.0.0.1</span> <span style="color:#ae81ff">5432</span> postgres <span style="color:#ae81ff">123456</span>
+</code></pre></div><p>此时，127.0.0.1:5432将会新增数据fooDatabase，表geeker。</p>
+<p>Succee。</p>
+<h3 id="遇到的问题-数据库名大小写">遇到的问题-数据库名大小写</h3>
+<p>由于的数据库名中包含大写【fooDatabase】，在导入的过程中，抛出错误：</p>
+<pre tabindex="0"><code>restore structure database
+[ERROR]: execute SQL failed. command: 
+</code></pre><p>在 PostgreSQL 中，数据库名称默认情况下是不区分大小写的，但是在创建数据库时，如果您使用了双引号引用数据库名称，则 PostgreSQL 会将其视为区分大小写的标识符。</p>
+<h4 id="解决方法1-手动修改databasestructuresql">解决方法1： 手动修改Database/structure.sql</h4>
+<p>或者手动建库的sql: ./exports/structure.sql</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">DATABASE</span> fooDatabse;
+<span style="color:#960050;background-color:#1e0010">\</span><span style="color:#66d9ef">c</span> fooDatabse;
+</code></pre></div><p>修改为</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">DATABASE</span> <span style="color:#e6db74">&#34;fooDatabse&#34;</span>;
+<span style="color:#960050;background-color:#1e0010">\</span><span style="color:#66d9ef">c</span> fooDatabse;
+</code></pre></div><h4 id="解决方法2-修改python脚本">解决方法2： 修改python脚本</h4>
+<p>分析一些restore_pg.py ，主要包含了以下方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ae81ff">create_database：创建数据库。</span>
+<span style="color:#ae81ff">create_schema：创建模式。</span>
+<span style="color:#ae81ff">import_file_csv：从 CSV 文件导入数据。</span>
+<span style="color:#ae81ff">import_file_sql：从 SQL 文件导入数据。</span>
+<span style="color:#ae81ff">print_usage：输出脚本使用方法。</span>
+<span style="color:#ae81ff">__main__ 脚本的主要逻辑是，遍历备份数据目录，对每个数据库和每个模式执行相应的恢复操作，包括创建数据库、创建模式、创建表和导入数据。在导入数据时，脚本支持从 CSV 文件和 SQL 文件中导入数据。同时，脚本还支持导入表的约束、索引和继承关系等结构信息。</span>
+
+<span style="color:#ae81ff">脚本的运行需要传入 5 个参数，分别是备份数据所在目录、数据库主机名、数据库端口、数据库用户名和数据库密码。如果参数不足 5 个，则会输出使用方法并退出。</span>
+</code></pre></div><p>那么显然我们需要修改的是create_database，原始的是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">create_database</span>(db_host, db_port, db_user, db_pass, db_name, create_stmt_file):
+    <span style="color:#66d9ef">if</span> db_name <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;postgres&#34;</span>:
+        <span style="color:#66d9ef">return</span>
+    cmd <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;PGPASSWORD=&#34;</span> <span style="color:#f92672">+</span> db_pass <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; psql -h&#34;</span> <span style="color:#f92672">+</span> db_host <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; -p&#34;</span> <span style="color:#f92672">+</span> db_port <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; -U&#34;</span> <span style="color:#f92672">+</span> db_user <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; -d&#34;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;postgres&#34;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; &lt;&#34;</span> <span style="color:#f92672">+</span> create_stmt_file
+    <span style="color:#66d9ef">if</span> os<span style="color:#f92672">.</span>system(cmd) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>:
+        print(<span style="color:#e6db74">&#34;[ERROR]: execute SQL failed. command: &#34;</span> <span style="color:#f92672">+</span> cmd)
+        exit(<span style="color:#ae81ff">1</span>)
+</code></pre></div><p>要修改上面的 Python 代码以区分大小写地创建数据库，您需要在使用 psql 命令创建数据库时将数据库名称用双引号引用起来。以下是修改后的代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">create_database</span>(db_host, db_port, db_user, db_pass, db_name, create_stmt_file):
+    <span style="color:#66d9ef">if</span> db_name<span style="color:#f92672">.</span>lower() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;postgres&#34;</span>:  <span style="color:#75715e"># 将 db_name 转换为小写，以便检查是否为 &#34;postgres&#34;</span>
+        <span style="color:#66d9ef">return</span>
+    cmd <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;PGPASSWORD=&#34;&#39;</span> <span style="color:#f92672">+</span> db_pass <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;&#34; psql -h &#39;</span> <span style="color:#f92672">+</span> db_host <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39; -p &#39;</span> <span style="color:#f92672">+</span> db_port <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39; -U &#39;</span> <span style="color:#f92672">+</span> db_user <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39; -d postgres -c &#34;CREATE DATABASE </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;&#39;</span> <span style="color:#f92672">+</span> db_name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;;&#34;&#39;</span>
+    <span style="color:#66d9ef">if</span> os<span style="color:#f92672">.</span>system(cmd) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>:
+        print(<span style="color:#e6db74">&#34;[ERROR]: execute SQL failed. command: &#34;</span> <span style="color:#f92672">+</span> cmd)
+        exit(<span style="color:#ae81ff">1</span>)
+</code></pre></div><p>完成脚本上传到：<a href="https://github.com/easytking/database/blob/main/restore_pg.py">https://github.com/easytking/database/blob/main/restore_pg.py</a></p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://blog.csdn.net/liumiaocn/article/details/108314207">PostgreSQL：客户端安装</a></li>
+<li><a href="https://help.aliyun.com/document_detail/96774.html?spm=a2c4g.456306.0.0.14f359aeqChZwi#section-ojf-3ux-3no">RDS 下载备份</a></li>
+<li><a href="https://help.aliyun.com/document_detail/456306.html?spm=5176.19908310.0.0.236b1450fV0OvI">RDS PostgreSQL CSV或SQL文件恢复到自建数据库</a></li>
+<li><a href="https://github.com/easytking/database/blob/main/restore_pg.py">https://github.com/easytking/database/blob/main/restore_pg.py</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/07/rds-postgresql%E5%A4%87%E4%BB%BDsql%E6%81%A2%E5%A4%8D%E5%88%B0mac%E6%9C%AC%E5%9C%B0%E6%95%B0%E6%8D%AE%E5%BA%93/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+            
+
+          </section>
+        
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+
