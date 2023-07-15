@@ -238,6 +238,192 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/" aria-label="">
+      
+          IngressAnnotations模式启用Apisix的Cors
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-07-15T22:19:52&#43;08:00">
+        
+   15, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。很多场景下，我们可以选择在APISIX中使用CORS（跨源资源共享）来解决跨域问题。</p>
+<p>APISIX提供了CRD和Annotations模式来启用CORS。本文主要介绍如何在APISIX Ingress Annotations模式下启用CORS。</p>
+<p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubernetes</td>
+<td>v1.25.7</td>
+</tr>
+<tr>
+<td>apisix</td>
+<td>apache/apisix:3.4.0-debian</td>
+</tr>
+<tr>
+<td>apisix-ingress-controller</td>
+<td>apache/apisix-ingress-controller:1.6.0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ingressannotations模式">IngressAnnotations模式</h3>
+<p>IngressAnnotations模式，可以通过在Ingress资源上添加注释来配置APISIX的行为。比如添加一个CORS注释来指示APISIX启用CORS：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ae81ff">annotations</span>
+    <span style="color:#f92672">k8s.apisix.apache.org/enable-cors</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+    <span style="color:#f92672">kubernetes.io/ingress.class</span>: <span style="color:#ae81ff">apisix</span>
+</code></pre></div><p>接着，我们以给一个Http服务my-service, 创建了一个Ingress资源的例子来演示, Ingress详细如下：</p>
+<h4 id="创建ingress">创建Ingress</h4>
+<p>创建my-service的ingress资源：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">networking.k8s.io/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Ingress</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">match-ingress</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+  <span style="color:#f92672">annotations</span>:
+    <span style="color:#f92672">k8s.apisix.apache.org/enable-cors</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+    <span style="color:#f92672">kubernetes.io/ingress.class</span>: <span style="color:#ae81ff">apisix</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">rules</span>:
+  - <span style="color:#f92672">http</span>:
+      <span style="color:#f92672">paths</span>:
+      - <span style="color:#f92672">backend</span>:
+          <span style="color:#f92672">service</span>:
+            <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-service</span>
+            <span style="color:#f92672">port</span>:
+              <span style="color:#f92672">number</span>: <span style="color:#ae81ff">8000</span>
+        <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/v2</span>
+        <span style="color:#f92672">pathType</span>: <span style="color:#ae81ff">Prefix</span>
+</code></pre></div><p>在这个示例中，我们添加了【k8s.apisix.apache.org/enable-cors: &ldquo;true&rdquo;】的注释， 即启用cors功能，默认允许来自任何源的请求访问my-service的API。</p>
+<h4 id="dashboard启用cors">Dashboard启用CORS</h4>
+<p>打开APISIX Dashboard界面：在【插件】中查找“CORS” 。单击该插件，然后单击“启用”。</p>
+<p>然后，可以在路由点击查看my-service的对应路由，如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="color:#f92672">&#34;uris&#34;</span>: [
+    <span style="color:#e6db74">&#34;/v2/&#34;</span>,
+    <span style="color:#e6db74">&#34;/v2/*&#34;</span>
+  ],
+  <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;ing_my-service-ingress_cfc81dbe&#34;</span>,
+  <span style="color:#f92672">&#34;desc&#34;</span>: <span style="color:#e6db74">&#34;Created by apisix-ingress-controller, DO NOT modify it manually&#34;</span>,
+  <span style="color:#f92672">&#34;plugins&#34;</span>: {
+    <span style="color:#f92672">&#34;cors&#34;</span>: {
+      <span style="color:#f92672">&#34;allow_credential&#34;</span>: <span style="color:#66d9ef">false</span>,
+      <span style="color:#f92672">&#34;allow_headers&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;allow_methods&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;allow_origins&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;expose_headers&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;max_age&#34;</span>: <span style="color:#ae81ff">5</span>
+    }
+  },
+  <span style="color:#f92672">&#34;upstream_id&#34;</span>: <span style="color:#e6db74">&#34;7c630009&#34;</span>,
+  <span style="color:#f92672">&#34;labels&#34;</span>: {
+    <span style="color:#f92672">&#34;managed-by&#34;</span>: <span style="color:#e6db74">&#34;apisix-ingress-controller&#34;</span>
+  },
+  <span style="color:#f92672">&#34;status&#34;</span>: <span style="color:#ae81ff">1</span>
+}
+</code></pre></div><p>plugins.cors为跨域的对应规则配置，说明插件启用成功。</p>
+<h4 id="测试">测试</h4>
+<p>然后我们向my-service的发起一个测试请求：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">curl</span> <span style="color:#f92672">-i</span> <span style="color:#f92672">-k</span> <span style="color:#e6db74">&#39;http://[my-cluster-ip:nodeport]/v2/my-service/api/geeker&#39;</span>   <span style="color:#f92672">-X</span> <span style="color:#f92672">OPTIONS</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Allow-Origin: *&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Request-Method: POST&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Request-Headers: content-type&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Origin: http://localhost/&#34;</span> 
+   
+</code></pre></div><p>输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+Date: Sat, <span style="color:#ae81ff">15</span> Jul <span style="color:#ae81ff">2023</span> 13:53:57 GMT
+Content-Type: text/plain; charset<span style="color:#f92672">=</span>utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: APISIX/3.4.0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: *
+Access-Control-Max-Age: <span style="color:#ae81ff">5</span>
+Access-Control-Expose-Headers: *
+Access-Control-Allow-Headers: *
+</code></pre></div><p>如果返回结果中出现 CORS 相关的 header（
+ccess-Control-Allow-Origin: *
+&lt; Access-Control-Allow-Methods: *
+&lt; Access-Control-Allow-Headers: *
+&lt; Access-Control-Expose-Headers: *
+&lt; Access-Control-Max-Age: 5
+），则代表插件生效、跨域成功。</p>
+<h3 id="遇到的问题">遇到的问题</h3>
+<p>在增加好ingress后测试API，发现没有CORS 相关的 header</p>
+<p>，跨域失败</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+Content-Length: <span style="color:#ae81ff">0</span>
+Connection: keep-alive
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Origin: *
+Date: Sat, <span style="color:#ae81ff">15</span> Jul <span style="color:#ae81ff">2023</span> 13:46:16 GMT
+Server: APISIX/3.4.0
+</code></pre></div><p>经检查，是ApiSix的config配置有误，在配置的插件里，开启了其他插件，没有包括cors，导致插件不生效。去掉后，重启插件配置生效、跨域成功。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">plugins</span>:
+  <span style="color:#75715e"># the plugins you enabled</span>
+  - <span style="color:#ae81ff">log-rotate</span>
+  - <span style="color:#ae81ff">proxy-rewrite</span>
+</code></pre></div><h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://apisix.apache.org/zh/docs/apisix/plugins/cors/">apisix cors</a></li>
+<li><a href="https://apisix.apache.org/zh/blog/2022/12/15/how-support-ingress-custom-plugins/">apisix Ingress 如何支持自定义插件</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/07/rds-postgresql%E5%A4%87%E4%BB%BDsql%E6%81%A2%E5%A4%8D%E5%88%B0mac%E6%9C%AC%E5%9C%B0%E6%95%B0%E6%8D%AE%E5%BA%93/" aria-label="">
       
           RDS PostgreSQL备份SQL恢复到Mac本地数据库
@@ -1796,263 +1982,6 @@ Blog-基于sni使用apisix代理四层TCP/UDP</a></li>
       <p>
         
           <a href="https://luckytking.github.io/2023/04/apisix%E5%9F%BA%E4%BA%8Esni%E4%BB%A3%E7%90%86tcpudp/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2023/04/go%E4%BD%BF%E7%94%A8redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" aria-label="">
-      
-          Go使用RedisStream实现消息队列
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2023-04-08T22:33:14&#43;08:00">
-        
-   8, 2023
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>上篇我们介绍了RedisStream实现消息队列和发布订阅模式 ，今天我们将介绍Go语言的实现方法。</p>
-<h3 id="消息队列">消息队列</h3>
-<p>接上篇的例子，我们通过go-redis库的接口XAdd、XReadGroup、XGroupCreateMkStream来实现，详细如下：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;context&#34;</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
-)
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#66d9ef">var</span> (
-		<span style="color:#a6e22e">ctx</span>      = <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
-		<span style="color:#a6e22e">consumer</span> = <span style="color:#e6db74">&#34;consumer1&#34;</span>
-		<span style="color:#a6e22e">stream</span>   = <span style="color:#e6db74">&#34;mystream&#34;</span>
-		<span style="color:#a6e22e">group</span>    = <span style="color:#e6db74">&#34;group1&#34;</span>
-		<span style="color:#a6e22e">start</span>    = <span style="color:#e6db74">&#34;&gt;&#34;</span>
-		<span style="color:#a6e22e">count</span>    = <span style="color:#ae81ff">10</span>
-	)
-
-	<span style="color:#75715e">// 创建Redis客户端
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Options</span>{
-		<span style="color:#a6e22e">Addr</span>:     <span style="color:#e6db74">&#34;localhost:6379&#34;</span>,
-		<span style="color:#a6e22e">Password</span>: <span style="color:#e6db74">&#34;&#34;</span>,
-		<span style="color:#a6e22e">DB</span>:       <span style="color:#ae81ff">0</span>,
-	})
-	<span style="color:#75715e">// 创建消费者组
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XGroupCreateMkStream</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">stream</span>, <span style="color:#a6e22e">group</span>, <span style="color:#e6db74">&#34;0-0&#34;</span>).<span style="color:#a6e22e">Err</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#75715e">//添加消息
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">XAddArgs</span>{
-		<span style="color:#a6e22e">Stream</span>: <span style="color:#a6e22e">stream</span>,
-		<span style="color:#a6e22e">ID</span>:     <span style="color:#e6db74">&#34;*&#34;</span>,
-		<span style="color:#a6e22e">Values</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}{
-			<span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;foo&#34;</span>,
-		},
-	}).<span style="color:#a6e22e">Result</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#75715e">//读取消息
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">messages</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XReadGroup</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">XReadGroupArgs</span>{
-		<span style="color:#a6e22e">Group</span>:    <span style="color:#a6e22e">group</span>,
-		<span style="color:#a6e22e">Consumer</span>: <span style="color:#a6e22e">consumer</span>,
-		<span style="color:#a6e22e">Streams</span>:  []<span style="color:#66d9ef">string</span>{<span style="color:#a6e22e">stream</span>, <span style="color:#a6e22e">start</span>},
-		<span style="color:#a6e22e">Count</span>:    int64(<span style="color:#a6e22e">count</span>),
-		<span style="color:#a6e22e">Block</span>:    <span style="color:#ae81ff">0</span>,
-		<span style="color:#a6e22e">NoAck</span>:    <span style="color:#66d9ef">false</span>,
-	}).<span style="color:#a6e22e">Result</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	} 
-	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">message</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">messages</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Messages</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Received message: %v\n&#34;</span>, <span style="color:#a6e22e">message</span>.<span style="color:#a6e22e">Values</span>)
-	}
-}
-
-</code></pre></div><p>上例实现了一个简单的消息队列，可以实现消息的发送和接收，并保证每条消息只被处理一次 。</p>
-<h3 id="阻塞超时">阻塞超时</h3>
-<p>通过修改Block（单位为ms）参数来实现阻塞，详细修改如下</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">for</span> {
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Start Receiving&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-		<span style="color:#75715e">//读取消息
-</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">messages</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XReadGroup</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">XReadGroupArgs</span>{
-			<span style="color:#a6e22e">Group</span>:    <span style="color:#a6e22e">group</span>,
-			<span style="color:#a6e22e">Consumer</span>: <span style="color:#a6e22e">consumer</span>,
-			<span style="color:#a6e22e">Streams</span>:  []<span style="color:#66d9ef">string</span>{<span style="color:#a6e22e">stream</span>, <span style="color:#a6e22e">start</span>},
-			<span style="color:#a6e22e">Count</span>:    int64(<span style="color:#a6e22e">count</span>),
-			<span style="color:#a6e22e">Block</span>:    <span style="color:#ae81ff">2000</span>,
-			<span style="color:#a6e22e">NoAck</span>:    <span style="color:#66d9ef">false</span>,
-		}).<span style="color:#a6e22e">Result</span>()
-		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-			panic(<span style="color:#a6e22e">err</span>)
-		}
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Received Length=&#34;</span>, len(<span style="color:#a6e22e">messages</span>), <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>()) 
-    <span style="color:#f92672">...</span>
-	}
-</code></pre></div><p>输出如下:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">Start</span> <span style="color:#f92672">Receiving</span> <span style="color:#f92672">2023-04-08</span> <span style="color:#f92672">21</span>:<span style="color:#a6e22e">39</span>:<span style="color:#a6e22e">23</span>.<span style="color:#a6e22e">9669498</span> <span style="color:#f92672">+</span><span style="color:#f92672">0800</span> <span style="color:#f92672">CST</span> <span style="color:#f92672">m</span><span style="color:#f92672">=+</span><span style="color:#f92672">0</span>.<span style="color:#a6e22e">529310801</span>
-<span style="color:#f92672">Received</span> <span style="color:#f92672">Length</span><span style="color:#f92672">=</span> <span style="color:#f92672">1</span> <span style="color:#f92672">2023-04-08</span> <span style="color:#f92672">21</span>:<span style="color:#a6e22e">39</span>:<span style="color:#a6e22e">24</span>.<span style="color:#a6e22e">0419963</span> <span style="color:#f92672">+</span><span style="color:#f92672">0800</span> <span style="color:#f92672">CST</span> <span style="color:#f92672">m</span><span style="color:#f92672">=+</span><span style="color:#f92672">0</span>.<span style="color:#a6e22e">604357301</span>
-<span style="color:#f92672">Received</span> <span style="color:#f92672">message</span><span style="color:#f92672">:</span> <span style="color:#f92672">map</span><span style="color:#f92672">[</span><span style="color:#f92672">name</span>:<span style="color:#a6e22e">foo</span><span style="color:#f92672">]</span>
-<span style="color:#f92672">Start</span> <span style="color:#f92672">Receiving</span> <span style="color:#f92672">2023-04-08</span> <span style="color:#f92672">21</span>:<span style="color:#a6e22e">39</span>:<span style="color:#a6e22e">24</span>.<span style="color:#a6e22e">0419963</span> <span style="color:#f92672">+</span><span style="color:#f92672">0800</span> <span style="color:#f92672">CST</span> <span style="color:#f92672">m</span><span style="color:#f92672">=+</span><span style="color:#f92672">0</span>.<span style="color:#a6e22e">604357301</span>
-<span style="color:#f92672">panic</span><span style="color:#f92672">:</span> <span style="color:#f92672">read</span> <span style="color:#f92672">tcp</span> <span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">63777-</span><span style="color:#f92672">&gt;</span><span style="color:#f92672">127</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">0</span>.<span style="color:#a6e22e">1</span>:<span style="color:#a6e22e">6379</span><span style="color:#f92672">:</span> <span style="color:#f92672">i</span><span style="color:#f92672">/</span><span style="color:#f92672">o</span> <span style="color:#f92672">timeout</span>
-</code></pre></div><p>可见,XReadGroup一直阻塞等待新的消息，直到 Redis 连接超时或者命令被中断。
-ps: 如若不需要阻塞等待可修改Block为&lt;0 的值实现。</p>
-<h3 id="发布订阅模式">发布订阅模式</h3>
-<p>接着，我们实现上篇提到的发布订阅模式，XGroupCreateMkStream创建另外一个订阅组group2，两个协程XReadGroup接收消息，往stream中XAdd消息，两个订阅者将都收到消息，详细如下：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;context&#34;</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;github.com/go-redis/redis/v8&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-)
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-	<span style="color:#66d9ef">var</span> (
-		<span style="color:#a6e22e">ctx</span>       = <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>()
-		<span style="color:#a6e22e">consumer</span>  = <span style="color:#e6db74">&#34;consumer1&#34;</span>
-		<span style="color:#a6e22e">consumer2</span> = <span style="color:#e6db74">&#34;consumer2&#34;</span>
-		<span style="color:#a6e22e">stream</span>    = <span style="color:#e6db74">&#34;mystream&#34;</span>
-		<span style="color:#a6e22e">group</span>     = <span style="color:#e6db74">&#34;group1&#34;</span>
-		<span style="color:#a6e22e">group2</span>    = <span style="color:#e6db74">&#34;group2&#34;</span>
-		<span style="color:#a6e22e">start</span>     = <span style="color:#e6db74">&#34;&gt;&#34;</span>
-		<span style="color:#a6e22e">count</span>     = <span style="color:#ae81ff">10</span>
-	)
-	<span style="color:#75715e">// 创建Redis客户端
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">NewClient</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">Options</span>{
-		<span style="color:#a6e22e">Addr</span>:        <span style="color:#e6db74">&#34;localhost:6379&#34;</span>,
-		<span style="color:#a6e22e">Password</span>:    <span style="color:#e6db74">&#34;&#34;</span>,
-		<span style="color:#a6e22e">DB</span>:          <span style="color:#ae81ff">0</span>,
-		<span style="color:#a6e22e">ReadTimeout</span>: <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span>,
-	})
-	<span style="color:#75715e">// 创建消费者组
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XGroupCreateMkStream</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">stream</span>, <span style="color:#a6e22e">group</span>, <span style="color:#e6db74">&#34;0-0&#34;</span>).<span style="color:#a6e22e">Err</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#75715e">//panic(err)
-</span><span style="color:#75715e"></span>	}
-	<span style="color:#75715e">// 创建消费者组2
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XGroupCreateMkStream</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">stream</span>, <span style="color:#a6e22e">group2</span>, <span style="color:#e6db74">&#34;0-0&#34;</span>).<span style="color:#a6e22e">Err</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#75715e">//panic(err)
-</span><span style="color:#75715e"></span>	}
-	<span style="color:#75715e">//添加消息
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XAdd</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">XAddArgs</span>{
-		<span style="color:#a6e22e">Stream</span>: <span style="color:#a6e22e">stream</span>,
-		<span style="color:#a6e22e">ID</span>:     <span style="color:#e6db74">&#34;*&#34;</span>,
-		<span style="color:#a6e22e">Values</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}{
-			<span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;foo&#34;</span>,
-		},
-	}).<span style="color:#a6e22e">Result</span>()
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		panic(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-		<span style="color:#66d9ef">for</span> {
-			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Start Receiving&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-			<span style="color:#75715e">//读取消息
-</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">messages</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XReadGroup</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">XReadGroupArgs</span>{
-				<span style="color:#a6e22e">Group</span>:    <span style="color:#a6e22e">group</span>,
-				<span style="color:#a6e22e">Consumer</span>: <span style="color:#a6e22e">consumer</span>,
-				<span style="color:#a6e22e">Streams</span>:  []<span style="color:#66d9ef">string</span>{<span style="color:#a6e22e">stream</span>, <span style="color:#a6e22e">start</span>},
-				<span style="color:#a6e22e">Count</span>:    int64(<span style="color:#a6e22e">count</span>),
-				<span style="color:#a6e22e">Block</span>:    <span style="color:#ae81ff">2000</span>,
-				<span style="color:#a6e22e">NoAck</span>:    <span style="color:#66d9ef">false</span>,
-			}).<span style="color:#a6e22e">Result</span>()
-			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-				panic(<span style="color:#a6e22e">err</span>)
-			}
-			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Received Length=&#34;</span>, len(<span style="color:#a6e22e">messages</span>), <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-			<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">message</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">messages</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Messages</span> {
-				<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Received message: %v\n&#34;</span>, <span style="color:#a6e22e">message</span>.<span style="color:#a6e22e">Values</span>)
-			}
-
-		}
-	}()
-	<span style="color:#75715e">//读取消息2
-</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-		<span style="color:#66d9ef">for</span> {
-			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;2 Start Receiving &#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-			<span style="color:#a6e22e">messages</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">XReadGroup</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">redis</span>.<span style="color:#a6e22e">XReadGroupArgs</span>{
-				<span style="color:#a6e22e">Group</span>:    <span style="color:#a6e22e">group2</span>,
-				<span style="color:#a6e22e">Consumer</span>: <span style="color:#a6e22e">consumer2</span>,
-				<span style="color:#a6e22e">Streams</span>:  []<span style="color:#66d9ef">string</span>{<span style="color:#a6e22e">stream</span>, <span style="color:#a6e22e">start</span>},
-				<span style="color:#a6e22e">Count</span>:    int64(<span style="color:#a6e22e">count</span>),
-				<span style="color:#a6e22e">Block</span>:    <span style="color:#ae81ff">2000</span>,
-				<span style="color:#a6e22e">NoAck</span>:    <span style="color:#66d9ef">false</span>,
-			}).<span style="color:#a6e22e">Result</span>()
-			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-				panic(<span style="color:#a6e22e">err</span>)
-			}
-			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;2 Received Length=&#34;</span>, len(<span style="color:#a6e22e">messages</span>), <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">String</span>())
-			<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">message</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">messages</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Messages</span> {
-				<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;2Received message: %v\n&#34;</span>, <span style="color:#a6e22e">message</span>.<span style="color:#a6e22e">Values</span>)
-			}
-		}
-	}()
-	<span style="color:#66d9ef">for</span> {
-	}
-}
-</code></pre></div><p>输出如下：</p>
-<pre tabindex="0"><code>Start Receiving 2023-04-08 22:19:41.9981051 +0800 CST m=+0.347161101
-2 Start Receiving  2023-04-08 22:19:41.9981051 +0800 CST m=+0.347161101
-Received Length= 1 2023-04-08 22:19:42.0571709 +0800 CST m=+0.406226901
-Received message: map[name:foo]
-Start Receiving 2023-04-08 22:19:42.0571709 +0800 CST m=+0.406226901
-2 Received Length= 1 2023-04-08 22:19:42.3628412 +0800 CST m=+0.711897201
-2Received message: map[name:foo]
-</code></pre><h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://redis.io/commands/xread">redis.io</a></li>
-<li><a href="https://redis.io/docs/data-types/streams-tutorial">redis.io streams-tutorial</a></li>
-<li><a href="https://mp.weixin.qq.com/s/RthQvzLHZRGNo-z6X_7jQQ">一篇List、PubSub、Stream实现消息队列的博客</a></li>
-<li><a href="https://overstarry.vip/posts/%E4%BD%BF%E7%94%A8redis%E5%AE%9E%E7%8E%B0%E9%98%9F%E5%88%97-/">golang适用用List、PubSub、Stream 实现消息队列</a></li>
-<li><a href="%E5%88%97/https://luckytking.github.io/2023/04/redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">redisstream实现消息队</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2023/04/go%E4%BD%BF%E7%94%A8redisstream%E5%AE%9E%E7%8E%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

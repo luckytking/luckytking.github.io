@@ -240,6 +240,192 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/" aria-label="">
+      
+          IngressAnnotations模式启用Apisix的Cors
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-07-15T22:19:52&#43;08:00">
+        
+   15, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <p>Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。很多场景下，我们可以选择在APISIX中使用CORS（跨源资源共享）来解决跨域问题。</p>
+<p>APISIX提供了CRD和Annotations模式来启用CORS。本文主要介绍如何在APISIX Ingress Annotations模式下启用CORS。</p>
+<p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubernetes</td>
+<td>v1.25.7</td>
+</tr>
+<tr>
+<td>apisix</td>
+<td>apache/apisix:3.4.0-debian</td>
+</tr>
+<tr>
+<td>apisix-ingress-controller</td>
+<td>apache/apisix-ingress-controller:1.6.0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ingressannotations模式">IngressAnnotations模式</h3>
+<p>IngressAnnotations模式，可以通过在Ingress资源上添加注释来配置APISIX的行为。比如添加一个CORS注释来指示APISIX启用CORS：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ae81ff">annotations</span>
+    <span style="color:#f92672">k8s.apisix.apache.org/enable-cors</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+    <span style="color:#f92672">kubernetes.io/ingress.class</span>: <span style="color:#ae81ff">apisix</span>
+</code></pre></div><p>接着，我们以给一个Http服务my-service, 创建了一个Ingress资源的例子来演示, Ingress详细如下：</p>
+<h4 id="创建ingress">创建Ingress</h4>
+<p>创建my-service的ingress资源：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">networking.k8s.io/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Ingress</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">match-ingress</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+  <span style="color:#f92672">annotations</span>:
+    <span style="color:#f92672">k8s.apisix.apache.org/enable-cors</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+    <span style="color:#f92672">kubernetes.io/ingress.class</span>: <span style="color:#ae81ff">apisix</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">rules</span>:
+  - <span style="color:#f92672">http</span>:
+      <span style="color:#f92672">paths</span>:
+      - <span style="color:#f92672">backend</span>:
+          <span style="color:#f92672">service</span>:
+            <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-service</span>
+            <span style="color:#f92672">port</span>:
+              <span style="color:#f92672">number</span>: <span style="color:#ae81ff">8000</span>
+        <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/v2</span>
+        <span style="color:#f92672">pathType</span>: <span style="color:#ae81ff">Prefix</span>
+</code></pre></div><p>在这个示例中，我们添加了【k8s.apisix.apache.org/enable-cors: &ldquo;true&rdquo;】的注释， 即启用cors功能，默认允许来自任何源的请求访问my-service的API。</p>
+<h4 id="dashboard启用cors">Dashboard启用CORS</h4>
+<p>打开APISIX Dashboard界面：在【插件】中查找“CORS” 。单击该插件，然后单击“启用”。</p>
+<p>然后，可以在路由点击查看my-service的对应路由，如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="color:#f92672">&#34;uris&#34;</span>: [
+    <span style="color:#e6db74">&#34;/v2/&#34;</span>,
+    <span style="color:#e6db74">&#34;/v2/*&#34;</span>
+  ],
+  <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;ing_my-service-ingress_cfc81dbe&#34;</span>,
+  <span style="color:#f92672">&#34;desc&#34;</span>: <span style="color:#e6db74">&#34;Created by apisix-ingress-controller, DO NOT modify it manually&#34;</span>,
+  <span style="color:#f92672">&#34;plugins&#34;</span>: {
+    <span style="color:#f92672">&#34;cors&#34;</span>: {
+      <span style="color:#f92672">&#34;allow_credential&#34;</span>: <span style="color:#66d9ef">false</span>,
+      <span style="color:#f92672">&#34;allow_headers&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;allow_methods&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;allow_origins&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;expose_headers&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;max_age&#34;</span>: <span style="color:#ae81ff">5</span>
+    }
+  },
+  <span style="color:#f92672">&#34;upstream_id&#34;</span>: <span style="color:#e6db74">&#34;7c630009&#34;</span>,
+  <span style="color:#f92672">&#34;labels&#34;</span>: {
+    <span style="color:#f92672">&#34;managed-by&#34;</span>: <span style="color:#e6db74">&#34;apisix-ingress-controller&#34;</span>
+  },
+  <span style="color:#f92672">&#34;status&#34;</span>: <span style="color:#ae81ff">1</span>
+}
+</code></pre></div><p>plugins.cors为跨域的对应规则配置，说明插件启用成功。</p>
+<h4 id="测试">测试</h4>
+<p>然后我们向my-service的发起一个测试请求：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">curl</span> <span style="color:#f92672">-i</span> <span style="color:#f92672">-k</span> <span style="color:#e6db74">&#39;http://[my-cluster-ip:nodeport]/v2/my-service/api/geeker&#39;</span>   <span style="color:#f92672">-X</span> <span style="color:#f92672">OPTIONS</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Allow-Origin: *&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Request-Method: POST&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Request-Headers: content-type&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Origin: http://localhost/&#34;</span> 
+   
+</code></pre></div><p>输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+Date: Sat, <span style="color:#ae81ff">15</span> Jul <span style="color:#ae81ff">2023</span> 13:53:57 GMT
+Content-Type: text/plain; charset<span style="color:#f92672">=</span>utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: APISIX/3.4.0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: *
+Access-Control-Max-Age: <span style="color:#ae81ff">5</span>
+Access-Control-Expose-Headers: *
+Access-Control-Allow-Headers: *
+</code></pre></div><p>如果返回结果中出现 CORS 相关的 header（
+ccess-Control-Allow-Origin: *
+&lt; Access-Control-Allow-Methods: *
+&lt; Access-Control-Allow-Headers: *
+&lt; Access-Control-Expose-Headers: *
+&lt; Access-Control-Max-Age: 5
+），则代表插件生效、跨域成功。</p>
+<h3 id="遇到的问题">遇到的问题</h3>
+<p>在增加好ingress后测试API，发现没有CORS 相关的 header</p>
+<p>，跨域失败</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+Content-Length: <span style="color:#ae81ff">0</span>
+Connection: keep-alive
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Origin: *
+Date: Sat, <span style="color:#ae81ff">15</span> Jul <span style="color:#ae81ff">2023</span> 13:46:16 GMT
+Server: APISIX/3.4.0
+</code></pre></div><p>经检查，是ApiSix的config配置有误，在配置的插件里，开启了其他插件，没有包括cors，导致插件不生效。去掉后，重启插件配置生效、跨域成功。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">plugins</span>:
+  <span style="color:#75715e"># the plugins you enabled</span>
+  - <span style="color:#ae81ff">log-rotate</span>
+  - <span style="color:#ae81ff">proxy-rewrite</span>
+</code></pre></div><h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://apisix.apache.org/zh/docs/apisix/plugins/cors/">apisix cors</a></li>
+<li><a href="https://apisix.apache.org/zh/blog/2022/12/15/how-support-ingress-custom-plugins/">apisix Ingress 如何支持自定义插件</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+            
+              
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2023/07/sealos-v4.2.2%E5%88%A0%E9%99%A4%E5%86%8D%E5%A2%9E%E5%8A%A0%E8%8A%82%E7%82%B9%E5%A4%B1%E8%B4%A5/" aria-label="">
       
           Sealos V4.2.2删除再增加节点失败
@@ -1641,192 +1827,6 @@ YourNodeIp:30379&gt; info
       <p>
         
           <a href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%B8%89statefulset/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-            
-              
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/" aria-label="">
-      
-          利用k8s储存卷来部署redis之二PV与PVC
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-09-02T23:28:57&#43;08:00">
-        
-   2, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>之前学习实践使用熟悉卷（Volume）来存储<a href="https://luckytking.github.io/2022/08/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis/">利用k8s储存卷来部署redis</a>，本文接着学习实践k8s的存储，主要通过redis存储例子学习实战PV和PVC。</p>
-<h3 id="pv--pvc">PV &amp; PVC</h3>
-<p>Kubernetes为例⽤户和开发隐藏底层架构的⽬标，在用户和存储服务之间添加了一个中间层，也就是PersistentVolume和PersistentVolumeClaim。</p>
-<ul>
-<li>PersistentVolume 持久卷 (是集群中的一块存储，可以由管理员事先制备， 或者使用存储类（Storage Class）来动态制备。）</li>
-<li>PersistentVolumeClaim 持久卷申领 （
-表达的是用户对存储的请求。概念上与 Pod 类似。）
-更多详细参见参考 <a href="https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes">https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes</a></li>
-</ul>
-<h3 id="redisvolume修改为pvpvc">RedisVolume修改为PV&amp;PVC</h3>
-<p>接着，这里把之前的redis存储修改为pv-pvc的方式，修改后的步骤：</p>
-<ol>
-<li>创建 ConfigMap （参考第一篇）</li>
-<li>增加声明PV和PVC （新增）</li>
-<li>增加 Deployment （把Volume修改为 步骤2 的PVC）</li>
-<li>暴露 Service （参考第一篇）</li>
-</ol>
-<h4 id="步骤2增加声明pv和pvc">步骤2，增加声明PV和PVC</h4>
-<p>mkdir my-redis-pv-pvc.yaml</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
-<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">PersistentVolume</span>
-<span style="color:#f92672">metadata</span>:
-  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-pv</span>
-  <span style="color:#f92672">labels</span>:
-     <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
-<span style="color:#f92672">spec</span>:
-  <span style="color:#f92672">capacity</span>:
-    <span style="color:#f92672">storage</span>: <span style="color:#ae81ff">1Gi</span>
-  <span style="color:#f92672">accessModes</span>:
-  - <span style="color:#ae81ff">ReadWriteOnce</span>
-  <span style="color:#f92672">hostPath</span>:
-    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#34;/mnt/data/my-redis&#34;</span>
----
-<span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
-<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">PersistentVolumeClaim</span>
-<span style="color:#f92672">metadata</span>:
-  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">redis-pvc</span>
-  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
-<span style="color:#f92672">spec</span>:
-  <span style="color:#f92672">accessModes</span>:
-  - <span style="color:#ae81ff">ReadWriteOnce</span>
-  <span style="color:#f92672">resources</span>:
-    <span style="color:#f92672">requests</span>:
-      <span style="color:#f92672">storage</span>: <span style="color:#ae81ff">1Gi</span>
-</code></pre></div><p>执行创建</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">master# kubectl apply -f my-redis-pv-pvc.yaml
-</code></pre></div><p>查看pv状态</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">master# kubectl get pv 
-NAME    CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM     STORAGECLASS    REASON   AGE
-my-redis-pv     1Gi        RWO            Retain           Bound    my-ns/redis-pvc                                                 50m
-
-</code></pre></div><p>查看pvc状态</p>
-<pre tabindex="0"><code>master# kubectl get pvc -n my-ns
-NAME               STATUS   VOLUME         CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-redis-pvc          Bound    my-redis-pv    1Gi             RWO                                          54m
-</code></pre><p>pv和pvc已经Bound成功。</p>
-<h4 id="步骤3增加-deployment-把volume修改为-步骤2-的pvc">步骤3，增加 Deployment （把Volume修改为 步骤2 的PVC）</h4>
-<p>mkdir my-redis-deployment-pvc.yaml</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">apps/v1</span>
-<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Deployment</span>
-<span style="color:#f92672">metadata</span>:
-  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis</span> <span style="color:#75715e"># Unique name for the deployment</span>
-  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">myns</span>
-  <span style="color:#f92672">labels</span>:
-    <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis      </span> <span style="color:#75715e"># Labels to be applied to this deployment</span>
-<span style="color:#f92672">spec</span>:
-  <span style="color:#f92672">selector</span>:
-    <span style="color:#f92672">matchLabels</span>:     <span style="color:#75715e"># This deployment applies to the Pods matching these labels</span>
-      <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
-      <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
-      <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">backend</span>
-  <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>        <span style="color:#75715e"># Run a single pod in the deployment</span>
-  <span style="color:#f92672">template</span>:          <span style="color:#75715e"># Template for the pods that will be created by this deployment</span>
-    <span style="color:#f92672">metadata</span>:
-      <span style="color:#f92672">labels</span>:        <span style="color:#75715e"># Labels to be applied to the Pods in this deployment</span>
-        <span style="color:#f92672">app</span>: <span style="color:#ae81ff">my-redis</span>
-        <span style="color:#f92672">role</span>: <span style="color:#ae81ff">master</span>
-        <span style="color:#f92672">tier</span>: <span style="color:#ae81ff">backend</span>
-    <span style="color:#f92672">spec</span>:            <span style="color:#75715e"># Spec for the container which will be run inside the Pod.</span>
-      <span style="color:#f92672">containers</span>:
-        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis</span>
-          <span style="color:#f92672">image</span>: <span style="color:#ae81ff">redis</span>
-          <span style="color:#f92672">resources</span>:
-            <span style="color:#f92672">requests</span>:
-              <span style="color:#f92672">cpu</span>: <span style="color:#ae81ff">100m</span>
-              <span style="color:#f92672">memory</span>: <span style="color:#ae81ff">100Mi</span>
-<span style="color:#75715e">#          command: [&#34;redis-server&#34;,&#34;/etc/redis/redis.conf&#34;]</span>
-          <span style="color:#f92672">command</span>:
-            - <span style="color:#ae81ff">redis-server</span>
-            - <span style="color:#ae81ff">/etc/redis/redis.conf</span>
-          <span style="color:#f92672">ports</span>:
-            - <span style="color:#f92672">containerPort</span>: <span style="color:#ae81ff">6379</span>
-          <span style="color:#f92672">volumeMounts</span>:
-            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
-              <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/etc/redis/redis.conf</span>
-              <span style="color:#f92672">subPath</span>: <span style="color:#ae81ff">redis.conf</span>
-            - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-storage</span>
-              <span style="color:#f92672">mountPath</span>: <span style="color:#ae81ff">/data</span>
-      <span style="color:#f92672">volumes</span>:
-        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-persistent-storage </span>
-          <span style="color:#f92672">persistentVolumeClaim</span>:
-          <span style="color:#f92672">claimName</span>: <span style="color:#ae81ff">redis-pvc</span> <span style="color:#75715e"># 这里修改为步骤2声明的pvc</span>
-        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
-          <span style="color:#f92672">configMap</span>:
-            <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-redis-config</span>
-            <span style="color:#f92672">items</span>:
-              - <span style="color:#f92672">key</span>: <span style="color:#ae81ff">redis.conf</span>
-                <span style="color:#f92672">path</span>: <span style="color:#ae81ff">redis.conf</span>
-
-</code></pre></div><p>执行创建deployment</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">master# kubectl apply -f my-redis-deployment-pvc.yaml
-</code></pre></div><p>检查状态</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmd" data-lang="cmd">master# kubectl get pod -n my-ns
-NAME                                   READY   STATUS    RESTARTS   AGE 
-my-redis-6565459689-mbptf              1/1     Running   0          53m
-</code></pre></div><h4 id="测试">测试</h4>
-<p>redis-client 连接 NodeId:NodePort</p>
-<pre tabindex="0"><code># redis-cli -h YourNodeIp-p 30379 -a 123456
-YourNodeIp:30379&gt; info
-# Server
-redis_version:7.0.4
-</code></pre><p>连接成功。</p>
-<h3 id="参考">参考</h3>
-<ul>
-<li><a href="https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes">https://kubernetes.io/zh-cn/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes</a></li>
-<li><a href="https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume">https://kubernetes.io/zh-cn/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/09/%E5%88%A9%E7%94%A8k8s%E5%82%A8%E5%AD%98%E5%8D%B7%E6%9D%A5%E9%83%A8%E7%BD%B2redis%E4%B9%8B%E4%BA%8Cpv%E4%B8%8Epvc/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

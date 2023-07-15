@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003cp\u003eApache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。很多场景下，我们可以选择在APISIX中使用CORS（跨源资源共享）来解决跨域问题。\u003c\/p\u003e\n\u003cp\u003eAPISIX提供了CRD和Annotations模式来启用CORS。本文主要介绍如何在APISIX Ingress Annotations模式下启用CORS。\u003c\/p\u003e\n\u003cp\u003e环境：\u003c\/p\u003e\n\u003ctable\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003e应用\u003c\/th\u003e\n\u003cth\u003e信息\u003c\/th\u003e\n\u003c\/tr\u003e\n\u003c\/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003eKubernetes\u003c\/td\u003e\n\u003ctd\u003ev1.25.7\u003c\/td\u003e\n\u003c\/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003eapisix\u003c\/td\u003e\n\u003ctd\u003eapache\/apisix:3.4.0-debian\u003c\/td\u003e\n\u003c\/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003eapisix-ingress-controller\u003c\/td\u003e\n\u003ctd\u003eapache\/apisix-ingress-controller:1.6.0\u003c\/td\u003e\n\u003c\/tr\u003e\n\u003c\/tbody\u003e\n\u003c\/table\u003e\n\u003ch3 id=\u0022ingressannotations模式\u0022\u003eIngressAnnotations模式\u003c\/h3\u003e\n\u003cp\u003eIngressAnnotations模式，可以通过在Ingress资源上添加注释来配置APISIX的行为。比如添加一个CORS注释来指示APISIX启用CORS：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003eannotations\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003ek8s.apisix.apache.org\/enable-cors\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;true\u0026#34;\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003ekubernetes.io\/ingress.class\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003eapisix\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e接着，我们以给一个Http服务my-service, 创建了一个Ingress资源的例子来演示, Ingress详细如下：\u003c\/p\u003e\n\u003ch4 id=\u0022创建ingress\u0022\u003e创建Ingress\u003c\/h4\u003e\n\u003cp\u003e创建my-service的ingress资源：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eapiVersion\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003enetworking.k8s.io\/v1\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003ekind\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003eIngress\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003emetadata\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003ename\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003ematch-ingress\u003c\/span\u003e\n  \u003cspan style=\u0022color:#f92672\u0022\u003enamespace\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003emy-ns\u003c\/span\u003e\n  \u003cspan style=\u0022color:#f92672\u0022\u003eannotations\u003c\/span\u003e:\n    \u003cspan style=\u0022color:#f92672\u0022\u003ek8s.apisix.apache.org\/enable-cors\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;true\u0026#34;\u003c\/span\u003e\n    \u003cspan style=\u0022color:#f92672\u0022\u003ekubernetes.io\/ingress.class\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003eapisix\u003c\/span\u003e\n\u003cspan style=\u0022color:#f92672\u0022\u003espec\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#f92672\u0022\u003erules\u003c\/span\u003e:\n  - \u003cspan style=\u0022color:#f92672\u0022\u003ehttp\u003c\/span\u003e:\n      \u003cspan style=\u0022color:#f92672\u0022\u003epaths\u003c\/span\u003e:\n      - \u003cspan style=\u0022color:#f92672\u0022\u003ebackend\u003c\/span\u003e:\n          \u003cspan style=\u0022color:#f92672\u0022\u003eservice\u003c\/span\u003e:\n            \u003cspan style=\u0022color:#f92672\u0022\u003ename\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003emy-service\u003c\/span\u003e\n            \u003cspan style=\u0022color:#f92672\u0022\u003eport\u003c\/span\u003e:\n              \u003cspan style=\u0022color:#f92672\u0022\u003enumber\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e8000\u003c\/span\u003e\n        \u003cspan style=\u0022color:#f92672\u0022\u003epath\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e\/v2\u003c\/span\u003e\n        \u003cspan style=\u0022color:#f92672\u0022\u003epathType\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003ePrefix\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e在这个示例中，我们添加了【k8s.apisix.apache.org\/enable-cors: \u0026ldquo;true\u0026rdquo;】的注释， 即启用cors功能，默认允许来自任何源的请求访问my-service的API。\u003c\/p\u003e\n\u003ch4 id=\u0022dashboard启用cors\u0022\u003eDashboard启用CORS\u003c\/h4\u003e\n\u003cp\u003e打开APISIX Dashboard界面：在【插件】中查找“CORS” 。单击该插件，然后单击“启用”。\u003c\/p\u003e\n\u003cp\u003e然后，可以在路由点击查看my-service的对应路由，如下：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-json\u0022 data-lang=\u0022json\u0022\u003e{\n  \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;uris\u0026#34;\u003c\/span\u003e: [\n    \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/v2\/\u0026#34;\u003c\/span\u003e,\n    \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/v2\/*\u0026#34;\u003c\/span\u003e\n  ],\n  \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;name\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;ing_my-service-ingress_cfc81dbe\u0026#34;\u003c\/span\u003e,\n  \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;desc\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Created by apisix-ingress-controller, DO NOT modify it manually\u0026#34;\u003c\/span\u003e,\n  \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;plugins\u0026#34;\u003c\/span\u003e: {\n    \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;cors\u0026#34;\u003c\/span\u003e: {\n      \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;allow_credential\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003efalse\u003c\/span\u003e,\n      \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;allow_headers\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;*\u0026#34;\u003c\/span\u003e,\n      \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;allow_methods\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;*\u0026#34;\u003c\/span\u003e,\n      \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;allow_origins\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;*\u0026#34;\u003c\/span\u003e,\n      \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;expose_headers\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;*\u0026#34;\u003c\/span\u003e,\n      \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;max_age\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e\n    }\n  },\n  \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;upstream_id\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;7c630009\u0026#34;\u003c\/span\u003e,\n  \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;labels\u0026#34;\u003c\/span\u003e: {\n    \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;managed-by\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;apisix-ingress-controller\u0026#34;\u003c\/span\u003e\n  },\n  \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026#34;status\u0026#34;\u003c\/span\u003e: \u003cspan style=\u0022color:#ae81ff\u0022\u003e1\u003c\/span\u003e\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003eplugins.cors为跨域的对应规则配置，说明插件启用成功。\u003c\/p\u003e\n\u003ch4 id=\u0022测试\u0022\u003e测试\u003c\/h4\u003e\n\u003cp\u003e然后我们向my-service的发起一个测试请求：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-css\u0022 data-lang=\u0022css\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003ecurl\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-i\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e-k\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#39;http:\/\/[my-cluster-ip:nodeport]\/v2\/my-service\/api\/geeker\u0026#39;\u003c\/span\u003e   \u003cspan style=\u0022color:#f92672\u0022\u003e-X\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003eOPTIONS\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e\\\u003c\/span\u003e\n   \u003cspan style=\u0022color:#f92672\u0022\u003e-H\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Access-Control-Allow-Origin: *\u0026#34;\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e\\\u003c\/span\u003e\n   \u003cspan style=\u0022color:#f92672\u0022\u003e-H\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Access-Control-Request-Method: POST\u0026#34;\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e\\\u003c\/span\u003e\n   \u003cspan style=\u0022color:#f92672\u0022\u003e-H\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Access-Control-Request-Headers: content-type\u0026#34;\u003c\/span\u003e \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e\\\u003c\/span\u003e\n   \u003cspan style=\u0022color:#f92672\u0022\u003e-H\u003c\/span\u003e \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Origin: http:\/\/localhost\/\u0026#34;\u003c\/span\u003e \n   \n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e输出：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-shell\u0022 data-lang=\u0022shell\u0022\u003eHTTP\/1.1 \u003cspan style=\u0022color:#ae81ff\u0022\u003e200\u003c\/span\u003e OK\nDate: Sat, \u003cspan style=\u0022color:#ae81ff\u0022\u003e15\u003c\/span\u003e Jul \u003cspan style=\u0022color:#ae81ff\u0022\u003e2023\u003c\/span\u003e 13:53:57 GMT\nContent-Type: text\/plain; charset\u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003eutf-8\nTransfer-Encoding: chunked\nConnection: keep-alive\nServer: APISIX\/3.4.0\nAccess-Control-Allow-Origin: *\nAccess-Control-Allow-Methods: *\nAccess-Control-Max-Age: \u003cspan style=\u0022color:#ae81ff\u0022\u003e5\u003c\/span\u003e\nAccess-Control-Expose-Headers: *\nAccess-Control-Allow-Headers: *\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e如果返回结果中出现 CORS 相关的 header（\nccess-Control-Allow-Origin: *\n\u0026lt; Access-Control-Allow-Methods: *\n\u0026lt; Access-Control-Allow-Headers: *\n\u0026lt; Access-Control-Expose-Headers: *\n\u0026lt; Access-Control-Max-Age: 5\n），则代表插件生效、跨域成功。\u003c\/p\u003e\n\u003ch3 id=\u0022遇到的问题\u0022\u003e遇到的问题\u003c\/h3\u003e\n\u003cp\u003e在增加好ingress后测试API，发现没有CORS 相关的 header\u003c\/p\u003e\n\u003cp\u003e，跨域失败\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-shell\u0022 data-lang=\u0022shell\u0022\u003eHTTP\/1.1 \u003cspan style=\u0022color:#ae81ff\u0022\u003e200\u003c\/span\u003e OK\nContent-Length: \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e\nConnection: keep-alive\nAccess-Control-Allow-Headers: Content-Type\nAccess-Control-Allow-Origin: *\nDate: Sat, \u003cspan style=\u0022color:#ae81ff\u0022\u003e15\u003c\/span\u003e Jul \u003cspan style=\u0022color:#ae81ff\u0022\u003e2023\u003c\/span\u003e 13:46:16 GMT\nServer: APISIX\/3.4.0\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e经检查，是ApiSix的config配置有误，在配置的插件里，开启了其他插件，没有包括cors，导致插件不生效。去掉后，重启插件配置生效、跨域成功。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-yaml\u0022 data-lang=\u0022yaml\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003eplugins\u003c\/span\u003e:\n  \u003cspan style=\u0022color:#75715e\u0022\u003e# the plugins you enabled\u003c\/span\u003e\n  - \u003cspan style=\u0022color:#ae81ff\u0022\u003elog-rotate\u003c\/span\u003e\n  - \u003cspan style=\u0022color:#ae81ff\u0022\u003eproxy-rewrite\u003c\/span\u003e\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/apisix.apache.org\/zh\/docs\/apisix\/plugins\/cors\/\u0022\u003eapisix cors\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/apisix.apache.org\/zh\/blog\/2022\/12\/15\/how-support-ingress-custom-plugins\/\u0022\u003eapisix Ingress 如何支持自定义插件\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2023\/07\/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors\/",
+  "keywords":"[ingress, ingress annotations, cors, 跨域, gw]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="ingress, ingress annotations, cors, 跨域, gw">
+<meta name="description" content="Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。很多场景下，我们可以选择在APISIX中使用CORS（跨源资源共享）来解决跨域问题。
+APISIX提供了CRD和Annotations模式来启用CORS。本文主要介绍如何在APISIX Ingress Annotations模式下启用CORS。
+环境：
+
+
+
+应用
+信息
+
+
+
+
+Kubernetes
+v1.25.7
+
+
+apisix
+apache/apisix:3.4.0-debian
+
+
+apisix-ingress-controller
+apache/apisix-ingress-controller:1.6.0
+
+
+
+IngressAnnotations模式
+IngressAnnotations模式，可以通过在Ingress资源上添加注释来配置APISIX的行为。比如添加一个CORS注释来指示APISIX启用CORS：
+annotations
+    k8s.apisix.apache.org/enable-cors: &#34;true&#34;
+    kubernetes.io/ingress.class: apisix
+接着，我们以给一个Http服务my-service, 创建了一个Ingress资源的例子来演示, Ingress详细如下：
+创建Ingress
+创建my-service的ingress资源：
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: match-ingress
+  namespace: my-ns
+  annotations:
+    k8s.apisix.apache.org/enable-cors: &#34;true&#34;
+    kubernetes.io/ingress.class: apisix
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: my-service
+            port:
+              number: 8000
+        path: /v2
+        pathType: Prefix
+在这个示例中，我们添加了【k8s.apisix.apache.org/enable-cors: &ldquo;true&rdquo;】的注释， 即启用cors功能，默认允许来自任何源的请求访问my-service的API。
+Dashboard启用CORS
+打开APISIX Dashboard界面：在【插件】中查找“CORS” 。单击该插件，然后单击“启用”。
+然后，可以在路由点击查看my-service的对应路由，如下：
+{
+  &#34;uris&#34;: [
+    &#34;/v2/&#34;,
+    &#34;/v2/*&#34;
+  ],
+  &#34;name&#34;: &#34;ing_my-service-ingress_cfc81dbe&#34;,
+  &#34;desc&#34;: &#34;Created by apisix-ingress-controller, DO NOT modify it manually&#34;,
+  &#34;plugins&#34;: {
+    &#34;cors&#34;: {
+      &#34;allow_credential&#34;: false,
+      &#34;allow_headers&#34;: &#34;*&#34;,
+      &#34;allow_methods&#34;: &#34;*&#34;,
+      &#34;allow_origins&#34;: &#34;*&#34;,
+      &#34;expose_headers&#34;: &#34;*&#34;,
+      &#34;max_age&#34;: 5
+    }
+  },
+  &#34;upstream_id&#34;: &#34;7c630009&#34;,
+  &#34;labels&#34;: {
+    &#34;managed-by&#34;: &#34;apisix-ingress-controller&#34;
+  },
+  &#34;status&#34;: 1
+}
+plugins.cors为跨域的对应规则配置，说明插件启用成功。
+测试
+然后我们向my-service的发起一个测试请求：
+curl -i -k &#39;http://[my-cluster-ip:nodeport]/v2/my-service/api/geeker&#39;   -X OPTIONS \
+   -H &#34;Access-Control-Allow-Origin: *&#34; \
+   -H &#34;Access-Control-Request-Method: POST&#34; \
+   -H &#34;Access-Control-Request-Headers: content-type&#34; \
+   -H &#34;Origin: http://localhost/&#34; 
+   
+输出：
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 13:53:57 GMT
+Content-Type: text/plain; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: APISIX/3.4.0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: *
+Access-Control-Max-Age: 5
+Access-Control-Expose-Headers: *
+Access-Control-Allow-Headers: *
+如果返回结果中出现 CORS 相关的 header（
+ccess-Control-Allow-Origin: *
+&lt; Access-Control-Allow-Methods: *
+&lt; Access-Control-Allow-Headers: *
+&lt; Access-Control-Expose-Headers: *
+&lt; Access-Control-Max-Age: 5
+），则代表插件生效、跨域成功。
+遇到的问题
+在增加好ingress后测试API，发现没有CORS 相关的 header
+，跨域失败
+HTTP/1.1 200 OK
+Content-Length: 0
+Connection: keep-alive
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Origin: *
+Date: Sat, 15 Jul 2023 13:46:16 GMT
+Server: APISIX/3.4.0
+经检查，是ApiSix的config配置有误，在配置的插件里，开启了其他插件，没有包括cors，导致插件不生效。去掉后，重启插件配置生效、跨域成功。
+plugins:
+  # the plugins you enabled
+  - log-rotate
+  - proxy-rewrite
+参考
+
+apisix cors
+apisix Ingress 如何支持自定义插件
+">
+
+
+<meta property="og:description" content="Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。很多场景下，我们可以选择在APISIX中使用CORS（跨源资源共享）来解决跨域问题。
+APISIX提供了CRD和Annotations模式来启用CORS。本文主要介绍如何在APISIX Ingress Annotations模式下启用CORS。
+环境：
+
+
+
+应用
+信息
+
+
+
+
+Kubernetes
+v1.25.7
+
+
+apisix
+apache/apisix:3.4.0-debian
+
+
+apisix-ingress-controller
+apache/apisix-ingress-controller:1.6.0
+
+
+
+IngressAnnotations模式
+IngressAnnotations模式，可以通过在Ingress资源上添加注释来配置APISIX的行为。比如添加一个CORS注释来指示APISIX启用CORS：
+annotations
+    k8s.apisix.apache.org/enable-cors: &#34;true&#34;
+    kubernetes.io/ingress.class: apisix
+接着，我们以给一个Http服务my-service, 创建了一个Ingress资源的例子来演示, Ingress详细如下：
+创建Ingress
+创建my-service的ingress资源：
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: match-ingress
+  namespace: my-ns
+  annotations:
+    k8s.apisix.apache.org/enable-cors: &#34;true&#34;
+    kubernetes.io/ingress.class: apisix
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: my-service
+            port:
+              number: 8000
+        path: /v2
+        pathType: Prefix
+在这个示例中，我们添加了【k8s.apisix.apache.org/enable-cors: &ldquo;true&rdquo;】的注释， 即启用cors功能，默认允许来自任何源的请求访问my-service的API。
+Dashboard启用CORS
+打开APISIX Dashboard界面：在【插件】中查找“CORS” 。单击该插件，然后单击“启用”。
+然后，可以在路由点击查看my-service的对应路由，如下：
+{
+  &#34;uris&#34;: [
+    &#34;/v2/&#34;,
+    &#34;/v2/*&#34;
+  ],
+  &#34;name&#34;: &#34;ing_my-service-ingress_cfc81dbe&#34;,
+  &#34;desc&#34;: &#34;Created by apisix-ingress-controller, DO NOT modify it manually&#34;,
+  &#34;plugins&#34;: {
+    &#34;cors&#34;: {
+      &#34;allow_credential&#34;: false,
+      &#34;allow_headers&#34;: &#34;*&#34;,
+      &#34;allow_methods&#34;: &#34;*&#34;,
+      &#34;allow_origins&#34;: &#34;*&#34;,
+      &#34;expose_headers&#34;: &#34;*&#34;,
+      &#34;max_age&#34;: 5
+    }
+  },
+  &#34;upstream_id&#34;: &#34;7c630009&#34;,
+  &#34;labels&#34;: {
+    &#34;managed-by&#34;: &#34;apisix-ingress-controller&#34;
+  },
+  &#34;status&#34;: 1
+}
+plugins.cors为跨域的对应规则配置，说明插件启用成功。
+测试
+然后我们向my-service的发起一个测试请求：
+curl -i -k &#39;http://[my-cluster-ip:nodeport]/v2/my-service/api/geeker&#39;   -X OPTIONS \
+   -H &#34;Access-Control-Allow-Origin: *&#34; \
+   -H &#34;Access-Control-Request-Method: POST&#34; \
+   -H &#34;Access-Control-Request-Headers: content-type&#34; \
+   -H &#34;Origin: http://localhost/&#34; 
+   
+输出：
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 13:53:57 GMT
+Content-Type: text/plain; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: APISIX/3.4.0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: *
+Access-Control-Max-Age: 5
+Access-Control-Expose-Headers: *
+Access-Control-Allow-Headers: *
+如果返回结果中出现 CORS 相关的 header（
+ccess-Control-Allow-Origin: *
+&lt; Access-Control-Allow-Methods: *
+&lt; Access-Control-Allow-Headers: *
+&lt; Access-Control-Expose-Headers: *
+&lt; Access-Control-Max-Age: 5
+），则代表插件生效、跨域成功。
+遇到的问题
+在增加好ingress后测试API，发现没有CORS 相关的 header
+，跨域失败
+HTTP/1.1 200 OK
+Content-Length: 0
+Connection: keep-alive
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Origin: *
+Date: Sat, 15 Jul 2023 13:46:16 GMT
+Server: APISIX/3.4.0
+经检查，是ApiSix的config配置有误，在配置的插件里，开启了其他插件，没有包括cors，导致插件不生效。去掉后，重启插件配置生效、跨域成功。
+plugins:
+  # the plugins you enabled
+  - log-rotate
+  - proxy-rewrite
+参考
+
+apisix cors
+apisix Ingress 如何支持自定义插件
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IngressAnnotations模式启用Apisix的Cors">
+<meta name="twitter:title" content="IngressAnnotations模式启用Apisix的Cors">
+<meta property="og:url" content="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/">
+<meta property="twitter:url" content="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。很多场景下，我们可以选择在APISIX中使用CORS（跨源资源共享）来解决跨域问题。
+APISIX提供了CRD和Annotations模式来启用CORS。本文主要介绍如何在APISIX Ingress Annotations模式下启用CORS。
+环境：
+
+
+
+应用
+信息
+
+
+
+
+Kubernetes
+v1.25.7
+
+
+apisix
+apache/apisix:3.4.0-debian
+
+
+apisix-ingress-controller
+apache/apisix-ingress-controller:1.6.0
+
+
+
+IngressAnnotations模式
+IngressAnnotations模式，可以通过在Ingress资源上添加注释来配置APISIX的行为。比如添加一个CORS注释来指示APISIX启用CORS：
+annotations
+    k8s.apisix.apache.org/enable-cors: &#34;true&#34;
+    kubernetes.io/ingress.class: apisix
+接着，我们以给一个Http服务my-service, 创建了一个Ingress资源的例子来演示, Ingress详细如下：
+创建Ingress
+创建my-service的ingress资源：
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: match-ingress
+  namespace: my-ns
+  annotations:
+    k8s.apisix.apache.org/enable-cors: &#34;true&#34;
+    kubernetes.io/ingress.class: apisix
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: my-service
+            port:
+              number: 8000
+        path: /v2
+        pathType: Prefix
+在这个示例中，我们添加了【k8s.apisix.apache.org/enable-cors: &ldquo;true&rdquo;】的注释， 即启用cors功能，默认允许来自任何源的请求访问my-service的API。
+Dashboard启用CORS
+打开APISIX Dashboard界面：在【插件】中查找“CORS” 。单击该插件，然后单击“启用”。
+然后，可以在路由点击查看my-service的对应路由，如下：
+{
+  &#34;uris&#34;: [
+    &#34;/v2/&#34;,
+    &#34;/v2/*&#34;
+  ],
+  &#34;name&#34;: &#34;ing_my-service-ingress_cfc81dbe&#34;,
+  &#34;desc&#34;: &#34;Created by apisix-ingress-controller, DO NOT modify it manually&#34;,
+  &#34;plugins&#34;: {
+    &#34;cors&#34;: {
+      &#34;allow_credential&#34;: false,
+      &#34;allow_headers&#34;: &#34;*&#34;,
+      &#34;allow_methods&#34;: &#34;*&#34;,
+      &#34;allow_origins&#34;: &#34;*&#34;,
+      &#34;expose_headers&#34;: &#34;*&#34;,
+      &#34;max_age&#34;: 5
+    }
+  },
+  &#34;upstream_id&#34;: &#34;7c630009&#34;,
+  &#34;labels&#34;: {
+    &#34;managed-by&#34;: &#34;apisix-ingress-controller&#34;
+  },
+  &#34;status&#34;: 1
+}
+plugins.cors为跨域的对应规则配置，说明插件启用成功。
+测试
+然后我们向my-service的发起一个测试请求：
+curl -i -k &#39;http://[my-cluster-ip:nodeport]/v2/my-service/api/geeker&#39;   -X OPTIONS \
+   -H &#34;Access-Control-Allow-Origin: *&#34; \
+   -H &#34;Access-Control-Request-Method: POST&#34; \
+   -H &#34;Access-Control-Request-Headers: content-type&#34; \
+   -H &#34;Origin: http://localhost/&#34; 
+   
+输出：
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 13:53:57 GMT
+Content-Type: text/plain; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: APISIX/3.4.0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: *
+Access-Control-Max-Age: 5
+Access-Control-Expose-Headers: *
+Access-Control-Allow-Headers: *
+如果返回结果中出现 CORS 相关的 header（
+ccess-Control-Allow-Origin: *
+&lt; Access-Control-Allow-Methods: *
+&lt; Access-Control-Allow-Headers: *
+&lt; Access-Control-Expose-Headers: *
+&lt; Access-Control-Max-Age: 5
+），则代表插件生效、跨域成功。
+遇到的问题
+在增加好ingress后测试API，发现没有CORS 相关的 header
+，跨域失败
+HTTP/1.1 200 OK
+Content-Length: 0
+Connection: keep-alive
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Origin: *
+Date: Sat, 15 Jul 2023 13:46:16 GMT
+Server: APISIX/3.4.0
+经检查，是ApiSix的config配置有误，在配置的插件里，开启了其他插件，没有包括cors，导致插件不生效。去掉后，重启插件配置生效、跨域成功。
+plugins:
+  # the plugins you enabled
+  - log-rotate
+  - proxy-rewrite
+参考
+
+apisix cors
+apisix Ingress 如何支持自定义插件
+">
+<meta name="twitter:description" content="Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。很多场景下，我们可以选择在APISIX中使用CORS（跨源资源共享）来解决跨域问题。
+APISIX提供了CRD和Annotations模式来启用CORS。本文主要介绍如何在APISIX Ingress Annotations模式下启用CORS。
+环境：
+
+
+
+应用
+信息
+
+
+
+
+Kubernetes
+v1.25.7
+
+
+apisix
+apache/apisix:3.4.0-debian
+
+
+apisix-ingress-controller
+apache/apisix-ingress-controller:1.6.0
+
+
+
+IngressAnnotations模式
+IngressAnnotations模式，可以通过在Ingress资源上添加注释来配置APISIX的行为。比如添加一个CORS注释来指示APISIX启用CORS：
+annotations
+    k8s.apisix.apache.org/enable-cors: &#34;true&#34;
+    kubernetes.io/ingress.class: apisix
+接着，我们以给一个Http服务my-service, 创建了一个Ingress资源的例子来演示, Ingress详细如下：
+创建Ingress
+创建my-service的ingress资源：
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: match-ingress
+  namespace: my-ns
+  annotations:
+    k8s.apisix.apache.org/enable-cors: &#34;true&#34;
+    kubernetes.io/ingress.class: apisix
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: my-service
+            port:
+              number: 8000
+        path: /v2
+        pathType: Prefix
+在这个示例中，我们添加了【k8s.apisix.apache.org/enable-cors: &ldquo;true&rdquo;】的注释， 即启用cors功能，默认允许来自任何源的请求访问my-service的API。
+Dashboard启用CORS
+打开APISIX Dashboard界面：在【插件】中查找“CORS” 。单击该插件，然后单击“启用”。
+然后，可以在路由点击查看my-service的对应路由，如下：
+{
+  &#34;uris&#34;: [
+    &#34;/v2/&#34;,
+    &#34;/v2/*&#34;
+  ],
+  &#34;name&#34;: &#34;ing_my-service-ingress_cfc81dbe&#34;,
+  &#34;desc&#34;: &#34;Created by apisix-ingress-controller, DO NOT modify it manually&#34;,
+  &#34;plugins&#34;: {
+    &#34;cors&#34;: {
+      &#34;allow_credential&#34;: false,
+      &#34;allow_headers&#34;: &#34;*&#34;,
+      &#34;allow_methods&#34;: &#34;*&#34;,
+      &#34;allow_origins&#34;: &#34;*&#34;,
+      &#34;expose_headers&#34;: &#34;*&#34;,
+      &#34;max_age&#34;: 5
+    }
+  },
+  &#34;upstream_id&#34;: &#34;7c630009&#34;,
+  &#34;labels&#34;: {
+    &#34;managed-by&#34;: &#34;apisix-ingress-controller&#34;
+  },
+  &#34;status&#34;: 1
+}
+plugins.cors为跨域的对应规则配置，说明插件启用成功。
+测试
+然后我们向my-service的发起一个测试请求：
+curl -i -k &#39;http://[my-cluster-ip:nodeport]/v2/my-service/api/geeker&#39;   -X OPTIONS \
+   -H &#34;Access-Control-Allow-Origin: *&#34; \
+   -H &#34;Access-Control-Request-Method: POST&#34; \
+   -H &#34;Access-Control-Request-Headers: content-type&#34; \
+   -H &#34;Origin: http://localhost/&#34; 
+   
+输出：
+HTTP/1.1 200 OK
+Date: Sat, 15 Jul 2023 13:53:57 GMT
+Content-Type: text/plain; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: APISIX/3.4.0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: *
+Access-Control-Max-Age: 5
+Access-Control-Expose-Headers: *
+Access-Control-Allow-Headers: *
+如果返回结果中出现 CORS 相关的 header（
+ccess-Control-Allow-Origin: *
+&lt; Access-Control-Allow-Methods: *
+&lt; Access-Control-Allow-Headers: *
+&lt; Access-Control-Expose-Headers: *
+&lt; Access-Control-Max-Age: 5
+），则代表插件生效、跨域成功。
+遇到的问题
+在增加好ingress后测试API，发现没有CORS 相关的 header
+，跨域失败
+HTTP/1.1 200 OK
+Content-Length: 0
+Connection: keep-alive
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Origin: *
+Date: Sat, 15 Jul 2023 13:46:16 GMT
+Server: APISIX/3.4.0
+经检查，是ApiSix的config配置有误，在配置的插件里，开启了其他插件，没有包括cors，导致插件不生效。去掉后，重启插件配置生效、跨域成功。
+plugins:
+  # the plugins you enabled
+  - log-rotate
+  - proxy-rewrite
+参考
+
+apisix cors
+apisix Ingress 如何支持自定义插件
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2023-07-15T22:19:52">
+  
+  
+    <meta property="article:modified_time" content="2023-07-15T22:19:52">
+  
+  
+  
+    
+      <meta property="article:section" content="k8s">
+    
+  
+  
+    
+      <meta property="article:tag" content="ingress">
+    
+      <meta property="article:tag" content="ingress annotations">
+    
+      <meta property="article:tag" content="cors">
+    
+      <meta property="article:tag" content="跨域">
+    
+      <meta property="article:tag" content="gw">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>IngressAnnotations模式启用Apisix的Cors</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      IngressAnnotations模式启用Apisix的Cors
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-07-15T22:19:52&#43;08:00">
+        
+   15, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <p>Apache APISIX 是 Apache 软件基金会下的云原生 API 网关，它兼具动态、实时、高性能等特点，提供了负载均衡、动态上游、灰度发布（金丝雀发布）、服务熔断、身份认证、可观测性等丰富的流量管理功能。很多场景下，我们可以选择在APISIX中使用CORS（跨源资源共享）来解决跨域问题。</p>
+<p>APISIX提供了CRD和Annotations模式来启用CORS。本文主要介绍如何在APISIX Ingress Annotations模式下启用CORS。</p>
+<p>环境：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kubernetes</td>
+<td>v1.25.7</td>
+</tr>
+<tr>
+<td>apisix</td>
+<td>apache/apisix:3.4.0-debian</td>
+</tr>
+<tr>
+<td>apisix-ingress-controller</td>
+<td>apache/apisix-ingress-controller:1.6.0</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ingressannotations模式">IngressAnnotations模式</h3>
+<p>IngressAnnotations模式，可以通过在Ingress资源上添加注释来配置APISIX的行为。比如添加一个CORS注释来指示APISIX启用CORS：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ae81ff">annotations</span>
+    <span style="color:#f92672">k8s.apisix.apache.org/enable-cors</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+    <span style="color:#f92672">kubernetes.io/ingress.class</span>: <span style="color:#ae81ff">apisix</span>
+</code></pre></div><p>接着，我们以给一个Http服务my-service, 创建了一个Ingress资源的例子来演示, Ingress详细如下：</p>
+<h4 id="创建ingress">创建Ingress</h4>
+<p>创建my-service的ingress资源：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">networking.k8s.io/v1</span>
+<span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Ingress</span>
+<span style="color:#f92672">metadata</span>:
+  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">match-ingress</span>
+  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">my-ns</span>
+  <span style="color:#f92672">annotations</span>:
+    <span style="color:#f92672">k8s.apisix.apache.org/enable-cors</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+    <span style="color:#f92672">kubernetes.io/ingress.class</span>: <span style="color:#ae81ff">apisix</span>
+<span style="color:#f92672">spec</span>:
+  <span style="color:#f92672">rules</span>:
+  - <span style="color:#f92672">http</span>:
+      <span style="color:#f92672">paths</span>:
+      - <span style="color:#f92672">backend</span>:
+          <span style="color:#f92672">service</span>:
+            <span style="color:#f92672">name</span>: <span style="color:#ae81ff">my-service</span>
+            <span style="color:#f92672">port</span>:
+              <span style="color:#f92672">number</span>: <span style="color:#ae81ff">8000</span>
+        <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/v2</span>
+        <span style="color:#f92672">pathType</span>: <span style="color:#ae81ff">Prefix</span>
+</code></pre></div><p>在这个示例中，我们添加了【k8s.apisix.apache.org/enable-cors: &ldquo;true&rdquo;】的注释， 即启用cors功能，默认允许来自任何源的请求访问my-service的API。</p>
+<h4 id="dashboard启用cors">Dashboard启用CORS</h4>
+<p>打开APISIX Dashboard界面：在【插件】中查找“CORS” 。单击该插件，然后单击“启用”。</p>
+<p>然后，可以在路由点击查看my-service的对应路由，如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="color:#f92672">&#34;uris&#34;</span>: [
+    <span style="color:#e6db74">&#34;/v2/&#34;</span>,
+    <span style="color:#e6db74">&#34;/v2/*&#34;</span>
+  ],
+  <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;ing_my-service-ingress_cfc81dbe&#34;</span>,
+  <span style="color:#f92672">&#34;desc&#34;</span>: <span style="color:#e6db74">&#34;Created by apisix-ingress-controller, DO NOT modify it manually&#34;</span>,
+  <span style="color:#f92672">&#34;plugins&#34;</span>: {
+    <span style="color:#f92672">&#34;cors&#34;</span>: {
+      <span style="color:#f92672">&#34;allow_credential&#34;</span>: <span style="color:#66d9ef">false</span>,
+      <span style="color:#f92672">&#34;allow_headers&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;allow_methods&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;allow_origins&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;expose_headers&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>,
+      <span style="color:#f92672">&#34;max_age&#34;</span>: <span style="color:#ae81ff">5</span>
+    }
+  },
+  <span style="color:#f92672">&#34;upstream_id&#34;</span>: <span style="color:#e6db74">&#34;7c630009&#34;</span>,
+  <span style="color:#f92672">&#34;labels&#34;</span>: {
+    <span style="color:#f92672">&#34;managed-by&#34;</span>: <span style="color:#e6db74">&#34;apisix-ingress-controller&#34;</span>
+  },
+  <span style="color:#f92672">&#34;status&#34;</span>: <span style="color:#ae81ff">1</span>
+}
+</code></pre></div><p>plugins.cors为跨域的对应规则配置，说明插件启用成功。</p>
+<h4 id="测试">测试</h4>
+<p>然后我们向my-service的发起一个测试请求：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-css" data-lang="css"><span style="color:#f92672">curl</span> <span style="color:#f92672">-i</span> <span style="color:#f92672">-k</span> <span style="color:#e6db74">&#39;http://[my-cluster-ip:nodeport]/v2/my-service/api/geeker&#39;</span>   <span style="color:#f92672">-X</span> <span style="color:#f92672">OPTIONS</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Allow-Origin: *&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Request-Method: POST&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Access-Control-Request-Headers: content-type&#34;</span> <span style="color:#960050;background-color:#1e0010">\</span>
+   <span style="color:#f92672">-H</span> <span style="color:#e6db74">&#34;Origin: http://localhost/&#34;</span> 
+   
+</code></pre></div><p>输出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+Date: Sat, <span style="color:#ae81ff">15</span> Jul <span style="color:#ae81ff">2023</span> 13:53:57 GMT
+Content-Type: text/plain; charset<span style="color:#f92672">=</span>utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: APISIX/3.4.0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: *
+Access-Control-Max-Age: <span style="color:#ae81ff">5</span>
+Access-Control-Expose-Headers: *
+Access-Control-Allow-Headers: *
+</code></pre></div><p>如果返回结果中出现 CORS 相关的 header（
+ccess-Control-Allow-Origin: *
+&lt; Access-Control-Allow-Methods: *
+&lt; Access-Control-Allow-Headers: *
+&lt; Access-Control-Expose-Headers: *
+&lt; Access-Control-Max-Age: 5
+），则代表插件生效、跨域成功。</p>
+<h3 id="遇到的问题">遇到的问题</h3>
+<p>在增加好ingress后测试API，发现没有CORS 相关的 header</p>
+<p>，跨域失败</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+Content-Length: <span style="color:#ae81ff">0</span>
+Connection: keep-alive
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Origin: *
+Date: Sat, <span style="color:#ae81ff">15</span> Jul <span style="color:#ae81ff">2023</span> 13:46:16 GMT
+Server: APISIX/3.4.0
+</code></pre></div><p>经检查，是ApiSix的config配置有误，在配置的插件里，开启了其他插件，没有包括cors，导致插件不生效。去掉后，重启插件配置生效、跨域成功。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">plugins</span>:
+  <span style="color:#75715e"># the plugins you enabled</span>
+  - <span style="color:#ae81ff">log-rotate</span>
+  - <span style="color:#ae81ff">proxy-rewrite</span>
+</code></pre></div><h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://apisix.apache.org/zh/docs/apisix/plugins/cors/">apisix cors</a></li>
+<li><a href="https://apisix.apache.org/zh/blog/2022/12/15/how-support-ingress-custom-plugins/">apisix Ingress 如何支持自定义插件</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/ingress/">ingress</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/ingress-annotations/">ingress annotations</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/cors/">cors</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/%E8%B7%A8%E5%9F%9F/">跨域</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/gw/">gw</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/07/rds-postgresql%E5%A4%87%E4%BB%BDsql%E6%81%A2%E5%A4%8D%E5%88%B0mac%E6%9C%AC%E5%9C%B0%E6%95%B0%E6%8D%AE%E5%BA%93/" data-tooltip="RDS PostgreSQL备份SQL恢复到Mac本地数据库" aria-label=": RDS PostgreSQL备份SQL恢复到Mac本地数据库">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/07/rds-postgresql%E5%A4%87%E4%BB%BDsql%E6%81%A2%E5%A4%8D%E5%88%B0mac%E6%9C%AC%E5%9C%B0%E6%95%B0%E6%8D%AE%E5%BA%93/" data-tooltip="RDS PostgreSQL备份SQL恢复到Mac本地数据库" aria-label=": RDS PostgreSQL备份SQL恢复到Mac本地数据库">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+

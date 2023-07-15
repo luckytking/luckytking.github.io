@@ -6,7 +6,52 @@
     <description>Recent content in Tags on jefffff&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 07 Jul 2023 22:43:53 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 15 Jul 2023 22:19:52 +0800</lastBuildDate><atom:link href="https://luckytking.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>cors</title>
+      <link>https://luckytking.github.io/tags/cors/</link>
+      <pubDate>Sat, 15 Jul 2023 22:19:52 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/cors/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>gw</title>
+      <link>https://luckytking.github.io/tags/gw/</link>
+      <pubDate>Sat, 15 Jul 2023 22:19:52 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/gw/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ingress</title>
+      <link>https://luckytking.github.io/tags/ingress/</link>
+      <pubDate>Sat, 15 Jul 2023 22:19:52 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/ingress/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ingress annotations</title>
+      <link>https://luckytking.github.io/tags/ingress-annotations/</link>
+      <pubDate>Sat, 15 Jul 2023 22:19:52 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/ingress-annotations/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>跨域</title>
+      <link>https://luckytking.github.io/tags/%E8%B7%A8%E5%9F%9F/</link>
+      <pubDate>Sat, 15 Jul 2023 22:19:52 +0800</pubDate>
+      
+      <guid>https://luckytking.github.io/tags/%E8%B7%A8%E5%9F%9F/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>mac</title>
       <link>https://luckytking.github.io/tags/mac/</link>
@@ -472,15 +517,6 @@
       <pubDate>Sun, 27 Nov 2022 12:24:50 +0800</pubDate>
       
       <guid>https://luckytking.github.io/tags/go%E5%8F%AF%E8%A7%86%E5%8C%96/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>ingress</title>
-      <link>https://luckytking.github.io/tags/ingress/</link>
-      <pubDate>Sun, 20 Nov 2022 15:31:51 +0800</pubDate>
-      
-      <guid>https://luckytking.github.io/tags/ingress/</guid>
       <description></description>
     </item>
     
