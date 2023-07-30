@@ -237,6 +237,127 @@
     <div class="postShorten-header">
       <h1 class="postShorten-title">
       
+        <a class="link-unstyled" href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" aria-label="">
+      
+          Rancher导入k8s集群后状态长时间处于Pending状态
+        </a>
+      </h1>
+      
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2022-08-03T22:02:43&#43;08:00">
+        
+   3, 2022
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/k8s">k8s</a>
+    
+  
+
+  </div>
+
+    </div>
+    <div class="postShorten-excerpt">
+      
+        <h4 id="问题描述">问题描述:</h4>
+<p>在Rancher导入外部k8s集群 ,导入的集群一直处于“pending”状态。</p>
+<p>这里简要记录一下排查过程和临时解决办法。</p>
+<h4 id="问题环境">问题环境</h4>
+<ul>
+<li>rancher v2.6.6</li>
+<li>kubernetes v1.24</li>
+<li>vm1 ubuntu （rancer）</li>
+<li>vm2-3-4 k8s集群</li>
+</ul>
+<p>导入步骤:“集群”&ndash;“添加”&ndash;“集群名称”&ndash;创建&ndash;</p>
+<h4 id="排查解决">排查&amp;解决</h4>
+<p>Rancher 通过 CusterAgent 与集群进行通信（通过cattle-cluster-agent调用 Kubernetes API 与集群通讯），并通过cattle-node-agent与节点进行通信。如果 cattle-cluster-agent 无法连接到已有的 Rancher Server 也就是server-url，集群将保留在 Pending 状态。</p>
+<h5 id="1--在k8smaster节点上面查看clusteragent的pod状态是否正常默认的namespace为cattle-system">1 . 在k8smaster节点上面，查看ClusterAgent的pod状态是否正常，默认的namespace为“cattle-system”</h5>
+<blockquote>
+<p>kubectl get pods -n cattle-system</p>
+</blockquote>
+<pre tabindex="0"><code>root@k8s-master:~# kubectl get pods -n cattle-system
+NAME                             READY   STATUS    RESTARTS   AGE
+cattle-cluster-agent-79749...   1/0     Pending   0              8m52s
+cattle-cluster-agent-79749...   1/0     Pending   0              5m21s
+</code></pre><p>看到pod未正常启动</p>
+<h5 id="2-进一步查看pod错误日志">2. 进一步查看pod错误日志</h5>
+<blockquote>
+<p>kubectl logs -f [contariner-id] -n cattle-system</p>
+</blockquote>
+<pre tabindex="0"><code>root@k8s-master:~# kubectl logs -f cattle-cluster-agent-79749... -n cattle-system
+...
+no secret assigned to service account cattle-system/rancher
+...
+</code></pre><h5 id="3-查找error处理办法">3. 查找error处理办法</h5>
+<p>通过查阅官方issures有提到</p>
+<blockquote>
+<p>2.6.6版本说明建议:</p>
+<p>Rancher v2.6.6是v2.6.5的镜像版本，只做了一个修改，以解决以下问题:</p>
+<p>-当Rancher试图控制来自下游集群的大量流量时，出现了一个主要的性能问题。这种机制没有正确地处理断开，并将导致无限锁定。看到# 37250。</p>
+<p>所以我猜他们没有在这个版本中添加K8S 1.24兼容性，因为v2.6.6中的兼容版本是:</p>
+<ul>
+<li>v1.18.20-rancher1-3</li>
+<li>v1.19.16-rancher1-5</li>
+<li>v1.20.15-rancher1-3</li>
+<li>v1.21.12-rancher1-1</li>
+<li>v1.22.9-rancher1-1</li>
+<li>v1.23.6-rancher1-1</li>
+</ul>
+</blockquote>
+<p>Rancher 2.6.6 不支持 1.24。根据在此问题上设置的里程碑，计划为 2.6.7 提供支持。</p>
+<h5 id="4尝试回滚版本">4.尝试回滚版本</h5>
+<p>回滚k8s版本v1.23，rancher重新导入集群，再查看pods状态</p>
+<pre tabindex="0"><code>kubectl get pods -n cattle-system
+NAME                                    READY   STATUS    RESTARTS   AGE
+cattle-cluster-agent-79749...   1/1     Running   0          8m52s
+cattle-cluster-agent-79749...   1/1     Running   0          5m21s
+</code></pre><p>回到rancher查看导入的k8s状态为 “Active”</p>
+<p>至此，问题已暂时解决。持续关注Rancher2.6.7版本。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index">https://docs.rancher.cn/docs/rancher2/cluster-provisioning/imported-clusters/_index</a></li>
+<li><a href="https://github.com/rancher/rancher/issues/37027">https://github.com/rancher/rancher/issues/37027</a></li>
+<li><a href="https://github.com/rancher/rancher/issues/37711">https://github.com/rancher/rancher/issues/37711</a></li>
+<li><a href="https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html">https://lequ7.com/guan-yu-kubernetesrancher-dao-ru-kubernetes-ji-qun.html</a></li>
+</ul>
+      
+      <p>
+        
+          <a href="https://luckytking.github.io/2022/08/rancher%E5%AF%BC%E5%85%A5k8s%E9%9B%86%E7%BE%A4%E5%90%8E%E7%8A%B6%E6%80%81%E9%95%BF%E6%97%B6%E9%97%B4%E5%A4%84%E4%BA%8Epending%E7%8A%B6%E6%80%81/" class="postShorten-excerpt_link link" aria-label=""></a>
+        
+        
+      </p>
+    </div>
+  </div>
+  
+</article>
+
+          
+            
+  
+    
+      
+        
+      
+    
+  
+
+
+  
+
+<article class="postShorten postShorten--thumbnailimg-right">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title">
+      
         <a class="link-unstyled" href="https://luckytking.github.io/2022/07/k8s%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E8%B5%84%E6%BA%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E5%AF%B9%E8%B1%A1%E9%85%8D%E7%BD%AE/" aria-label="">
       
           K8s学习笔记  资源配置和声明式对象配置
@@ -1648,146 +1769,6 @@ my-service | INFO msg=[HTTP] server listening on: [::]:8000
       <p>
         
           <a href="https://luckytking.github.io/2022/06/redis%E5%AE%9E%E7%8E%B0%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8%E5%92%8C%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5/" class="postShorten-excerpt_link link" aria-label=""></a>
-        
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-right">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title">
-      
-        <a class="link-unstyled" href="https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/" aria-label="">
-      
-          Google、meta第三方登入后端验证
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time datetime="2022-05-29T16:01:18&#43;08:00">
-        
-   29, 2022
-
-      </time>
-    
-    
-  
-  
-    <span></span>
-    
-      <a class="category-link" href="https://luckytking.github.io/categories/%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91">后端开发</a>
-    
-  
-
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt">
-      
-        <p>本文主要记录 Android app 第三方（google和meta/facebook)登入的后端(go)验证。</p>
-<h2 id="android-sdk-接入流程">android sdk 接入流程</h2>
-<p>可参考
-<a href="https://juejin.cn/post/7094889100389384228">https://juejin.cn/post/7094889100389384228</a></p>
-<h2 id="google">google</h2>
-<p>官网链接: (<a href="https://developers.google.com/identity/sign-in/web/backend-auth">https://developers.google.com/identity/sign-in/web/backend-auth</a>)
-官网推荐两中验证方式 ：</p>
-<ol>
-<li><strong>使用谷歌API客户端库</strong>，包括Java、Node.js、PHP、Python，是在生产环境中验证谷歌ID令牌的推荐方法。<strong>go客户端库</strong>：https://github.com/googleapis/google-api-go-client)</li>
-<li><strong>调用谷歌API</strong>（https://oauth2.googleapis.com/tokeninfo?id_token=XYZ123）</li>
-</ol>
-<p>这里采用第一种，参考代码：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;context&#34;</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span> 
-	<span style="color:#e6db74">&#34;google.golang.org/api/oauth2/v2&#34;</span>
-	<span style="color:#e6db74">&#34;google.golang.org/api/option&#34;</span>
-	<span style="color:#e6db74">&#34;net/http&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-   <span style="color:#75715e">// 从客户端获取的谷歌token
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">googleToken</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">`user token from client`</span>
-	<span style="color:#a6e22e">oatuService</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">oauth2</span>.<span style="color:#a6e22e">NewService</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">option</span>.<span style="color:#a6e22e">WithHTTPClient</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">DefaultClient</span>))
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> { 
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#a6e22e">tokenInfoCall</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">oatuService</span>.<span style="color:#a6e22e">Tokeninfo</span>()
-	<span style="color:#a6e22e">tokenInfoCall</span>.<span style="color:#a6e22e">IdToken</span>(<span style="color:#a6e22e">googleToken</span>)
-	<span style="color:#a6e22e">tokenInfo</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tokenInfoCall</span>.<span style="color:#a6e22e">Do</span>() 
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> { 
-		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err</span>)
-	}
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">tokenInfo</span>)
-	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%v&#34;</span>, <span style="color:#a6e22e">tokenInfo</span>)
-    <span style="color:#75715e">//可以拿客户端发送的id，和 tokenInfo.Id 做校验
-</span><span style="color:#75715e"></span>}
-</code></pre></div><h2 id="metafacebook-登入">meta(facebook) 登入</h2>
-<p>meta 的验证和 google 类型，调用验证api</p>
-<p>官网链接:</p>
-<ol>
-<li><strong>Android版本Facebook快速入门</strong>：https://developers.facebook.com/docs/facebook-login/android</li>
-<li><strong>后端验证</strong> : (<a href="https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info">https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info</a>)</li>
-</ol>
-<p>请求格式：</p>
-<pre tabindex="0"><code>GET /debug_token?
-  input_token={session-info-token}&amp;
-  access_token={your-access-token}
-</code></pre><p><strong>go-api</strong> : <a href="https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info">https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info</a></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-
-<span style="color:#f92672">import</span> (
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-    <span style="color:#e6db74">&#34;net/http&#34;</span>
-	<span style="color:#a6e22e">fb</span> <span style="color:#e6db74">&#34;github.com/huandu/facebook/v2&#34;</span>
-)
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-   <span style="color:#75715e">//客户端传递过来的 token
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">inputToken</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;token from client&#34;</span>
-	<span style="color:#a6e22e">globalApp</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fb</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;developer-app-client-id&#34;</span>, <span style="color:#e6db74">&#34;develop-app-client-secret&#34;</span>)
-    <span style="color:#75715e">//生成 access_token
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">globalApp</span>.<span style="color:#a6e22e">AppAccessToken</span>()
-	<span style="color:#a6e22e">session</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">globalApp</span>.<span style="color:#a6e22e">Session</span>(<span style="color:#a6e22e">token</span>)
-	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">session</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;debug_token&#34;</span>, <span style="color:#a6e22e">fb</span>.<span style="color:#a6e22e">Params</span>{
-		<span style="color:#e6db74">&#34;input_token&#34;</span>: <span style="color:#a6e22e">inputToken</span>,
-	})
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#66d9ef">return</span>
-	}
-}
-</code></pre></div><h2 id="参考">参考</h2>
-<ul>
-<li><a href="https://developers.google.com/identity/sign-in/web/backend-auth">https://developers.google.com/identity/sign-in/web/backend-auth</a></li>
-<li><a href="https://github.com/googleapis/google-api-go-client">https://github.com/googleapis/google-api-go-client</a></li>
-<li><a href="https://juejin.cn/post/7094889100389384228">https://juejin.cn/post/7094889100389384228</a></li>
-<li><a href="https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info">https://developers.facebook.com/docs/facebook-login/guides/%20access-tokens/get-session-info</a></li>
-<li><a href="https://github.com/huandu/facebook/v2">https://github.com/huandu/facebook/v2</a></li>
-</ul>
-      
-      <p>
-        
-          <a href="https://luckytking.github.io/2022/05/googlemeta%E7%AC%AC%E4%B8%89%E6%96%B9%E7%99%BB%E5%85%A5%E5%90%8E%E7%AB%AF%E9%AA%8C%E8%AF%81/" class="postShorten-excerpt_link link" aria-label=""></a>
         
         
       </p>

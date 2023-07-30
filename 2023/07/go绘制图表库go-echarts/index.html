@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <script type="application/ld+json">
+
+{  
+  "@context":"http://schema.org",
+  "@type":"Website",
+  "@id":"https:\/\/luckytking.github.io\/",
+  "author": {
+    "@type": "Person",
+    "name": "jefffff",
+    
+    "image": "https://luckytking.github.io/images/tk.jpg"
+    
+  },
+  "name":"jefffff\u0027s Blog",
+  "description":"\u003ch3 id=\u0022简介\u0022\u003e简介\u003c\/h3\u003e\n\u003cp\u003eECharts是一款基于JavaScript的数据可视化图表库，提供直观，生动，可交互，可个性化定制的数据可视化图表。ECharts最初由百度团队开源，并于2018年初捐赠给Apache基金会，成为ASF孵化级项目。\u003c\/p\u003e\n\u003cp\u003e在 Golang 这门语言中，目前数据可视化的第三方库还是特别少，go-echarts 的开发就是为了填补这部分的空隙。Apache ECharts 是非常优秀的可视化图表库，凭借着良好的交互性，精巧的图表设计，得到了众多开发者的认可。也有其他语言为其实现了相应语言版本的接口，如 Python 的 pyecharts，go-echarts 也是借鉴了 pyecharts 的一些设计思想。\u003c\/p\u003e\n\u003cp\u003e特性\u003c\/p\u003e\n\u003cul\u003e\n\u003cli\u003e简洁的 API 设计，使用如丝滑般流畅\u003c\/li\u003e\n\u003cli\u003e囊括了 25\u002b 种常见图表，应有尽有\u003c\/li\u003e\n\u003cli\u003e高度灵活的配置项，可轻松搭配出精美的图表\u003c\/li\u003e\n\u003cli\u003e详细的文档和示例，帮助开发者更快的上手项目\u003c\/li\u003e\n\u003cli\u003e多达 400\u002b 地图，为地理数据可视化提供强有力的支持\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003ch3 id=\u0022如何使用\u0022\u003e如何使用\u003c\/h3\u003e\n\u003cp\u003e1.安装go-echarts库\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-shell\u0022 data-lang=\u0022shell\u0022\u003ego get -u github.com\/go-echarts\/go-echarts\/v2\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e2.接着，我们来创建一个图表实例，绘制一个条形图，来演示如何使用。\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;math\/rand\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;os\u0026#34;\u003c\/span\u003e\n\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-echarts\/go-echarts\/v2\/charts\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-echarts\/go-echarts\/v2\/opts\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ generate random data for bar chartg\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateBarItems\u003c\/span\u003e() []\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBarData\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e make([]\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBarData\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e; \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u0026lt; \u003cspan style=\u0022color:#ae81ff\u0022\u003e7\u003c\/span\u003e; \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\u002b\u002b\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e = append(\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBarData\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e: \u003cspan style=\u0022color:#a6e22e\u0022\u003erand\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eIntn\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e300\u003c\/span\u003e)})\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/创建一个新的bar实例\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebar\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003echarts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewBar\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/设置一些全局选项，如标题\/图例\/工具提示或其他任何东西\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/example: 标题\/子标题\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebar\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetGlobalOptions\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003echarts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithTitleOpts\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTitle\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eTitle\u003c\/span\u003e:    \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;My first bar chart generated by go-echarts\u0026#34;\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eSubtitle\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;It\u0026#39;s extremely easy to use, right?\u0026#34;\u003c\/span\u003e,\n\t}))\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/将数据放入实例\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebar\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetXAxis\u003c\/span\u003e([]\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e{\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Mon\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Tue\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Wed\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Thu\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Fri\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Sat\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Sun\u0026#34;\u003c\/span\u003e}).\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddSeries\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Category A\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateBarItems\u003c\/span\u003e()).\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddSeries\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Category B\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateBarItems\u003c\/span\u003e())\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/奇迹发生的地方-绘图生成html\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ef\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003e_\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eos\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eCreate\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;bar.html\u0026#34;\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ebar\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRender\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ef\u003c\/span\u003e)\n}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e运行上例，会生成bar.html，详细：\n\u003cimg src=\u0022\/images\/go-echars-1.png\u0022 alt=\u0022\u0022\u003e\u003c\/p\u003e\n\u003col start=\u00223\u0022\u003e\n\u003cli\u003e如果想把上例改成折线图呢\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-echarts\/go-echarts\/v2\/charts\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-echarts\/go-echarts\/v2\/opts\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;math\/rand\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;os\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ generate random data for line chart\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateLineItems\u003c\/span\u003e() []\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLineData\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e make([]\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLineData\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e; \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u0026lt; \u003cspan style=\u0022color:#ae81ff\u0022\u003e7\u003c\/span\u003e; \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\u002b\u002b\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e = append(\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLineData\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e: \u003cspan style=\u0022color:#a6e22e\u0022\u003erand\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eIntn\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e300\u003c\/span\u003e)})\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/创建一个折线图实例\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eline\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003echarts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewLine\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/设置一些全局选项，如标题\/图例\/工具提示或其他任何东西\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/example: 标题\/子标题\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eline\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetGlobalOptions\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003echarts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithTitleOpts\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTitle\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eTitle\u003c\/span\u003e:    \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;My first lines chart generated by go-echarts\u0026#34;\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eSubtitle\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;It\u0026#39;s extremely easy to use, right?\u0026#34;\u003c\/span\u003e,\n\t}))\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/将数据放入实例\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eline\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetXAxis\u003c\/span\u003e([]\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e{\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Mon\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Tue\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Wed\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Thu\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Fri\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Sat\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Sun\u0026#34;\u003c\/span\u003e}).\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddSeries\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Category A\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateLineItems\u003c\/span\u003e()).\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddSeries\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Category B\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateLineItems\u003c\/span\u003e()).\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetSeriesOptions\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003echarts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithLineChartOpts\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLineChart\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eSmooth\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003etrue\u003c\/span\u003e}))\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/奇迹发生的地方-绘图生成html\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ef\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003e_\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eos\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eCreate\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;lines.html\u0026#34;\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eline\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRender\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ef\u003c\/span\u003e)\n}\n\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e运行上例，会生成lines.html，详细：\u003c\/p\u003e\n\u003cp\u003e\u003cimg src=\u0022\/images\/go-echars-2.png\u0022 alt=\u0022\u0022\u003e\u003c\/p\u003e\n\u003col start=\u00224\u0022\u003e\n\u003cli\u003e如果想直接生成图表的 http serve呢：\u003c\/li\u003e\n\u003c\/ol\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4\u0022\u003e\u003ccode class=\u0022language-go\u0022 data-lang=\u0022go\u0022\u003e\u003cspan style=\u0022color:#f92672\u0022\u003epackage\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e\n\n\u003cspan style=\u0022color:#f92672\u0022\u003eimport\u003c\/span\u003e (\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-echarts\/go-echarts\/v2\/charts\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;github.com\/go-echarts\/go-echarts\/v2\/opts\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;math\/rand\u0026#34;\u003c\/span\u003e\n\t\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;net\/http\u0026#34;\u003c\/span\u003e\n)\n\n\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ generate random data for line chart\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateLineItems\u003c\/span\u003e() []\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLineData\u003c\/span\u003e {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e make([]\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLineData\u003c\/span\u003e, \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003efor\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e; \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e \u0026lt; \u003cspan style=\u0022color:#ae81ff\u0022\u003e7\u003c\/span\u003e; \u003cspan style=\u0022color:#a6e22e\u0022\u003ei\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e\u002b\u002b\u003c\/span\u003e {\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e = append(\u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLineData\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eValue\u003c\/span\u003e: \u003cspan style=\u0022color:#a6e22e\u0022\u003erand\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eIntn\u003c\/span\u003e(\u003cspan style=\u0022color:#ae81ff\u0022\u003e300\u003c\/span\u003e)})\n\t}\n\t\u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eitems\u003c\/span\u003e\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttpserver\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eResponseWriter\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003e_\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRequest\u003c\/span\u003e) {\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/创建一个折线图实例\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eline\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e:=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003echarts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eNewLine\u003c\/span\u003e()\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/设置一些全局选项，如标题\/图例\/工具提示或其他任何东西\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/example: 标题\/子标题\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eline\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetGlobalOptions\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003echarts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithTitleOpts\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eTitle\u003c\/span\u003e{\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eTitle\u003c\/span\u003e:    \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;My first lines chart generated by go-echarts\u0026#34;\u003c\/span\u003e,\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eSubtitle\u003c\/span\u003e: \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;It\u0026#39;s extremely easy to use, right?\u0026#34;\u003c\/span\u003e,\n\t}))\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/将数据放入实例\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eline\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetXAxis\u003c\/span\u003e([]\u003cspan style=\u0022color:#66d9ef\u0022\u003estring\u003c\/span\u003e{\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Mon\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Tue\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Wed\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Thu\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Fri\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Sat\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Sun\u0026#34;\u003c\/span\u003e}).\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddSeries\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Category A\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateLineItems\u003c\/span\u003e()).\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eAddSeries\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;Category B\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003egenerateLineItems\u003c\/span\u003e()).\n\t\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eSetSeriesOptions\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003echarts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eWithLineChartOpts\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003eopts\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eLineChart\u003c\/span\u003e{\u003cspan style=\u0022color:#a6e22e\u0022\u003eSmooth\u003c\/span\u003e: \u003cspan style=\u0022color:#66d9ef\u0022\u003etrue\u003c\/span\u003e}))\n\n\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/\/奇迹发生的地方-绘图生成html\n\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\t\u003cspan style=\u0022color:#a6e22e\u0022\u003eline\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eRender\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003ew\u003c\/span\u003e)\n}\n\n\u003cspan style=\u0022color:#66d9ef\u0022\u003efunc\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003emain\u003c\/span\u003e() {\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eHandleFunc\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\/\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#a6e22e\u0022\u003ehttpserver\u003c\/span\u003e)\n\t\u003cspan style=\u0022color:#a6e22e\u0022\u003ehttp\u003c\/span\u003e.\u003cspan style=\u0022color:#a6e22e\u0022\u003eListenAndServe\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;:8080\u0026#34;\u003c\/span\u003e, \u003cspan style=\u0022color:#66d9ef\u0022\u003enil\u003c\/span\u003e)\n}\n\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e访问，http:\/\/localhost:8080\/ ，详细如下\n\u003cimg src=\u0022\/images\/go-echars-3.png\u0022 alt=\u0022\u0022\u003e\u003c\/p\u003e\n\u003ch3 id=\u0022三总结\u0022\u003e三、总结\u003c\/h3\u003e\n\u003cp\u003e本文简要介绍go-echarts和使用方法，并通过绘制条形图、折线图和图表的http server 的例子演示了使用方法。更多功能待续。\u003c\/p\u003e\n\u003ch3 id=\u0022参考\u0022\u003e参考\u003c\/h3\u003e\n\u003cul\u003e\n\u003cli\u003e\u003ca href=\u0022%C2%A0%C2%A0https:\/\/github.com\/go-echarts\/go-echarts\u0022\u003ego-echarts\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022%C2%A0https:\/\/github.com\/go-echarts\/examples\u0022\u003ego-echarts\/examples\u003c\/a\u003e\u003c\/li\u003e\n\u003cli\u003e\u003ca href=\u0022https:\/\/echrts.apache.org\/zh\/index.html\u0022\u003eechrts\u003c\/a\u003e\u003c\/li\u003e\n\u003c\/ul\u003e",
+  "url":"https:\/\/luckytking.github.io\/2023\/07\/go%E7%BB%98%E5%88%B6%E5%9B%BE%E8%A1%A8%E5%BA%93go-echarts\/",
+  "keywords":"[go-echars, echars]"
+}
+
+</script>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.89.2 with theme Tranquilpeak 0.5.3-BETA">
+<meta name="author" content="jefffff">
+<meta name="keywords" content="go-echars, echars">
+<meta name="description" content="简介
+ECharts是一款基于JavaScript的数据可视化图表库，提供直观，生动，可交互，可个性化定制的数据可视化图表。ECharts最初由百度团队开源，并于2018年初捐赠给Apache基金会，成为ASF孵化级项目。
+在 Golang 这门语言中，目前数据可视化的第三方库还是特别少，go-echarts 的开发就是为了填补这部分的空隙。Apache ECharts 是非常优秀的可视化图表库，凭借着良好的交互性，精巧的图表设计，得到了众多开发者的认可。也有其他语言为其实现了相应语言版本的接口，如 Python 的 pyecharts，go-echarts 也是借鉴了 pyecharts 的一些设计思想。
+特性
+
+简洁的 API 设计，使用如丝滑般流畅
+囊括了 25&#43; 种常见图表，应有尽有
+高度灵活的配置项，可轻松搭配出精美的图表
+详细的文档和示例，帮助开发者更快的上手项目
+多达 400&#43; 地图，为地理数据可视化提供强有力的支持
+
+如何使用
+1.安装go-echarts库
+go get -u github.com/go-echarts/go-echarts/v2
+2.接着，我们来创建一个图表实例，绘制一个条形图，来演示如何使用。
+package main
+
+import (
+	&#34;math/rand&#34;
+	&#34;os&#34;
+
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+)
+
+// generate random data for bar chartg
+func generateBarItems() []opts.BarData {
+	items := make([]opts.BarData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.BarData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func main() {
+	//创建一个新的bar实例
+	bar := charts.NewBar()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	bar.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first bar chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	bar.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateBarItems()).
+		AddSeries(&#34;Category B&#34;, generateBarItems())
+	//奇迹发生的地方-绘图生成html
+	f, _ := os.Create(&#34;bar.html&#34;)
+	bar.Render(f)
+}
+
+运行上例，会生成bar.html，详细：
+
+
+如果想把上例改成折线图呢
+
+package main
+
+import (
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+	&#34;math/rand&#34;
+	&#34;os&#34;
+)
+
+// generate random data for line chart
+func generateLineItems() []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.LineData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func main() {
+	//创建一个折线图实例
+	line := charts.NewLine()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first lines chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	line.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateLineItems()).
+		AddSeries(&#34;Category B&#34;, generateLineItems()).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	//奇迹发生的地方-绘图生成html
+	f, _ := os.Create(&#34;lines.html&#34;)
+	line.Render(f)
+}
+
+运行上例，会生成lines.html，详细：
+
+
+如果想直接生成图表的 http serve呢：
+
+package main
+
+import (
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+	&#34;math/rand&#34;
+	&#34;net/http&#34;
+)
+
+// generate random data for line chart
+func generateLineItems() []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.LineData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func httpserver(w http.ResponseWriter, _ *http.Request) {
+	//创建一个折线图实例
+	line := charts.NewLine()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first lines chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	line.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateLineItems()).
+		AddSeries(&#34;Category B&#34;, generateLineItems()).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	//奇迹发生的地方-绘图生成html
+	line.Render(w)
+}
+
+func main() {
+	http.HandleFunc(&#34;/&#34;, httpserver)
+	http.ListenAndServe(&#34;:8080&#34;, nil)
+}
+访问，http://localhost:8080/ ，详细如下
+
+三、总结
+本文简要介绍go-echarts和使用方法，并通过绘制条形图、折线图和图表的http server 的例子演示了使用方法。更多功能待续。
+参考
+
+go-echarts
+go-echarts/examples
+echrts
+">
+
+
+<meta property="og:description" content="简介
+ECharts是一款基于JavaScript的数据可视化图表库，提供直观，生动，可交互，可个性化定制的数据可视化图表。ECharts最初由百度团队开源，并于2018年初捐赠给Apache基金会，成为ASF孵化级项目。
+在 Golang 这门语言中，目前数据可视化的第三方库还是特别少，go-echarts 的开发就是为了填补这部分的空隙。Apache ECharts 是非常优秀的可视化图表库，凭借着良好的交互性，精巧的图表设计，得到了众多开发者的认可。也有其他语言为其实现了相应语言版本的接口，如 Python 的 pyecharts，go-echarts 也是借鉴了 pyecharts 的一些设计思想。
+特性
+
+简洁的 API 设计，使用如丝滑般流畅
+囊括了 25&#43; 种常见图表，应有尽有
+高度灵活的配置项，可轻松搭配出精美的图表
+详细的文档和示例，帮助开发者更快的上手项目
+多达 400&#43; 地图，为地理数据可视化提供强有力的支持
+
+如何使用
+1.安装go-echarts库
+go get -u github.com/go-echarts/go-echarts/v2
+2.接着，我们来创建一个图表实例，绘制一个条形图，来演示如何使用。
+package main
+
+import (
+	&#34;math/rand&#34;
+	&#34;os&#34;
+
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+)
+
+// generate random data for bar chartg
+func generateBarItems() []opts.BarData {
+	items := make([]opts.BarData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.BarData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func main() {
+	//创建一个新的bar实例
+	bar := charts.NewBar()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	bar.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first bar chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	bar.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateBarItems()).
+		AddSeries(&#34;Category B&#34;, generateBarItems())
+	//奇迹发生的地方-绘图生成html
+	f, _ := os.Create(&#34;bar.html&#34;)
+	bar.Render(f)
+}
+
+运行上例，会生成bar.html，详细：
+
+
+如果想把上例改成折线图呢
+
+package main
+
+import (
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+	&#34;math/rand&#34;
+	&#34;os&#34;
+)
+
+// generate random data for line chart
+func generateLineItems() []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.LineData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func main() {
+	//创建一个折线图实例
+	line := charts.NewLine()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first lines chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	line.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateLineItems()).
+		AddSeries(&#34;Category B&#34;, generateLineItems()).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	//奇迹发生的地方-绘图生成html
+	f, _ := os.Create(&#34;lines.html&#34;)
+	line.Render(f)
+}
+
+运行上例，会生成lines.html，详细：
+
+
+如果想直接生成图表的 http serve呢：
+
+package main
+
+import (
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+	&#34;math/rand&#34;
+	&#34;net/http&#34;
+)
+
+// generate random data for line chart
+func generateLineItems() []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.LineData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func httpserver(w http.ResponseWriter, _ *http.Request) {
+	//创建一个折线图实例
+	line := charts.NewLine()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first lines chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	line.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateLineItems()).
+		AddSeries(&#34;Category B&#34;, generateLineItems()).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	//奇迹发生的地方-绘图生成html
+	line.Render(w)
+}
+
+func main() {
+	http.HandleFunc(&#34;/&#34;, httpserver)
+	http.ListenAndServe(&#34;:8080&#34;, nil)
+}
+访问，http://localhost:8080/ ，详细如下
+
+三、总结
+本文简要介绍go-echarts和使用方法，并通过绘制条形图、折线图和图表的http server 的例子演示了使用方法。更多功能待续。
+参考
+
+go-echarts
+go-echarts/examples
+echrts
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Go绘制图表库go Echarts">
+<meta name="twitter:title" content="Go绘制图表库go Echarts">
+<meta property="og:url" content="https://luckytking.github.io/2023/07/go%E7%BB%98%E5%88%B6%E5%9B%BE%E8%A1%A8%E5%BA%93go-echarts/">
+<meta property="twitter:url" content="https://luckytking.github.io/2023/07/go%E7%BB%98%E5%88%B6%E5%9B%BE%E8%A1%A8%E5%BA%93go-echarts/">
+<meta property="og:site_name" content="jefffff&#39;s Blog">
+<meta property="og:description" content="简介
+ECharts是一款基于JavaScript的数据可视化图表库，提供直观，生动，可交互，可个性化定制的数据可视化图表。ECharts最初由百度团队开源，并于2018年初捐赠给Apache基金会，成为ASF孵化级项目。
+在 Golang 这门语言中，目前数据可视化的第三方库还是特别少，go-echarts 的开发就是为了填补这部分的空隙。Apache ECharts 是非常优秀的可视化图表库，凭借着良好的交互性，精巧的图表设计，得到了众多开发者的认可。也有其他语言为其实现了相应语言版本的接口，如 Python 的 pyecharts，go-echarts 也是借鉴了 pyecharts 的一些设计思想。
+特性
+
+简洁的 API 设计，使用如丝滑般流畅
+囊括了 25&#43; 种常见图表，应有尽有
+高度灵活的配置项，可轻松搭配出精美的图表
+详细的文档和示例，帮助开发者更快的上手项目
+多达 400&#43; 地图，为地理数据可视化提供强有力的支持
+
+如何使用
+1.安装go-echarts库
+go get -u github.com/go-echarts/go-echarts/v2
+2.接着，我们来创建一个图表实例，绘制一个条形图，来演示如何使用。
+package main
+
+import (
+	&#34;math/rand&#34;
+	&#34;os&#34;
+
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+)
+
+// generate random data for bar chartg
+func generateBarItems() []opts.BarData {
+	items := make([]opts.BarData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.BarData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func main() {
+	//创建一个新的bar实例
+	bar := charts.NewBar()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	bar.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first bar chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	bar.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateBarItems()).
+		AddSeries(&#34;Category B&#34;, generateBarItems())
+	//奇迹发生的地方-绘图生成html
+	f, _ := os.Create(&#34;bar.html&#34;)
+	bar.Render(f)
+}
+
+运行上例，会生成bar.html，详细：
+
+
+如果想把上例改成折线图呢
+
+package main
+
+import (
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+	&#34;math/rand&#34;
+	&#34;os&#34;
+)
+
+// generate random data for line chart
+func generateLineItems() []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.LineData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func main() {
+	//创建一个折线图实例
+	line := charts.NewLine()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first lines chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	line.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateLineItems()).
+		AddSeries(&#34;Category B&#34;, generateLineItems()).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	//奇迹发生的地方-绘图生成html
+	f, _ := os.Create(&#34;lines.html&#34;)
+	line.Render(f)
+}
+
+运行上例，会生成lines.html，详细：
+
+
+如果想直接生成图表的 http serve呢：
+
+package main
+
+import (
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+	&#34;math/rand&#34;
+	&#34;net/http&#34;
+)
+
+// generate random data for line chart
+func generateLineItems() []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.LineData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func httpserver(w http.ResponseWriter, _ *http.Request) {
+	//创建一个折线图实例
+	line := charts.NewLine()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first lines chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	line.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateLineItems()).
+		AddSeries(&#34;Category B&#34;, generateLineItems()).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	//奇迹发生的地方-绘图生成html
+	line.Render(w)
+}
+
+func main() {
+	http.HandleFunc(&#34;/&#34;, httpserver)
+	http.ListenAndServe(&#34;:8080&#34;, nil)
+}
+访问，http://localhost:8080/ ，详细如下
+
+三、总结
+本文简要介绍go-echarts和使用方法，并通过绘制条形图、折线图和图表的http server 的例子演示了使用方法。更多功能待续。
+参考
+
+go-echarts
+go-echarts/examples
+echrts
+">
+<meta name="twitter:description" content="简介
+ECharts是一款基于JavaScript的数据可视化图表库，提供直观，生动，可交互，可个性化定制的数据可视化图表。ECharts最初由百度团队开源，并于2018年初捐赠给Apache基金会，成为ASF孵化级项目。
+在 Golang 这门语言中，目前数据可视化的第三方库还是特别少，go-echarts 的开发就是为了填补这部分的空隙。Apache ECharts 是非常优秀的可视化图表库，凭借着良好的交互性，精巧的图表设计，得到了众多开发者的认可。也有其他语言为其实现了相应语言版本的接口，如 Python 的 pyecharts，go-echarts 也是借鉴了 pyecharts 的一些设计思想。
+特性
+
+简洁的 API 设计，使用如丝滑般流畅
+囊括了 25&#43; 种常见图表，应有尽有
+高度灵活的配置项，可轻松搭配出精美的图表
+详细的文档和示例，帮助开发者更快的上手项目
+多达 400&#43; 地图，为地理数据可视化提供强有力的支持
+
+如何使用
+1.安装go-echarts库
+go get -u github.com/go-echarts/go-echarts/v2
+2.接着，我们来创建一个图表实例，绘制一个条形图，来演示如何使用。
+package main
+
+import (
+	&#34;math/rand&#34;
+	&#34;os&#34;
+
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+)
+
+// generate random data for bar chartg
+func generateBarItems() []opts.BarData {
+	items := make([]opts.BarData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.BarData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func main() {
+	//创建一个新的bar实例
+	bar := charts.NewBar()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	bar.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first bar chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	bar.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateBarItems()).
+		AddSeries(&#34;Category B&#34;, generateBarItems())
+	//奇迹发生的地方-绘图生成html
+	f, _ := os.Create(&#34;bar.html&#34;)
+	bar.Render(f)
+}
+
+运行上例，会生成bar.html，详细：
+
+
+如果想把上例改成折线图呢
+
+package main
+
+import (
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+	&#34;math/rand&#34;
+	&#34;os&#34;
+)
+
+// generate random data for line chart
+func generateLineItems() []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.LineData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func main() {
+	//创建一个折线图实例
+	line := charts.NewLine()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first lines chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	line.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateLineItems()).
+		AddSeries(&#34;Category B&#34;, generateLineItems()).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	//奇迹发生的地方-绘图生成html
+	f, _ := os.Create(&#34;lines.html&#34;)
+	line.Render(f)
+}
+
+运行上例，会生成lines.html，详细：
+
+
+如果想直接生成图表的 http serve呢：
+
+package main
+
+import (
+	&#34;github.com/go-echarts/go-echarts/v2/charts&#34;
+	&#34;github.com/go-echarts/go-echarts/v2/opts&#34;
+	&#34;math/rand&#34;
+	&#34;net/http&#34;
+)
+
+// generate random data for line chart
+func generateLineItems() []opts.LineData {
+	items := make([]opts.LineData, 0)
+	for i := 0; i &lt; 7; i&#43;&#43; {
+		items = append(items, opts.LineData{Value: rand.Intn(300)})
+	}
+	return items
+}
+
+func httpserver(w http.ResponseWriter, _ *http.Request) {
+	//创建一个折线图实例
+	line := charts.NewLine()
+	//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+	//example: 标题/子标题
+	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
+		Title:    &#34;My first lines chart generated by go-echarts&#34;,
+		Subtitle: &#34;It&#39;s extremely easy to use, right?&#34;,
+	}))
+
+	//将数据放入实例
+	line.SetXAxis([]string{&#34;Mon&#34;, &#34;Tue&#34;, &#34;Wed&#34;, &#34;Thu&#34;, &#34;Fri&#34;, &#34;Sat&#34;, &#34;Sun&#34;}).
+		AddSeries(&#34;Category A&#34;, generateLineItems()).
+		AddSeries(&#34;Category B&#34;, generateLineItems()).
+		SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{Smooth: true}))
+
+	//奇迹发生的地方-绘图生成html
+	line.Render(w)
+}
+
+func main() {
+	http.HandleFunc(&#34;/&#34;, httpserver)
+	http.ListenAndServe(&#34;:8080&#34;, nil)
+}
+访问，http://localhost:8080/ ，详细如下
+
+三、总结
+本文简要介绍go-echarts和使用方法，并通过绘制条形图、折线图和图表的http server 的例子演示了使用方法。更多功能待续。
+参考
+
+go-echarts
+go-echarts/examples
+echrts
+">
+<meta property="og:locale" content="en">
+
+  
+    <meta property="article:published_time" content="2023-07-30T18:48:38">
+  
+  
+    <meta property="article:modified_time" content="2023-07-30T18:48:38">
+  
+  
+  
+    
+      <meta property="article:section" content="go">
+    
+  
+  
+    
+      <meta property="article:tag" content="go可视化">
+    
+      <meta property="article:tag" content="go-echars">
+    
+      <meta property="article:tag" content="echars">
+    
+      <meta property="article:tag" content="go-tools">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+  <meta name="twitter:site" content="@none">
+
+
+  <meta name="twitter:creator" content="@none">
+
+
+
+
+
+
+  <meta property="og:image" content="https://luckytking.github.io/images/tk.jpg">
+  <meta property="twitter:image" content="https://luckytking.github.io/images/tk.jpg">
+
+
+
+
+
+
+    <title>Go绘制图表库go Echarts</title>
+
+    <link rel="icon" href="https://luckytking.github.io/favicon.jpg">
+    
+
+    
+      <link rel="publisher" href="https://plus.google.com/&#43;thibaudlepretre">
+    
+
+    <link rel="canonical" href="https://luckytking.github.io/2023/07/go%E7%BB%98%E5%88%B6%E5%9B%BE%E8%A1%A8%E5%BA%93go-echarts/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha512-H9jrZiiopUdsLpg94A333EfumgUBpO9MdbxStdeITo+KEIMaNfHNvwyjjDJb+ERPaRS6DpyRlKbvPUasNItRyw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    
+    
+    <link rel="stylesheet" href="https://luckytking.github.io/css/style-h6ccsoet3mzkbb0wngshlfbaweimexgqcxj0h5hu4h82olsdzz6wmqdkajm.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="5">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://luckytking.github.io/" aria-label="">jefffff&#39;s Blog</a>
+  </div>
+  
+    
+      <a class="header-right-icon open-algolia-search"
+         href="https://luckytking.github.io/#search" aria-label="">
+    
+    
+      <i class="fa fa-lg fa-search"></i>
+    
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="5">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://luckytking.github.io/#about" aria-label="">
+          <img class="sidebar-profile-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+        </a>
+        <h4 class="sidebar-profile-name">jefffff</h4>
+        
+          <h5 class="sidebar-profile-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/" title="Home">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-home" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/categories" title="Categories">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-bookmark" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/tags" title="Tags">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-tags" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/archives" title="Archives">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-archive" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/#about" title="About">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-question" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/luckytking" target="_blank" rel="noopener" title="GitHub">
+    
+      <i class="sidebar-button-icon fab fa-lg fa-github" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://luckytking.github.io/index.xml" title="RSS">
+    
+      <i class="sidebar-button-icon fas fa-lg fa-rss" aria-hidden="true"></i>
+      
+      <span class="sidebar-button-desc">RSS</span>
+    </a>
+  </li>
+
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="5"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" id="top">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title">
+      Go绘制图表库go Echarts
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time datetime="2023-07-30T18:48:38&#43;08:00">
+        
+   30, 2023
+
+      </time>
+    
+    
+  
+  
+    <span></span>
+    
+      <a class="category-link" href="https://luckytking.github.io/categories/go">go</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown">
+            <div class="main-content-wrap">
+              <h3 id="简介">简介</h3>
+<p>ECharts是一款基于JavaScript的数据可视化图表库，提供直观，生动，可交互，可个性化定制的数据可视化图表。ECharts最初由百度团队开源，并于2018年初捐赠给Apache基金会，成为ASF孵化级项目。</p>
+<p>在 Golang 这门语言中，目前数据可视化的第三方库还是特别少，go-echarts 的开发就是为了填补这部分的空隙。Apache ECharts 是非常优秀的可视化图表库，凭借着良好的交互性，精巧的图表设计，得到了众多开发者的认可。也有其他语言为其实现了相应语言版本的接口，如 Python 的 pyecharts，go-echarts 也是借鉴了 pyecharts 的一些设计思想。</p>
+<p>特性</p>
+<ul>
+<li>简洁的 API 设计，使用如丝滑般流畅</li>
+<li>囊括了 25+ 种常见图表，应有尽有</li>
+<li>高度灵活的配置项，可轻松搭配出精美的图表</li>
+<li>详细的文档和示例，帮助开发者更快的上手项目</li>
+<li>多达 400+ 地图，为地理数据可视化提供强有力的支持</li>
+</ul>
+<h3 id="如何使用">如何使用</h3>
+<p>1.安装go-echarts库</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">go get -u github.com/go-echarts/go-echarts/v2
+</code></pre></div><p>2.接着，我们来创建一个图表实例，绘制一个条形图，来演示如何使用。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+
+	<span style="color:#e6db74">&#34;github.com/go-echarts/go-echarts/v2/charts&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-echarts/go-echarts/v2/opts&#34;</span>
+)
+
+<span style="color:#75715e">// generate random data for bar chartg
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">generateBarItems</span>() []<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">BarData</span> {
+	<span style="color:#a6e22e">items</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">BarData</span>, <span style="color:#ae81ff">0</span>)
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">7</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#a6e22e">items</span> = append(<span style="color:#a6e22e">items</span>, <span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">BarData</span>{<span style="color:#a6e22e">Value</span>: <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">300</span>)})
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">items</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#75715e">//创建一个新的bar实例
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">bar</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">charts</span>.<span style="color:#a6e22e">NewBar</span>()
+	<span style="color:#75715e">//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">//example: 标题/子标题
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">bar</span>.<span style="color:#a6e22e">SetGlobalOptions</span>(<span style="color:#a6e22e">charts</span>.<span style="color:#a6e22e">WithTitleOpts</span>(<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">Title</span>{
+		<span style="color:#a6e22e">Title</span>:    <span style="color:#e6db74">&#34;My first bar chart generated by go-echarts&#34;</span>,
+		<span style="color:#a6e22e">Subtitle</span>: <span style="color:#e6db74">&#34;It&#39;s extremely easy to use, right?&#34;</span>,
+	}))
+
+	<span style="color:#75715e">//将数据放入实例
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">bar</span>.<span style="color:#a6e22e">SetXAxis</span>([]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;Mon&#34;</span>, <span style="color:#e6db74">&#34;Tue&#34;</span>, <span style="color:#e6db74">&#34;Wed&#34;</span>, <span style="color:#e6db74">&#34;Thu&#34;</span>, <span style="color:#e6db74">&#34;Fri&#34;</span>, <span style="color:#e6db74">&#34;Sat&#34;</span>, <span style="color:#e6db74">&#34;Sun&#34;</span>}).
+		<span style="color:#a6e22e">AddSeries</span>(<span style="color:#e6db74">&#34;Category A&#34;</span>, <span style="color:#a6e22e">generateBarItems</span>()).
+		<span style="color:#a6e22e">AddSeries</span>(<span style="color:#e6db74">&#34;Category B&#34;</span>, <span style="color:#a6e22e">generateBarItems</span>())
+	<span style="color:#75715e">//奇迹发生的地方-绘图生成html
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#e6db74">&#34;bar.html&#34;</span>)
+	<span style="color:#a6e22e">bar</span>.<span style="color:#a6e22e">Render</span>(<span style="color:#a6e22e">f</span>)
+}
+
+</code></pre></div><p>运行上例，会生成bar.html，详细：
+<img src="https://luckytking.github.io/images/go-echars-1.png" alt=""></p>
+<ol start="3">
+<li>如果想把上例改成折线图呢</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;github.com/go-echarts/go-echarts/v2/charts&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-echarts/go-echarts/v2/opts&#34;</span>
+	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+)
+
+<span style="color:#75715e">// generate random data for line chart
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">generateLineItems</span>() []<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">LineData</span> {
+	<span style="color:#a6e22e">items</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">LineData</span>, <span style="color:#ae81ff">0</span>)
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">7</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#a6e22e">items</span> = append(<span style="color:#a6e22e">items</span>, <span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">LineData</span>{<span style="color:#a6e22e">Value</span>: <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">300</span>)})
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">items</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#75715e">//创建一个折线图实例
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">line</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">charts</span>.<span style="color:#a6e22e">NewLine</span>()
+	<span style="color:#75715e">//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">//example: 标题/子标题
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">line</span>.<span style="color:#a6e22e">SetGlobalOptions</span>(<span style="color:#a6e22e">charts</span>.<span style="color:#a6e22e">WithTitleOpts</span>(<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">Title</span>{
+		<span style="color:#a6e22e">Title</span>:    <span style="color:#e6db74">&#34;My first lines chart generated by go-echarts&#34;</span>,
+		<span style="color:#a6e22e">Subtitle</span>: <span style="color:#e6db74">&#34;It&#39;s extremely easy to use, right?&#34;</span>,
+	}))
+
+	<span style="color:#75715e">//将数据放入实例
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">line</span>.<span style="color:#a6e22e">SetXAxis</span>([]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;Mon&#34;</span>, <span style="color:#e6db74">&#34;Tue&#34;</span>, <span style="color:#e6db74">&#34;Wed&#34;</span>, <span style="color:#e6db74">&#34;Thu&#34;</span>, <span style="color:#e6db74">&#34;Fri&#34;</span>, <span style="color:#e6db74">&#34;Sat&#34;</span>, <span style="color:#e6db74">&#34;Sun&#34;</span>}).
+		<span style="color:#a6e22e">AddSeries</span>(<span style="color:#e6db74">&#34;Category A&#34;</span>, <span style="color:#a6e22e">generateLineItems</span>()).
+		<span style="color:#a6e22e">AddSeries</span>(<span style="color:#e6db74">&#34;Category B&#34;</span>, <span style="color:#a6e22e">generateLineItems</span>()).
+		<span style="color:#a6e22e">SetSeriesOptions</span>(<span style="color:#a6e22e">charts</span>.<span style="color:#a6e22e">WithLineChartOpts</span>(<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">LineChart</span>{<span style="color:#a6e22e">Smooth</span>: <span style="color:#66d9ef">true</span>}))
+
+	<span style="color:#75715e">//奇迹发生的地方-绘图生成html
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#e6db74">&#34;lines.html&#34;</span>)
+	<span style="color:#a6e22e">line</span>.<span style="color:#a6e22e">Render</span>(<span style="color:#a6e22e">f</span>)
+}
+
+</code></pre></div><p>运行上例，会生成lines.html，详细：</p>
+<p><img src="https://luckytking.github.io/images/go-echars-2.png" alt=""></p>
+<ol start="4">
+<li>如果想直接生成图表的 http serve呢：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;github.com/go-echarts/go-echarts/v2/charts&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/go-echarts/go-echarts/v2/opts&#34;</span>
+	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+)
+
+<span style="color:#75715e">// generate random data for line chart
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">generateLineItems</span>() []<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">LineData</span> {
+	<span style="color:#a6e22e">items</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">LineData</span>, <span style="color:#ae81ff">0</span>)
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">7</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#a6e22e">items</span> = append(<span style="color:#a6e22e">items</span>, <span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">LineData</span>{<span style="color:#a6e22e">Value</span>: <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">300</span>)})
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">items</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">httpserver</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+	<span style="color:#75715e">//创建一个折线图实例
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">line</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">charts</span>.<span style="color:#a6e22e">NewLine</span>()
+	<span style="color:#75715e">//设置一些全局选项，如标题/图例/工具提示或其他任何东西
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">//example: 标题/子标题
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">line</span>.<span style="color:#a6e22e">SetGlobalOptions</span>(<span style="color:#a6e22e">charts</span>.<span style="color:#a6e22e">WithTitleOpts</span>(<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">Title</span>{
+		<span style="color:#a6e22e">Title</span>:    <span style="color:#e6db74">&#34;My first lines chart generated by go-echarts&#34;</span>,
+		<span style="color:#a6e22e">Subtitle</span>: <span style="color:#e6db74">&#34;It&#39;s extremely easy to use, right?&#34;</span>,
+	}))
+
+	<span style="color:#75715e">//将数据放入实例
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">line</span>.<span style="color:#a6e22e">SetXAxis</span>([]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;Mon&#34;</span>, <span style="color:#e6db74">&#34;Tue&#34;</span>, <span style="color:#e6db74">&#34;Wed&#34;</span>, <span style="color:#e6db74">&#34;Thu&#34;</span>, <span style="color:#e6db74">&#34;Fri&#34;</span>, <span style="color:#e6db74">&#34;Sat&#34;</span>, <span style="color:#e6db74">&#34;Sun&#34;</span>}).
+		<span style="color:#a6e22e">AddSeries</span>(<span style="color:#e6db74">&#34;Category A&#34;</span>, <span style="color:#a6e22e">generateLineItems</span>()).
+		<span style="color:#a6e22e">AddSeries</span>(<span style="color:#e6db74">&#34;Category B&#34;</span>, <span style="color:#a6e22e">generateLineItems</span>()).
+		<span style="color:#a6e22e">SetSeriesOptions</span>(<span style="color:#a6e22e">charts</span>.<span style="color:#a6e22e">WithLineChartOpts</span>(<span style="color:#a6e22e">opts</span>.<span style="color:#a6e22e">LineChart</span>{<span style="color:#a6e22e">Smooth</span>: <span style="color:#66d9ef">true</span>}))
+
+	<span style="color:#75715e">//奇迹发生的地方-绘图生成html
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">line</span>.<span style="color:#a6e22e">Render</span>(<span style="color:#a6e22e">w</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">httpserver</span>)
+	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;:8080&#34;</span>, <span style="color:#66d9ef">nil</span>)
+}
+</code></pre></div><p>访问，http://localhost:8080/ ，详细如下
+<img src="https://luckytking.github.io/images/go-echars-3.png" alt=""></p>
+<h3 id="三总结">三、总结</h3>
+<p>本文简要介绍go-echarts和使用方法，并通过绘制条形图、折线图和图表的http server 的例子演示了使用方法。更多功能待续。</p>
+<h3 id="参考">参考</h3>
+<ul>
+<li><a href="%C2%A0%C2%A0https://github.com/go-echarts/go-echarts">go-echarts</a></li>
+<li><a href="%C2%A0https://github.com/go-echarts/examples">go-echarts/examples</a></li>
+<li><a href="https://echrts.apache.org/zh/index.html">echrts</a></li>
+</ul>
+              
+
+
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small"></span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/go%E5%8F%AF%E8%A7%86%E5%8C%96/">go可视化</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/go-echars/">go-echars</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/echars/">echars</a>
+
+  <a class="tag tag--primary tag--small" href="https://luckytking.github.io/tags/go-tools/">go-tools</a>
+
+                  </div>
+                
+              
+            
+            
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/" data-tooltip="IngressAnnotations模式启用Apisix的Cors" aria-label=": IngressAnnotations模式启用Apisix的Cors">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+            
+  
+
+
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2023 jefffff. 
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="5">
+        
+<div class="post-actions-wrap">
+  <nav >
+    <ul class="post-actions post-action-nav">
+      
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--default tooltip--top" href="https://luckytking.github.io/2023/07/ingressannotations%E6%A8%A1%E5%BC%8F%E5%90%AF%E7%94%A8apisix%E7%9A%84cors/" data-tooltip="IngressAnnotations模式启用Apisix的Cors" aria-label=": IngressAnnotations模式启用Apisix的Cors">
+          
+              <i class="fa fa-angle-left"></i>
+              <span class="hide-xs hide-sm text-small icon-ml"></span>
+            </a>
+        </li>
+        <li class="post-action">
+          
+            <a class="post-action-btn btn btn--disabled">
+          
+              <span class="hide-xs hide-sm text-small icon-mr"></span>
+              <i class="fa fa-angle-right"></i>
+            </a>
+        </li>
+      
+    </ul>
+  </nav>
+<ul class="post-actions post-action-share" >
+  
+    <li class="post-action hide-lg hide-md hide-sm">
+      <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="">
+        <i class="fa fa-share-alt" aria-hidden="true"></i>
+      </a>
+    </li>
+    
+  
+  
+  <li class="post-action">
+    
+      <a class="post-action-btn btn btn--default" href="#top" aria-label="">
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    
+    </a>
+  </li>
+</ul>
+</div>
+
+
+      </div>
+      
+
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-times"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://luckytking.github.io/images/tk.jpg" alt="" />
+    
+    <h4 id="about-card-name">jefffff</h4>
+    
+      <div id="about-card-bio">Stay hungry. Stay Foolish  <strong>COOL</strong></div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Go backend developer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker-alt"></i>
+        <br/>
+        China Amoy
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://luckytking.github.io/images/cover-v1.2.0.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.1.0/highlight.min.js" integrity="sha512-z+/WWfyD5tccCukM4VvONpEtLmbAm5LDu7eKiyMQJ9m7OfPEDL7gENyDRL3Yfe8XAuGsS2fS4xSMnl6d30kqGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha512-uURl+ZXMBrF4AwGaWmEetzrd+J5/8NRkWAvJx5sbPSSuOb0bZLqf+tOzniObO00BjHa/dD7gub9oCGMLPQHtQA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script src="https://luckytking.github.io/js/script-yqzy9wdlzix4lbbwdnzvwx3egsne77earqmn73v9uno8aupuph8wfguccut.min.js"></script>
+
+
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+
+
+    
+  </body>
+</html>
+
